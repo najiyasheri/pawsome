@@ -1,0 +1,21 @@
+{
+  "name": "pawsome",
+  "version": "1.0.0",
+  "description": "It's an Ecommerce website desined in express using ejs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/najiyasheri/pawsome.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/najiyasheri/pawsome/issues"
+  },
+  "homepage": "https://github.com/najiyasheri/pawsome#readme"
+}

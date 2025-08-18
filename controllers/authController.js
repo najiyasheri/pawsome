@@ -9,7 +9,13 @@ const loadLoginPage = async (req, res) => {
 };
 
 const loadSignupPage = async (req,res) => {
-
+  try {
+    return res.render("user/signup")
+  } catch (error) {
+    console.log('signup page is loading')
+    res.status(500).send("server error loading signup page")
+    
+  }
 }
 
 const loadAdminLogin = async (req,res) => {

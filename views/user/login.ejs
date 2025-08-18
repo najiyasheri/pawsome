@@ -4,33 +4,32 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login Page</title>
-    <link rel="stylesheet" href="/styles/login.css" />
+    <link rel="stylesheet" href="/styles/auth.css" />
   </head>
   <body>
     <div class="main-container">
-      <div class="login-container">
-        <h1 class="login-title">Log in to Exclusive</h1>
-        <p class="login-subtitle">Enter your details below</p>
+      <div class="auth-container">
+        <h1 class="auth-title">Log in to Exclusive</h1>
+        <p class="auth-subtitle">Enter your details below</p>
 
-        <input type="text" class="input-field" placeholder="Email" />
-        <input type="password" class="input-field" placeholder="Password" />
+        <form action="/login" method="POST" class="auth-form">
+          <input type="email" class="input-field" placeholder="Email" />
+          <input type="password" class="input-field" placeholder="Password" />
 
-        <div class="login-section">
-          <button class="login-btn">LOGIN</button>
-          <p class="forgot-password">Forgot Password?</p>
-        </div>
+          <div class="auth-actions">
+            <button type="submit" class="primary-btn">LOGIN</button>
+            <p class="forgot-password">Forgot Password?</p>
+          </div>
+        </form>
 
-        <div class="btn-google">
-            
-            <button class="signup-btn">
-            <img src="/img/google.png" alt="Google" class="google-icon">
-            <p>Sign up with Google</p>
-            </button>
-        </div>
+        <button class="google-btn">
+          <img src="/img/google.png" alt="Google" class="google-icon" />
+          Log in with Google
+        </button>
 
-        <div class="login-bottom">
-          <p class="signup-text">Don’t have an account?</p>
-          <a href="/signup" class="btn-secondary">Sign up</a>
+        <div class="auth-bottom">
+          <p class="bottom-text">Don’t have an account?</p>
+          <a href="/signup" class="link-btn">Sign up</a>
         </div>
       </div>
     </div>

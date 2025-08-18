@@ -1,11 +1,9 @@
-
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
-
 
 body {
   background: #f5f5f5;
@@ -21,28 +19,25 @@ body {
   padding: 20px;
 }
 
-.login-container {
+.auth-container {
   background: #fff;
   padding: 40px 30px;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
- 
 }
 
-
-.login-title {
+.auth-title {
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 10px;
   color: #222;
 }
 
-.login-subtitle {
+.auth-subtitle {
   font-size: 14px;
   color: #777;
   margin-bottom: 25px;
 }
-
 
 .input-field {
   width: 100%;
@@ -50,26 +45,22 @@ body {
   margin-bottom: 16px;
   font-size: 14px;
   transition: all 0.2s ease-in-out;
-
   border: none;
-    border-bottom: 1px solid black;
+  border-bottom: 1px solid black;
   outline: none;
-   box-shadow: none;               
-  background: transparent;  
-  
+  box-shadow: none;
+  background: transparent;
 }
 
 .input-field:focus {
-
   outline: none;
-  
 }
 
-.login-btn {
-  background: #EAC428;
+.primary-btn {
+  background: #eac428;
   color: #000000;
   border: none;
-  padding:  8px 18px;;
+  padding: 10px 18px;
   width: 100%;
   border-radius: 8px;
   font-size: 15px;
@@ -78,7 +69,7 @@ body {
   transition: 0.3s;
 }
 
-.login-btn:hover {
+.primary-btn:hover {
   background: #c2a120;
 }
 
@@ -88,39 +79,45 @@ body {
   color: #555;
   cursor: pointer;
   transition: 0.2s;
-  white-space:nowrap;
+  white-space: nowrap;
 }
 
 .forgot-password:hover {
   color: #000;
 }
 
-
-.btn-google { 
-  margin: 22px 0;
-}
-
-.signup-btn {
+.google-btn {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 8px;
   background: #fff;
   border: 1px solid #ddd;
-  padding: 12px ;
+  padding: 12px;
   width: 100%;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: 0.3s;
+  margin: 22px 0;
 }
 
-.signup-btn:hover {
+.google-btn:hover {
   border-color: #222;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.login-bottom {
+.auth-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 15px 0;
+  gap: 100px;
+}
+
+.auth-bottom {
   display: flex;
   justify-content: center;
   gap: 6px;
@@ -128,31 +125,21 @@ body {
   margin-top: 15px;
 }
 
-.signup-text {
+.bottom-text {
   color: #555;
 }
 
-.btn-secondary {
+.link-btn {
   color: #000000;
   font-weight: 600;
   text-decoration: none;
   transition: 0.2s;
 }
 
-.btn-secondary:hover {
+.link-btn:hover {
   text-decoration: underline;
 }
 
-.login-section{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin:15px 0;
-  gap: 100px;
-}
-
-.google-icon{
+.google-icon {
   height: 20px;
- padding-top: 3px;
 }

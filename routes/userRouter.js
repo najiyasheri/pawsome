@@ -5,5 +5,6 @@ const homeController = require('../controllers/homeController')
 
 router.get('/', homeController.loadHomepage)
 router.get('/login',authController.loadLoginPage)
+router.get('/signup',authController.loadSignupPage)
 
 module.exports=router

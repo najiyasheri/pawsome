@@ -18,12 +18,22 @@ const loadSignupPage = async (req,res) => {
   }
 }
 
+const loadOtpPage=async(req,res)=>{
+  try{
+    return res.render('user/otp')
+  }catch(error){
+    console.log('otp page is loading')
+    res.status(500).send('server error loading otp page')
+  }
+}
+
 const loadAdminLogin = async (req,res) => {
 
-}
+}                                   
 
 module.exports = {
   loadLoginPage,
   loadSignupPage,
+  loadOtpPage,
   loadAdminLogin
 };

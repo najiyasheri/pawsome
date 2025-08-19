@@ -143,3 +143,27 @@ body {
 .google-icon {
   height: 20px;
 }
+.input-field::-webkit-outer-spin-button,
+.input-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.back-arrow{
+  color: #000;
+}
+.resend-otp {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #555;
+}
+.resendLink{
+    color: #EAC428;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.2s;
+}
+.highlight-email{
+    color: #EAC428
+}
+

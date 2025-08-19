@@ -1,3 +1,4 @@
+const User=require('../models/userSchema')
 
 const loadLoginPage = async (req, res) => {
   try {
@@ -45,6 +46,18 @@ const loadResetpassword=async(req,res)=>{
   }
 }
 
+const signup=async(req,res)=>{
+  const{name,email,password}=req.body
+  try{
+ const newUser=new User({name,email,password})
+ await newUser.save()
+ return res.redirect('/signup')
+  }
+  catch(error){
+     console.error('error for save user',error)
+     res.status(500).send('internal server error')
+  }
+}
 
 
 const loadAdminLogin = async (req,res) => {
@@ -57,5 +70,6 @@ module.exports = {
   loadOtpPage,
   loadForgotpassword,
   loadResetpassword,
+  signup,
   loadAdminLogin
 };

@@ -1,35 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Account</title>
-    <link rel="stylesheet" href="/styles/auth.css" />
-  </head>
-  <body>
-    <div class="main-container">
-      <div class="auth-container">
-        <h1 class="auth-title">Create an account</h1>
-        <p class="auth-subtitle">Enter your details below</p>
 
-        <form action="/signup" method="POST" class="auth-form">
-          <input type="text" placeholder="Name" class="input-field" />
-          <input type="email" placeholder="Email" class="input-field" />
-          <input type="password" placeholder="Password" class="input-field" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account</title>
+  <link rel="stylesheet" href="/styles/auth.css" />
+</head>
 
-          <button type="submit" class="primary-btn">SIGN UP</button>
-        </form>
+<body>
+  <div class="main-container">
+    <div class="auth-container">
+      <h1 class="auth-title">Create an account</h1>
+      <p class="auth-subtitle">Enter your details below</p>
 
-        <button class="google-btn">
-          <img src="/img/google.png" alt="Google" class="google-icon" />
-          Sign up with Google
-        </button>
+      <form  id="signform" action="/signup" method="POST" class="auth-form">
+        <input type="text" placeholder="Name" class="input-field" name="name" />
+        <div id="error1" class="error-message"></div>
+        <input type="email" placeholder="Email" class="input-field" name="email" />
+        <div id="error2" class="error-message"></div>
+        <input type="password" placeholder="Password" class="input-field" name="password" />
+        <div id="error3" class="error-message"></div>
+        <input type="password" placeholder="Confirm password" class="input-field" name="confirm-password" />
+        <div id="error4" class="error-message"></div>
+        <button type="submit" class="primary-btn">SIGN UP</button>
+      </form>
 
-        <div class="auth-bottom">
-          <p class="bottom-text">Already have an account?</p>
-          <a href="/login" class="link-btn">Log in</a>
-        </div>
+      <button class="google-btn">
+        <img src="/img/google.png" alt="Google" class="google-icon" />
+        Sign up with Google
+      </button>
+
+      <div class="auth-bottom">
+        <p class="bottom-text">Already have an account?</p>
+        <a href="/login" class="link-btn">Log in</a>
       </div>
     </div>
-  </body>
+  </div>
+</body>
+<script>
+  const nameid=document.getElementById('name')
+  const email=document.getElementById('email')
+  const password=document.getElementById('password')
+  const confirmpassword=document.getElementById('confirm-password')
+
+const error1=document.getElementById('error1')
+const error2=document.getElementById('error2')
+const error3=document.getElementById('error3')
+const error4=document.getElementById('error4')
+const signform=document.getElementById('signform')
+document.addEventListener('DOMContendLoaded',()=>{
+  
+})
+
+</script>
 </html>

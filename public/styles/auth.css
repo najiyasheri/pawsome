@@ -143,27 +143,122 @@ body {
 .google-icon {
   height: 20px;
 }
-.input-field::-webkit-outer-spin-button,
-.input-field::-webkit-inner-spin-button {
+.reset-passowrd-otp , .otp-field::-webkit-outer-spin-button,
+.reset-passowrd-otp,.otp-field::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.back-arrow{
-  color: #000;
+.back-arrow {
+  margin: 6px 0;
 }
 .resend-otp {
   margin-top: 15px;
   font-size: 14px;
   color: #555;
 }
-.resendLink{
-    color: #EAC428;
+.resendLink {
+  color: #eac428;
   font-weight: 600;
   text-decoration: none;
   transition: 0.2s;
 }
-.highlight-email{
-    color: #EAC428
+.highlight-email {
+  color: #eac428;
 }
 
+.otp-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #222;
+  text-align: center;
+}
+
+.otp-subtitle {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.reset-passowrd-otp ,.otp-field {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+  border: none;
+  border-bottom: 1px solid black;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  
+}
+
+.otp-field {
+  text-align: center;
+}
+
+.input-field:focus {
+  outline: none;
+}
+
+.main-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+ 
+}
+
+.forgotpassword-container {
+  background: #fff;
+  padding: 40px 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.forgotpassword-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #222;
+   text-align: center;
+  
+}
+
+.forgotpassword-subtitle {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 25px;
+   text-align: center;
+}
+.forgotpassword-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  margin-top: 15px;
+   
+}
+
+.forgotpassword-field {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+  border: none;
+  border-bottom: 1px solid black;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  text-align: center;
+}
+
+
+.reset-field::-webkit-outer-spin-button,
+.reset-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

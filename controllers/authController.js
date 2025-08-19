@@ -27,6 +27,26 @@ const loadOtpPage=async(req,res)=>{
   }
 }
 
+const loadForgotpassword=async(req,res)=>{
+  try{
+    return res.render('user/forgotpassword')
+  }catch(error){
+    console.log('forgotpassword page is loading')
+    res.status(500).send('server error loading forgotpassword page')
+  }
+}
+
+const loadResetpassword=async(req,res)=>{
+  try{
+    return res.render('user/resetpassword')
+  }catch(error){
+    console.log('forgotpassword page is loading')
+    res.status(500).send('server error loading forgotpassword page')
+  }
+}
+
+
+
 const loadAdminLogin = async (req,res) => {
 
 }                                   
@@ -35,5 +55,7 @@ module.exports = {
   loadLoginPage,
   loadSignupPage,
   loadOtpPage,
+  loadForgotpassword,
+  loadResetpassword,
   loadAdminLogin
 };

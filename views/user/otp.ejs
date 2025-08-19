@@ -1,48 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>otp Page</title>
     <link rel="stylesheet" href="/styles/auth.css" />
-    
-  <body>
+
+<body>
     <div class="main-container">
-       
-  </head>
 
-      <div class="auth-container">
-         <img src="/img/arrow_back_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.png" alt="back-arrow" class="back-arrow" />
-        <h1 class="auth-title">Verify With Your Email</h1>
-        <p class="auth-subtitle">
-The One-Time Password sends to the Account
-<span class="highlight-email">abc123@gmail.com</span>. please Enter your OTP.
-</p>
+        </head>
 
-        <form action="/login" method="POST" class="auth-form">
-         
-          <input 
-  type="number" 
-  class="input-field" 
-  placeholder="ENTER OTP" 
-  maxlength="6" 
-  oninput="if(this.value.length > 6) this.value = this.value.slice(0,6);" 
-/>
+        <div class="auth-container">
+            <img src="/img/arrow_back_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.png" alt="back-arrow" class="back-arrow" />
+            <h1 class="otp-title">Verify With Your Email</h1>
+            <p class="otp-subtitle">
+                The One-Time Password sends to the Account
+                <span class="highlight-email">abc123@gmail.com</span>. please Enter your OTP.
+            </p>
+
+            <form action="/otp" method="POST" class="auth-form">
+
+                <input type="number" class="otp-field" placeholder="ENTER OTP" maxlength="6"
+                    oninput="if(this.value.length > 6) this.value = this.value.slice(0,6);" />
 
 
-          <div class="auth-actions">
-            <button type="submit" class="primary-btn">Verify</button>
-          
-          </div>
-        </form>
-        <div class="resend-otp">
-          <a href="#" class="resendLink" onclick="resendOtp()">Resend OTP</a>
-          <span id="timer"> in 00:30</span>
+                <div class="auth-actions">
+                    <button type="submit" class="primary-btn">Verify</button>
+
+                </div>
+            </form>
+            <div class="resend-otp">
+                <a href="#" class="resendLink" onclick="resendOtp()">Resend OTP</a>
+                <span id="timer"> in 00:30</span>
+            </div>
+
+
+
         </div>
-       
-
-
-      </div>
     </div>
-  </body>
-</html>   
+</body>
+
+</html>

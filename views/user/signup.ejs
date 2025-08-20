@@ -40,88 +40,88 @@
   </div>
 </body>
 <script>
-const nameid = document.getElementById('name')
-const email = document.getElementById('email')
-const password = document.getElementById('password')
-const confirmpassword = document.getElementById('confirm-password')
+  const nameid = document.getElementById('name')
+  const email = document.getElementById('email')
+  const password = document.getElementById('password')
+  const confirmpassword = document.getElementById('confirm-password')
 
-const error1 = document.getElementById('error1')
-const error2 = document.getElementById('error2')
-const error3 = document.getElementById('error3')
-const error4 = document.getElementById('error4')
-const signform = document.getElementById('signform')
+  const error1 = document.getElementById('error1')
+  const error2 = document.getElementById('error2')
+  const error3 = document.getElementById('error3')
+  const error4 = document.getElementById('error4')
+  const signform = document.getElementById('signform')
 
-function nameValidateChecking() {
-  const nameval = nameid.value
-  const namepattern = /^[A-Za-z\s]+$/
+  function nameValidateChecking() {
+    const nameval = nameid.value
+    const namepattern = /^[A-Za-z\s]+$/
 
-  if (nameval.trim() === "") {
-    error1.style.display = 'block'
-    error1.innerHTML = 'Please enter a valid name'
-  } else if (!namepattern.test(nameval)) {
-    error1.style.display = 'block'
-    error1.innerHTML = 'Name can only contain alphabets and spaces'
-  } else {
-    error1.style.display = 'none'
-    error1.innerHTML = ''
-  }
-}
-
-function emailValidateChecking() {
-  const emailval = email.value
-  const emailpattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-
-  if (!emailpattern.test(emailval)) {
-    error2.style.display = 'block'
-    error2.innerHTML = "Invalid Format"
-  } else {
-    error2.style.display = 'none'
-    error2.innerHTML = ""
-  }
-}
-
-function passwordValidateChecking() {
-  const passval = password.value
-  const confirmval = confirmpassword.value
-  const alpha = /[A-Za-z]/
-  const digit = /\d/
-
-  if (passval.length < 8) {
-    error3.style.display = 'block'
-    error3.innerHTML = "Should contain at least 8 characters"
-  } else if (!alpha.test(passval) || !digit.test(passval)) {
-    error3.style.display = 'block'
-    error3.innerHTML = "Should contain numbers and alphabets"
-  } else {
-    error3.style.display = 'none'
-    error3.innerHTML = ""
-  }
-
-  if (passval !== confirmval) {
-    error4.style.display = 'block'
-    error4.innerHTML = "Passwords do not match"
-  } else {
-    error4.style.display = 'none'
-    error4.innerHTML = ""
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  signform.addEventListener('submit', function (e) {
-    nameValidateChecking()
-    emailValidateChecking()
-    passwordValidateChecking()
-
-    if (
-      error1.innerHTML ||
-      error2.innerHTML ||
-      error3.innerHTML ||
-      error4.innerHTML
-    ) {
-      e.preventDefault()
+    if (nameval.trim() === "") {
+      error1.style.display = 'block'
+      error1.innerHTML = 'Please enter a valid name'
+    } else if (!namepattern.test(nameval)) {
+      error1.style.display = 'block'
+      error1.innerHTML = 'Name can only contain alphabets and spaces'
+    } else {
+      error1.style.display = 'none'
+      error1.innerHTML = ''
     }
+  }
+
+  function emailValidateChecking() {
+    const emailval = email.value
+    const emailpattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+
+    if (!emailpattern.test(emailval)) {
+      error2.style.display = 'block'
+      error2.innerHTML = "Invalid Format"
+    } else {
+      error2.style.display = 'none'
+      error2.innerHTML = ""
+    }
+  }
+
+  function passwordValidateChecking() {
+    const passval = password.value
+    const confirmval = confirmpassword.value
+    const alpha = /[A-Za-z]/
+    const digit = /\d/
+
+    if (passval.length < 8) {
+      error3.style.display = 'block'
+      error3.innerHTML = "Should contain at least 8 characters"
+    } else if (!alpha.test(passval) || !digit.test(passval)) {
+      error3.style.display = 'block'
+      error3.innerHTML = "Should contain numbers and alphabets"
+    } else {
+      error3.style.display = 'none'
+      error3.innerHTML = ""
+    }
+
+    if (passval !== confirmval) {
+      error4.style.display = 'block'
+      error4.innerHTML = "Passwords do not match"
+    } else {
+      error4.style.display = 'none'
+      error4.innerHTML = ""
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    signform.addEventListener('submit', function (e) {
+      nameValidateChecking()
+      emailValidateChecking()
+      passwordValidateChecking()
+
+      if (
+        error1.innerHTML ||
+        error2.innerHTML ||
+        error3.innerHTML ||
+        error4.innerHTML
+      ) {
+        e.preventDefault()
+      }
+    })
   })
-})
 
 
 </script>

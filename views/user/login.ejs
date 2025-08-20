@@ -1,37 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login Page</title>
-    <link rel="stylesheet" href="/styles/auth.css" />
-  </head>
-  <body>
-    <div class="main-container">
-      <div class="auth-container">
-        <h1 class="auth-title">Log in to Exclusive</h1>
-        <p class="auth-subtitle">Enter your details below</p>
 
-        <form action="/login" method="POST" class="auth-form">
-          <input type="email" class="input-field" placeholder="Email" />
-          <input type="password" class="input-field" placeholder="Password" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Page</title>
+  <link rel="stylesheet" href="/styles/auth.css" />
+</head>
 
-          <div class="auth-actions">
-            <button type="submit" class="primary-btn">LOGIN</button>
-            <p class="forgot-password">Forgot Password?</p>
-          </div>
-        </form>
+<body>
+  <div class="main-container">
+    <div class="auth-container">
+      <h1 class="auth-title">Log in to Exclusive</h1>
+      <p class="auth-subtitle">Enter your details below</p>
 
-        <button class="google-btn">
-          <img src="/img/google.png" alt="Google" class="google-icon" />
-          Log in with Google
-        </button>
+      <form action="/login" method="POST" class="auth-form">
+        <input type="email" class="input-field" placeholder="Email" />
+        <input type="password" class="input-field" placeholder="Password" />
 
-        <div class="auth-bottom">
-          <p class="bottom-text">Don’t have an account?</p>
-          <a href="/signup" class="link-btn">Sign up</a>
+        <div class="auth-actions">
+          <button type="submit" class="primary-btn">LOGIN</button>
+          <p class="forgot-password">Forgot Password?</p>
         </div>
+      </form>
+
+      <button class="google-btn">
+        <img src="/img/google.png" alt="Google" class="google-icon" />
+        Log in with Google
+      </button>
+
+      <div class="auth-bottom">
+        <p class="bottom-text">Don’t have an account?</p>
+        <a href="/signup" class="link-btn">Sign up</a>
       </div>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>

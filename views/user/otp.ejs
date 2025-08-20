@@ -25,18 +25,22 @@
 
             <form action="/otp" method="POST" class="auth-form">
                 <input type="hidden" name="email" value="<%= email %>">
-                <input type="number" class="otp-field" placeholder="ENTER OTP" maxlength="6"
+                <input type="number" name="otp" class="otp-field" placeholder="ENTER OTP" maxlength="6"
                     oninput="if(this.value.length > 6) this.value = this.value.slice(0,6);" />
 
+                <% if (typeof error !=="undefined" ) { %>
+                    <p class="otp-error" style="color:red; margin-top:5px;">
+                        <%= error %>
+                    </p>
+                    <% } %>
+                        <div class="auth-actions">
+                            <button type="submit" class="primary-btn">Verify</button>
 
-                <div class="auth-actions">
-                    <button type="submit" class="primary-btn">Verify</button>
-
-                </div>
+                        </div>
             </form>
             <div class="resend-otp">
-                <form action="/resend-otp" method="POST" >
-                     <input type="hidden" name="email" value="<%= email %>">
+                <form action="/resend-otp" method="POST">
+                    <input type="hidden" name="email" value="<%= email %>">
                     <button id="resendBtn" class="resendButton" type="submit" disabled>Resend OTP </button>
                 </form>
                 <span id="timer"> in 00:30</span>

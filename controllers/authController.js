@@ -1,6 +1,6 @@
 const User = require("../models/userSchema");
 const bcrypt = require("bcrypt");
-const OTP=require('../models/otpSchema')
+const OTP = require("../models/otpSchema");
 const { generateOTP, generateExpiry } = require("../helpers/otpHelper");
 
 const saltRound = 10;
@@ -22,7 +22,6 @@ const loadSignupPage = async (req, res) => {
     res.status(500).send("server error loading signup page");
   }
 };
-
 
 const loadForgotpassword = async (req, res) => {
   try {
@@ -49,34 +48,62 @@ const postSignup = async (req, res) => {
     const newUser = new User({ name, email, password: hashedPassword });
     await newUser.save();
     const otp = generateOTP();
-    const expired_at=generateExpiry(5);
-    const otpData=new OTP({email,otp,expired_at})
-    await otpData.save()
-    return res.render('user/otp',{email});
+    const expired_at = generateExpiry(5);
+    const otpData = new OTP({ email, otp, expired_at });
+    await otpData.save();
+    return res.render("user/otp", { email });
   } catch (error) {
     console.error("error for save user", error);
     res.status(500).send("internal server error");
   }
 };
-const resendOtp=async(req,res)=>{
-  const{email}=req.body
-  console.log('entering here',email)
-  try{
 
-    await OTP.deleteMany({email})
-    const otp=generateOTP()
-    const expired_at=generateExpiry(5)
-    const otpData=new OTP({email,otp,expired_at})
-    await otpData.save()
-    return res.render('user/otp',{email})
+const resendOtp = async (req, res) => {
+  const { email } = req.body;
+  console.log("entering here", email);
+  try {
+    await OTP.deleteMany({ email });
+    const otp = generateOTP();
+    const expired_at = generateExpiry(5);
+    const otpData = new OTP({ email, otp, expired_at });
+    await otpData.save();
+    return res.render("user/otp", { email });
+  } catch (error) {
+    console.error("Resend otp failed");
+    res.status(500).send("Internal server error");
   }
-  catch(error){
-    console.error('Resend otp failed')
-    res.status(500).send('Internal server error')
+};
+
+const postOtp = async (req, res) => {
+  const { email, otp } = req.body;
+  try {
+    const otpRecord = await OTP.findOne({ email });
+    if (!otpRecord) {
+      return res.render("user/otp", {
+        email,
+        error: "OTP not found,please resend",
+      });
+    }
+    if (otpRecord.expired_at < new Date()) {
+      return res.render("user/otp", {
+        email,
+        error: "OTP expired,please resend",
+      });
+    }
+    if (otpRecord.otp !== Number(otp)) {
+      return res.render("user/otp", {
+        email,
+        error: "Invalid OTP,please try again",
+      });
+    }
+    await User.updateOne({ email }, { $set: { verified: true } });
+    await OTP.deleteOne({ email });
+    return res.redirect("/login");
+  } catch (error) {
+    console.error("OTP verification error:", error);
+    res.status(500).send("Internal server error during OTP verification");
   }
-}
-
-
+};
 
 const loadAdminLogin = async (req, res) => {};
 
@@ -87,5 +114,6 @@ module.exports = {
   loadResetpassword,
   postSignup,
   loadAdminLogin,
-  resendOtp
+  resendOtp,
+  postOtp,
 };

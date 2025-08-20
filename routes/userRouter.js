@@ -1,15 +1,16 @@
-const express=require('express')
-const router=express.Router()
-const authController = require('../controllers/authController')
-const homeController = require('../controllers/homeController')
+const express = require("express");
+const router = express.Router();
+const authController = require("../controllers/authController");
+const homeController = require("../controllers/homeController");
 
-router.get('/', homeController.loadHomepage)
-router.get('/login',authController.loadLoginPage)
-router.get('/signup',authController.loadSignupPage)
+router.get("/", homeController.loadHomepage);
+router.get("/login", authController.loadLoginPage);
+router.get("/signup", authController.loadSignupPage);
 
-router.get('/forgotpassword',authController.loadForgotpassword)
-router.get('/resetpassword',authController.loadResetpassword)
-router.post('/signup',authController.postSignup)
-router.post('/resend-otp',authController.resendOtp)
+router.get("/forgotpassword", authController.loadForgotpassword);
+router.get("/resetpassword", authController.loadResetpassword);
+router.post("/signup", authController.postSignup);
+router.post("/resend-otp", authController.resendOtp);
+router.post("/otp", authController.postOtp);
 
-module.exports=router
+module.exports = router;

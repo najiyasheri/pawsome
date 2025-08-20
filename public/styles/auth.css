@@ -157,11 +157,13 @@ body {
   font-size: 14px;
   color: #555;
 }
-.resendLink {
+.resendButton {
   color: #eac428;
   font-weight: 600;
   text-decoration: none;
   transition: 0.2s;
+  background-color: white;
+  border: none;
 }
 .highlight-email {
   color: #eac428;
@@ -268,3 +270,15 @@ body {
   font-size: 0.75rem;
   display: none;
 }
+
+  .resendButton.active {
+    background-color: #4CAF50; 
+    color: white;
+    cursor: pointer;
+  }
+
+  .resendButton:disabled {
+   
+    color: #666;
+    cursor: not-allowed;
+  }

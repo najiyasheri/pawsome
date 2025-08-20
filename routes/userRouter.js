@@ -9,6 +9,6 @@ router.get('/signup',authController.loadSignupPage)
 router.get('/otp',authController.loadOtpPage)
 router.get('/forgotpassword',authController.loadForgotpassword)
 router.get('/resetpassword',authController.loadResetpassword)
-router.post('/signup',authController.signup)
+router.post('/signup',authController.postSignup)
 
 module.exports=router

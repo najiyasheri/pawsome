@@ -48,8 +48,8 @@ const postSignup = async (req, res) => {
     const newUser = new User({ name, email, password: hashedPassword });
     await newUser.save();
     const otp = generateOTP();
-    const expired_at = generateExpiry(5);
-    const otpData = new OTP({ email, otp, expired_at });
+    const expiredAt = generateExpiry(5);
+    const otpData = new OTP({ email, otp, expiredAt });
     await otpData.save();
     return res.render("user/otp", { email });
   } catch (error) {
@@ -84,7 +84,7 @@ const postOtp = async (req, res) => {
         error: "OTP not found,please resend",
       });
     }
-    if (otpRecord.expired_at < new Date()) {
+    if (otpRecord.expiredAt < new Date()) {
       return res.render("user/otp", {
         email,
         error: "OTP expired,please resend",
@@ -96,7 +96,7 @@ const postOtp = async (req, res) => {
         error: "Invalid OTP,please try again",
       });
     }
-    await User.updateOne({ email }, { $set: { verified: true } });
+    await User.updateOne({ email }, { $set: { isVerified: true } });
     await OTP.deleteOne({ email });
     return res.redirect("/login");
   } catch (error) {

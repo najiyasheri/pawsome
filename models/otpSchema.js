@@ -9,7 +9,7 @@ const otpSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    expired_at: {
+    expiredAt: {
       type: Date,
       required: true,
     },
@@ -19,6 +19,6 @@ const otpSchema = new mongoose.Schema(
   }
 );
 
-otpSchema.index({ expired_at: 1 }, { expireAfterSeconds: 0 });
+otpSchema.index({ expiredAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model("Otp", otpSchema);

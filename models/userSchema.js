@@ -17,23 +17,23 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    profile_image: {
+    profileImage: {
       type: String,
       default: null,
     },
-    is_Blocked: {
+    isBlocked: {
       type: Boolean,
       default: false,
     },
-    is_Verified: {
+    isVerified: {
       type: Boolean,
       default: false,
     },
-    is_Admin: {
+    isAdmin: {
       type: Boolean,
       default: false,
     },
-    google_id: {
+    googleId: {
       type: String,
       default: null,
     },

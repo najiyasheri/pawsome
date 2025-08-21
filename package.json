@@ -16,7 +16,8 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon app"
+    "start": "node build app",
+    "dev":"nodemon app"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

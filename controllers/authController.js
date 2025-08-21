@@ -105,6 +105,35 @@ const postOtp = async (req, res) => {
   }
 };
 
+const postLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const userRecord = await User.findOne({ email });
+    if (!userRecord) {
+      return res.render("user/login", {
+        email,
+        error: "User is not existing",
+      });
+    }
+    if (!userRecord.isVerified) {
+      return res.render("user/login", {
+        email,
+        error: "User is not verified",
+      });
+    }
+    const isMatch = await bcrypt.compare(password, userRecord.password);
+    if (!isMatch) {
+      return res.render("user/login", {
+        error: "Invalid password",
+      });
+    }
+    return res.render('user/home')
+  } catch {
+    console.error("Login verification error:", error);
+    res.status(500).send("Internal server error during Login verification");
+  }
+};
+
 const loadAdminLogin = async (req, res) => {};
 
 module.exports = {
@@ -116,4 +145,5 @@ module.exports = {
   loadAdminLogin,
   resendOtp,
   postOtp,
+  postLogin,
 };

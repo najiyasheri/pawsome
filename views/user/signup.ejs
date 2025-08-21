@@ -15,6 +15,9 @@
       <p class="auth-subtitle">Enter your details below</p>
 
       <form id="signform" action="/signup" method="POST" class="auth-form">
+           <% if(typeof error !== 'undefined') { %>
+        <div class="error-message"><%=error%></div>
+        <% } %>
         <input type="text" placeholder="Name" class="input-field" id="name" name="name" />
         <div id="error1" class="error-message"></div>
         <input type="email" placeholder="Email" class="input-field" id="email" name="email" />

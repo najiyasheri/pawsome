@@ -282,3 +282,17 @@ body {
     color: #666;
     cursor: not-allowed;
   }
+
+  input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.success-message{
+   color: green;
+  font-size: 0.75rem;
+  margin-bottom: 8px;
+  display: flex;
+    justify-content: center
+}

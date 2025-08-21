@@ -64,9 +64,9 @@ const resendOtp = async (req, res) => {
   try {
     await OTP.deleteMany({ email });
     const otp = generateOTP();
-    const expired_at = generateExpiry(5);
-    const otpData = new OTP({ email, otp, expired_at });
-    await otpData.save();
+    const expiredAt = generateExpiry(5);
+    const otpRecord = new OTP({ email, otp, expiredAt });
+    await otpRecord.save();
     return res.render("user/otp", { email });
   } catch (error) {
     console.error("Resend otp failed");
@@ -134,6 +134,29 @@ const postLogin = async (req, res) => {
   }
 };
 
+const postForgotpassword=async(req,res)=>{
+  const {email}=req.body
+  console.log('entering here',email)
+  try{
+    const user=await User.findOne({email})
+    if(!user){
+      return res.render('user/forgotpassword',{
+        error:'no account with this email found'
+      })
+    }
+  await OTP.deleteMany({email})
+  const otp=generateOTP()
+  const expiredAt=generateExpiry(5)
+  const otpRecord=new OTP({email,otp,expiredAt})
+  await otpRecord.save()
+  return res.render('user/resetpassword',{email})
+  }
+ catch (error) {
+    console.error("Resend otp failed");
+    res.status(500).send("Internal server error");
+  }
+}
+
 const loadAdminLogin = async (req, res) => {};
 
 module.exports = {
@@ -146,4 +169,5 @@ module.exports = {
   resendOtp,
   postOtp,
   postLogin,
+  postForgotpassword
 };

@@ -268,7 +268,7 @@ body {
 .error-message{
   color: red;
   font-size: 0.75rem;
-  display: none;
+  margin-bottom: 8px;
 }
 
   .resendButton.active {

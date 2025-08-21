@@ -123,11 +123,11 @@ const postLogin = async (req, res) => {
     }
     const isMatch = await bcrypt.compare(password, userRecord.password);
     if (!isMatch) {
-      return res.render("user/login", {
+      return res.render("user/login", {email,
         error: "Invalid password",
       });
     }
-    return res.render('user/home')
+    return res.redirect('/')
   } catch {
     console.error("Login verification error:", error);
     res.status(500).send("Internal server error during Login verification");

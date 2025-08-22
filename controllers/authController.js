@@ -1,6 +1,6 @@
-const User = require("../models/userSchema");
+const User = require("../models/User");
 const bcrypt = require("bcrypt");
-const OTP = require("../models/otpSchema");
+const OTP = require("../models/Otp");
 const {
   generateOTP,
   generateExpiry,
@@ -176,13 +176,19 @@ const postForgotpassword = async (req, res) => {
 const postResetpassword = async (req, res) => {
   try {
     const { email, otp, password } = req.body;
+    const userRecord=await User.findOne({email})
+    if(!userRecord){
+      return res.render('user/resetpassword',{
+        email,
+        error:'Something went wrong'
+      })
+    }
 
     const otpRecord = await OTP.findOne({ email });
-
     if (!otpRecord || otpRecord.expiredAt < new Date()) {
       return res.render("user/resetpassword", {
         email,
-        error: "",
+        error: "Invalid or expired OTP",
       });
     }
 
@@ -223,8 +229,47 @@ const resetPasswordResendOtp = async (req, res) => {
 };
 
 const loadAdminLogin = async (req, res) => {;
-
+try{
+  return res.render('admin/login')
+}
+catch(error){
+  console.log('login page is loading')
+  res.status(500).send('Server error loading login page')
+}
 };
+
+const postAdminLogin=async(req,res)=>{
+  try{
+    const {email,password}=req.body
+    const userRecord=await User.findOne({email})
+
+    if(!userRecord){
+      return res.render('admin/login',{
+        error:'User not exist'
+      })
+    }
+
+    if(!userRecord.isAdmin){
+      return res.render('admin/login',{
+        error:'You are not authorized'
+      })
+    }
+    const isMatch=await bcrypt.compare(password,userRecord.password)
+
+    if(!isMatch){
+      return res.render('admin/login',{
+        error:'Incorrect Password,Please Try Again '
+      })
+    }
+    return res.redirect('dashboard')
+  }
+  catch(error){
+    console.log('Admin login error',error)
+    res.status(500).send('Internal server error')
+  }
+}
+
+
 
 
 
@@ -241,4 +286,5 @@ module.exports = {
   postForgotpassword,
   postResetpassword,
   resetPasswordResendOtp,
+  postAdminLogin
 };

@@ -1,4 +1,4 @@
-const Otp = require("../models/otpSchema");
+const Otp = require("../models/Otp");
 const nodemailer=require('nodemailer')
 
 function generateOTP() {

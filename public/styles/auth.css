@@ -143,8 +143,10 @@ body {
 .google-icon {
   height: 20px;
 }
-.reset-passowrd-otp , .otp-field::-webkit-outer-spin-button,
-.reset-passowrd-otp,.otp-field::-webkit-inner-spin-button {
+.reset-passowrd-otp,
+.otp-field::-webkit-outer-spin-button,
+.reset-passowrd-otp,
+.otp-field::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -184,7 +186,8 @@ body {
   text-align: center;
 }
 
-.reset-passowrd-otp ,.otp-field {
+.reset-passowrd-otp,
+.otp-field {
   width: 100%;
   padding: 12px 14px;
   margin-bottom: 16px;
@@ -195,7 +198,6 @@ body {
   outline: none;
   box-shadow: none;
   background: transparent;
-  
 }
 
 .otp-field {
@@ -210,7 +212,6 @@ body {
   width: 100%;
   max-width: 420px;
   padding: 20px;
- 
 }
 
 .forgotpassword-container {
@@ -225,15 +226,14 @@ body {
   font-weight: 700;
   margin-bottom: 10px;
   color: #222;
-   text-align: center;
-  
+  text-align: center;
 }
 
 .forgotpassword-subtitle {
   font-size: 14px;
   color: #777;
   margin-bottom: 25px;
-   text-align: center;
+  text-align: center;
 }
 .forgotpassword-bottom {
   display: flex;
@@ -241,7 +241,6 @@ body {
   gap: 6px;
   font-size: 14px;
   margin-top: 15px;
-   
 }
 
 .forgotpassword-field {
@@ -258,41 +257,125 @@ body {
   text-align: center;
 }
 
-
 .reset-field::-webkit-outer-spin-button,
 .reset-field::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.error-message{
+.error-message {
   color: red;
   font-size: 0.75rem;
   margin-bottom: 8px;
 }
 
-  .resendButton.active {
-    background-color: #4CAF50; 
-    color: white;
-    cursor: pointer;
-  }
+.resendButton.active {
+  background-color: #4caf50;
+  color: white;
+  cursor: pointer;
+}
 
-  .resendButton:disabled {
-   
-    color: #666;
-    cursor: not-allowed;
-  }
+.resendButton:disabled {
+  color: #666;
+  cursor: not-allowed;
+}
 
-  input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.success-message{
-   color: green;
+.success-message {
+  color: green;
   font-size: 0.75rem;
   margin-bottom: 8px;
   display: flex;
-    justify-content: center
+  justify-content: center;
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background-color: #1e1e1e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-container {
+  background: #f8f8f8;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  width: 350px;
+  text-align: center;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.logo img {
+  width: 50px;
+  height: 50px;
+}
+
+.brand {
+  font-size: 22px;
+  margin-left: 8px;
+  font-family: "Brush Script MT", cursive;
+}
+
+form {
+  text-align: left;
+}
+
+label {
+  font-size: 14px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  outline: none;
+  font-size: 14px;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #e4c31d;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background-color: #d4af17;
 }

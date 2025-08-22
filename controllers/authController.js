@@ -1,8 +1,11 @@
 const User = require("../models/userSchema");
 const bcrypt = require("bcrypt");
 const OTP = require("../models/otpSchema");
-const { generateOTP, generateExpiry, sendOtp } = require("../helpers/otpHelper");
-
+const {
+  generateOTP,
+  generateExpiry,
+  sendOtp,
+} = require("../helpers/otpHelper");
 
 const saltRound = 10;
 
@@ -46,9 +49,9 @@ const loadResetpassword = async (req, res) => {
 const postSignup = async (req, res) => {
   const { name, email, password } = req.body;
   try {
-    const isUserExists=await User.findOne({email})
-    if(isUserExists){
-      return res.render('user/signup', {email,error:'User already exists'})
+    const isUserExists = await User.findOne({ email });
+    if (isUserExists) {
+      return res.render("user/signup", { email, error: "User already exists" });
     }
     const hashedPassword = await bcrypt.hash(password, saltRound);
     const newUser = new User({ name, email, password: hashedPassword });
@@ -57,7 +60,7 @@ const postSignup = async (req, res) => {
     const expiredAt = generateExpiry(5);
     const otpData = new OTP({ email, otp, expiredAt });
     await otpData.save();
-    await sendOtp(email,otp)
+    await sendOtp(email, otp);
     return res.render("user/otp", { email });
   } catch (error) {
     console.error("error for save user", error);
@@ -73,7 +76,7 @@ const resendOtp = async (req, res) => {
     const expiredAt = generateExpiry(5);
     const otpRecord = new OTP({ email, otp, expiredAt });
     await otpRecord.save();
-    await sendOtp(email,otp)
+    await sendOtp(email, otp);
     return res.render("user/otp", { email });
   } catch (error) {
     console.error("Resend otp failed");
@@ -117,24 +120,27 @@ const postLogin = async (req, res) => {
     const { email, password } = req.body;
     const userRecord = await User.findOne({ email });
     if (!userRecord) {
-      console.log('user not found')
+      console.log("user not found");
       return res.render("user/login", {
         email,
         error: "Invalid email or password",
       });
     }
     if (!userRecord.isVerified) {
-      console.log(' user is not verified')
+      console.log(" user is not verified");
       return res.render("user/login", {
         email,
         error: "Invalid email or password",
       });
     }
-    console.log(password)
+    console.log(password);
     const isMatch = await bcrypt.compare(password, userRecord.password);
     if (!isMatch) {
-      console.log('password is not matching')
-      return res.render("user/login", { email, error: "Invalid email or password" });
+      console.log("password is not matching");
+      return res.render("user/login", {
+        email,
+        error: "Invalid email or password",
+      });
     }
     return res.redirect("/");
   } catch {
@@ -158,7 +164,7 @@ const postForgotpassword = async (req, res) => {
     const expiredAt = generateExpiry(5);
     const otpRecord = new OTP({ email, otp, expiredAt });
     await otpRecord.save();
-     await sendOtp(email,otp)
+    await sendOtp(email, otp);
 
     return res.render("user/resetpassword", { email });
   } catch (error) {
@@ -181,13 +187,16 @@ const postResetpassword = async (req, res) => {
     }
 
     if (Number(otp) !== otpRecord.otp) {
-      return res.render("user/resetpassword", { email, error: "Invalid or expired OTP" });
+      return res.render("user/resetpassword", {
+        email,
+        error: "Invalid or expired OTP",
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, saltRound);
-    await User.updateOne({ email },{ $set: { password: hashedPassword } })
+    await User.updateOne({ email }, { $set: { password: hashedPassword } });
 
-    console.log(password, email , hashedPassword)
+    console.log(password, email, hashedPassword);
 
     await OTP.deleteMany({ email });
     return res.redirect("/login?msg=Reset Password Successfully");
@@ -197,23 +206,27 @@ const postResetpassword = async (req, res) => {
   }
 };
 
-const resetPasswordResendOtp = async (req,res) => {
-    const { email } = req.body;
+const resetPasswordResendOtp = async (req, res) => {
+  const { email } = req.body;
   try {
     await OTP.deleteMany({ email });
     const otp = generateOTP();
     const expiredAt = generateExpiry(5);
     const otpRecord = new OTP({ email, otp, expiredAt });
     await otpRecord.save();
-    await sendOtp(email,otp)
+    await sendOtp(email, otp);
     return res.render("user/resetpassword", { email });
   } catch (error) {
     console.error("Resend otp failed");
     res.status(500).send("Internal server error");
   }
-}
+};
 
-const loadAdminLogin = async (req, res) => {};
+const loadAdminLogin = async (req, res) => {;
+
+};
+
+
 
 module.exports = {
   loadLoginPage,
@@ -227,5 +240,5 @@ module.exports = {
   postLogin,
   postForgotpassword,
   postResetpassword,
-  resetPasswordResendOtp
+  resetPasswordResendOtp,
 };

@@ -2,20 +2,31 @@
   "name": "pawsome",
   "version": "1.0.0",
   "description": "It's an Ecommerce website desined in express using ejs",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "keywords": [],
+  "homepage": "https://github.com/najiyasheri/pawsome#readme",
+  "bugs": {
+    "url": "https://github.com/najiyasheri/pawsome/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/najiyasheri/pawsome.git"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
+  "author": "",
   "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/najiyasheri/pawsome/issues"
+  "main": "index.js",
+  "scripts": {
+    "start": "node build app",
+    "dev": "nodemon app"
   },
-  "homepage": "https://github.com/najiyasheri/pawsome#readme"
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.1",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "mongodb": "^6.18.0",
+    "mongoose": "^8.17.1",
+    "nodemailer": "^7.0.5",
+    "nodemon": "^3.1.10"
+  }
 }

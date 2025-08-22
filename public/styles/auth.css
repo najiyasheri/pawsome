@@ -1,0 +1,381 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.main-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+}
+
+.auth-container {
+  background: #fff;
+  padding: 40px 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.auth-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #222;
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 25px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+  border: none;
+  border-bottom: 1px solid black;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.input-field:focus {
+  outline: none;
+}
+
+.primary-btn {
+  background: #eac428;
+  color: #000000;
+  border: none;
+  padding: 10px 18px;
+  width: 100%;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.primary-btn:hover {
+  background: #c2a120;
+}
+
+.forgot-password {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #555;
+  cursor: pointer;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.forgot-password:hover {
+  color: #000;
+}
+
+.google-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 12px;
+  width: 100%;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s;
+  margin: 22px 0;
+}
+
+.google-btn:hover {
+  border-color: #222;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.auth-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 15px 0;
+  gap: 100px;
+}
+
+.auth-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  margin-top: 15px;
+}
+
+.bottom-text {
+  color: #555;
+}
+
+.link-btn {
+  color: #000000;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}
+
+.google-icon {
+  height: 20px;
+}
+.reset-passowrd-otp,
+.otp-field::-webkit-outer-spin-button,
+.reset-passowrd-otp,
+.otp-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.back-arrow {
+  margin: 6px 0;
+}
+.resend-otp {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #555;
+}
+.resendButton {
+  color: #eac428;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.2s;
+  background-color: white;
+  border: none;
+}
+.highlight-email {
+  color: #eac428;
+}
+
+.otp-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #222;
+  text-align: center;
+}
+
+.otp-subtitle {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.reset-passowrd-otp,
+.otp-field {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+  border: none;
+  border-bottom: 1px solid black;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.otp-field {
+  text-align: center;
+}
+
+.input-field:focus {
+  outline: none;
+}
+
+.main-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+}
+
+.forgotpassword-container {
+  background: #fff;
+  padding: 40px 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.forgotpassword-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #222;
+  text-align: center;
+}
+
+.forgotpassword-subtitle {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 25px;
+  text-align: center;
+}
+.forgotpassword-bottom {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  margin-top: 15px;
+}
+
+.forgotpassword-field {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+  border: none;
+  border-bottom: 1px solid black;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  text-align: center;
+}
+
+.reset-field::-webkit-outer-spin-button,
+.reset-field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.75rem;
+  margin-bottom: 8px;
+}
+
+.resendButton.active {
+  background-color: #4caf50;
+  color: white;
+  cursor: pointer;
+}
+
+.resendButton:disabled {
+  color: #666;
+  cursor: not-allowed;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.success-message {
+  color: green;
+  font-size: 0.75rem;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background-color: #1e1e1e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-container {
+  background: #f8f8f8;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  width: 350px;
+  text-align: center;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.logo img {
+  width: 50px;
+  height: 50px;
+}
+
+.brand {
+  font-size: 22px;
+  margin-left: 8px;
+  font-family: "Brush Script MT", cursive;
+}
+
+form {
+  text-align: left;
+}
+
+label {
+  font-size: 14px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  outline: none;
+  font-size: 14px;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  background-color: #e4c31d;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background-color: #d4af17;
+}

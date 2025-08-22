@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account</title>
+  <link rel="stylesheet" href="/styles/auth.css" />
+</head>
+
+<body>
+  <div class="main-container">
+    <div class="auth-container">
+      <h1 class="auth-title">Create an account</h1>
+      <p class="auth-subtitle">Enter your details below</p>
+
+      <form id="signform" action="/signup" method="POST" class="auth-form">
+           <% if(typeof error !== 'undefined') { %>
+        <div class="error-message"><%=error%></div>
+        <% } %>
+        <input type="text" placeholder="Name" class="input-field" id="name" name="name" />
+        <div id="error1" class="error-message"></div>
+        <input type="email" placeholder="Email" class="input-field" id="email" name="email" />
+        <div id="error2" class="error-message"></div>
+        <input type="password" placeholder="Password" class="input-field" id="password" name="password" />
+        <div id="error3" class="error-message"></div>
+        <input type="password" placeholder="Confirm password" class="input-field" id="confirm-password"
+          name="confirm-password" />
+        <div id="error4" class="error-message"></div>
+        <button type="submit" class="primary-btn">SIGN UP</button>
+      </form>
+
+      <button class="google-btn">
+        <img src="/img/google.png" alt="Google" class="google-icon" />
+        Sign up with Google
+      </button>
+
+      <div class="auth-bottom">
+        <p class="bottom-text">Already have an account?</p>
+        <a href="/login" class="link-btn">Log in</a>
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+  const nameid = document.getElementById('name')
+  const email = document.getElementById('email')
+  const password = document.getElementById('password')
+  const confirmpassword = document.getElementById('confirm-password')
+
+  const error1 = document.getElementById('error1')
+  const error2 = document.getElementById('error2')
+  const error3 = document.getElementById('error3')
+  const error4 = document.getElementById('error4')
+  const signform = document.getElementById('signform')
+
+  function nameValidateChecking() {
+    const nameval = nameid.value
+    const namepattern = /^[A-Za-z\s]+$/
+
+    if (nameval.trim() === "") {
+      error1.style.display = 'block'
+      error1.innerHTML = 'Please enter a valid name'
+    } else if (!namepattern.test(nameval)) {
+      error1.style.display = 'block'
+      error1.innerHTML = 'Name can only contain alphabets and spaces'
+    } else {
+      error1.style.display = 'none'
+      error1.innerHTML = ''
+    }
+  }
+
+  function emailValidateChecking() {
+    const emailval = email.value
+    const emailpattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+
+    if (!emailpattern.test(emailval)) {
+      error2.style.display = 'block'
+      error2.innerHTML = "Invalid Format"
+    } else {
+      error2.style.display = 'none'
+      error2.innerHTML = ""
+    }
+  }
+
+  function passwordValidateChecking() {
+    const passval = password.value
+    const confirmval = confirmpassword.value
+    const alpha = /[A-Za-z]/
+    const digit = /\d/
+
+    if (passval.length < 8) {
+      error3.style.display = 'block'
+      error3.innerHTML = "Should contain at least 8 characters"
+    } else if (!alpha.test(passval) || !digit.test(passval)) {
+      error3.style.display = 'block'
+      error3.innerHTML = "Should contain numbers and alphabets"
+    } else {
+      error3.style.display = 'none'
+      error3.innerHTML = ""
+    }
+
+    if (passval !== confirmval) {
+      error4.style.display = 'block'
+      error4.innerHTML = "Passwords do not match"
+    } else {
+      error4.style.display = 'none'
+      error4.innerHTML = ""
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    signform.addEventListener('submit', function (e) {
+      nameValidateChecking()
+      emailValidateChecking()
+      passwordValidateChecking()
+
+      if (
+        error1.innerHTML ||
+        error2.innerHTML ||
+        error3.innerHTML ||
+        error4.innerHTML
+      ) {
+        e.preventDefault()
+      }
+    })
+  })
+
+
+</script>
+
+</html>

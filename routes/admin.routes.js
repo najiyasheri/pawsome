@@ -11,5 +11,6 @@ router.get('/login',isLogin,authController.loadAdminLogin)
 router.post('/login',isLogin,authController.postAdminLogin)
 router.get('/dashboard',adminAuth,homeController.loadAdminDashboard)
 router.get('/users',adminAuth,userController.loadUserManagement)
+router.get('/logout',authController.logoutAdmin)
 
 module.exports=router

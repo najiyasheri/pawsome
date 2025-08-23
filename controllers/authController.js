@@ -272,20 +272,36 @@ const postAdminLogin = async (req, res) => {
   }
 };
 
-const logoutUser=(req,res)=>{
-  try{
-    req.session.destroy((err)=>{
-      if(err){
-        console.log(err)
-        return res.redirect('/home')
+const logoutUser = (req, res) => {
+  try {
+    req.session.destroy((err) => {
+      if (err) {
+        console.log(err);
+        return res.redirect("/home");
       }
-      res.redirect('/login')
-    })
+      res.redirect("/login");
+    });
+  } catch (error) {
+    console.log("Admin logout error", error);
+    res.status(500).send("Internal server error");
   }
-  catch(error){
+};
 
+const logoutAdmin = (req, res) => {
+  try {
+    req.session.destroy((err) => {
+      if (err) {
+        console.log(err);
+        return res.redirect("/dashboard");
+      }
+
+      res.redirect("/admin/login");
+    });
+  } catch (error) {
+    console.log("Admin logout error", error);
+    res.status(500).send("Internal server error");
   }
-}
+};
 
 module.exports = {
   loadLoginPage,
@@ -301,6 +317,6 @@ module.exports = {
   postResetpassword,
   resetPasswordResendOtp,
   postAdminLogin,
-  logoutUser
+  logoutUser,
+  logoutAdmin,
 };
-

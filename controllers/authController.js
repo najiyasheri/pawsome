@@ -119,6 +119,7 @@ const postLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
     const userRecord = await User.findOne({ email });
+
     if (!userRecord) {
       console.log("user not found");
       return res.render("user/login", {
@@ -133,7 +134,7 @@ const postLogin = async (req, res) => {
         error: "Invalid email or password",
       });
     }
-    console.log(password);
+
     const isMatch = await bcrypt.compare(password, userRecord.password);
     if (!isMatch) {
       console.log("password is not matching");
@@ -142,6 +143,9 @@ const postLogin = async (req, res) => {
         error: "Invalid email or password",
       });
     }
+
+    req.session.user=userRecord
+    
     return res.redirect("/");
   } catch {
     console.error("Login verification error:", error);
@@ -261,6 +265,7 @@ const postAdminLogin=async(req,res)=>{
         error:'Incorrect Password,Please Try Again '
       })
     }
+    req.session.user=userRecord
     return res.redirect('dashboard')
   }
   catch(error){

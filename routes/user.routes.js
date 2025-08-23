@@ -2,19 +2,20 @@ const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
 const homeController = require("../controllers/homeController");
+const {userAuth,isLogin}=require('../middlewares/authMiddleware')
 
-router.get("/", homeController.loadHomepage);
-router.get("/login", authController.loadLoginPage);
-router.get("/signup", authController.loadSignupPage);
+router.get("/",userAuth, homeController.loadHomepage);
+router.get("/login",isLogin, authController.loadLoginPage);
+router.get("/signup",isLogin, authController.loadSignupPage);
 
-router.get("/forgotpassword", authController.loadForgotpassword);
-router.get("/resetpassword", authController.loadResetpassword);
-router.post("/signup", authController.postSignup);
-router.post("/resend-otp", authController.resendOtp);
-router.post("/otp", authController.postOtp);
-router.post('/login',authController.postLogin)
-router.post('/forgotpassword',authController.postForgotpassword)
-router.post('/resetpassword',authController.postResetpassword)
-router.post('/resendPasswordOtp',authController.resetPasswordResendOtp)
+router.get("/forgotpassword",isLogin, authController.loadForgotpassword);
+router.get("/resetpassword",isLogin, authController.loadResetpassword);
+router.post("/signup",isLogin, authController.postSignup);
+router.post("/resend-otp",isLogin, authController.resendOtp);
+router.post("/otp",isLogin, authController.postOtp);
+router.post('/login',isLogin,authController.postLogin)
+router.post('/forgotpassword',isLogin,authController.postForgotpassword)
+router.post('/resetpassword',isLogin,authController.postResetpassword)
+router.post('/resendPasswordOtp',isLogin,authController.resetPasswordResendOtp)
 
 module.exports = router;

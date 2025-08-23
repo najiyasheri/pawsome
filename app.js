@@ -1,4 +1,5 @@
 const express=require('express')
+const session=require('express-session')
 const app=express()
 const path=require('path')
 const env=require('dotenv').config()
@@ -6,6 +7,16 @@ const db=require('./config/db')
 const userRouter=require('./routes/user.routes')
 const adminRouter=require('./routes/admin.routes')
 db()
+
+app.use(session({
+    secret:process.env.SESSION_KEY,
+    resave:false,
+    saveUninitialized:false,
+    cookie:{
+        secure:false,
+        maxAge:1000*60*60
+    }
+}))
 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
@@ -15,6 +26,9 @@ app.use(express.static(path.join(__dirname,'public')))
 
 app.use('/admin',adminRouter)
 app.use('/',userRouter)
+
+
+
 app.listen(process.env.PORT,()=>{
     console.log('server is running')
 }) 

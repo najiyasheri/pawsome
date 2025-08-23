@@ -11,95 +11,97 @@
 <body>
   <div class="main-container">
     <div class="auth-container">
-       <% if(typeof msg !== 'undefined') { %>
-        <div class="success-message"><%=msg%></div>
-        <% } %>
-      <h1 class="auth-title">Log in to Exclusive</h1>
-      <p class="auth-subtitle">Enter your details below</p>
-
-      <form id="loginform" action="/login" method="POST" class="auth-form">
-        <% if(typeof error !== 'undefined') { %>
-        <div class="error-message"><%=error%></div>
-        <% } %>
-
-        <input type="email" id="email"  class="input-field" name="email" placeholder="Email"  />
-        <div id="error1" class="error-message"></div>
-        <input type="password" id="password" class="input-field"  name="password" placeholder="Password" />
-          <div id="error2" class="error-message"></div>
-        <div class="auth-actions">
-          <button type="submit" class="primary-btn">LOGIN</button>
-          <a href="/forgotpassword" class="forgot-password">Forgot Password?</a>
+      <% if(typeof msg !=='undefined' ) { %>
+        <div class="success-message">
+          <%=msg%>
         </div>
-      </form>
-      
-      <button class="google-btn">
-        <img src="/img/google.png" alt="Google" class="google-icon" />
-        Log in with Google
-      </button>
+        <% } %>
+          <h1 class="auth-title">Log in to Exclusive</h1>
+          <p class="auth-subtitle">Enter your details below</p>
 
-      <div class="auth-bottom">
-        <p class="bottom-text">Don’t have an account?</p>
-        <a href="/signup" class="link-btn">Sign up</a>
-      </div>
+          <form id="loginform" action="/login" method="POST" class="auth-form">
+            <% if(typeof error !=='undefined' ) { %>
+              <div class="error-message">
+                <%=error%>
+              </div>
+              <% } %>
+
+                <input type="email" id="email" class="input-field" name="email" placeholder="Email" />
+                <div id="error1" class="error-message"></div>
+                <input type="password" id="password" class="input-field" name="password" placeholder="Password" />
+                <div id="error2" class="error-message"></div>
+                <div class="auth-actions">
+                  <button type="submit" class="primary-btn">LOGIN</button>
+                  <a href="/forgotpassword" class="forgot-password">Forgot Password?</a>
+                </div>
+          </form>
+
+          <button class="google-btn">
+            <img src="/img/google.png" alt="Google" class="google-icon" />
+            Log in with Google
+          </button>
+
+          <div class="auth-bottom">
+            <p class="bottom-text">Don’t have an account?</p>
+            <a href="/signup" class="link-btn">Sign up</a>
+          </div>
     </div>
   </div>
   <script>
-    const email=document.getElementById('email')
-    const password=document.getElementById('password')
+    const email = document.getElementById('email')
+    const password = document.getElementById('password')
 
-    const error1=document.getElementById('error1')
-    const error2=document.getElementById('error2')
-      const loginform = document.getElementById('loginform')
+    const error1 = document.getElementById('error1')
+    const error2 = document.getElementById('error2')
+    const loginform = document.getElementById('loginform')
 
 
-    function emailValidateChecking(){
-      const emailval=email.value
+    function emailValidateChecking() {
+      const emailval = email.value
       const emailpattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 
-    if(!emailpattern.test(emailval)){
-      error1.style.display='block'
-      error1.innerHTML='Invalid Format'
-    }else{
-      error2.style.display='none'
-      error2.innerHTML=""
+      if (!emailpattern.test(emailval)) {
+        error1.style.display = 'block'
+        error1.innerHTML = 'Invalid Format'
+      } else {
+        error2.style.display = 'none'
+        error2.innerHTML = ""
+      }
     }
-  }
-    function passwordValidateChecking(){
-      const passval=password.value
-      const alpha= /[A-Za-z]/
+    function passwordValidateChecking() {
+      const passval = password.value
+      const alpha = /[A-Za-z]/
       const digit = /\d/
 
-        if(passval.length<8){
-          error2.style.display='block'
-          error2.innerHTML = "Should contain at least 8 characters"
-        }
-        else if (!alpha.test(passval) || !digit.test(passval)) {
-      error2.style.display = 'block'
-      error2.innerHTML = "Should contain numbers and alphabets"
-    } else {
-      error2.style.display = 'none'
-      error2.innerHTML = ""
-    }
-  }
-    document.addEventListener('DOMContentLoaded', () => {
-    loginform.addEventListener('submit', function (e) {
-      emailValidateChecking()
-      passwordValidateChecking()
-
-      if (
-        error1.innerHTML ||
-        error2.innerHTML 
-      ) {
-        e.preventDefault()
+      if (passval.length < 8) {
+        error2.style.display = 'block'
+        error2.innerHTML = "Should contain at least 8 characters"
       }
-    })
-  })
+      else if (!alpha.test(passval) || !digit.test(passval)) {
+        error2.style.display = 'block'
+        error2.innerHTML = "Should contain numbers and alphabets"
+      } else {
+        error2.style.display = 'none'
+        error2.innerHTML = ""
+      }
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      loginform.addEventListener('submit', function (e) {
+        emailValidateChecking()
+        passwordValidateChecking()
 
-    
+        if (
+          error1.innerHTML ||
+          error2.innerHTML
+        ) {
+          e.preventDefault()
+        }
+      })
+    })
+
+
 
   </script>
 </body>
 
 </html>
-
-    

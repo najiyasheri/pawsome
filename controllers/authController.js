@@ -144,8 +144,8 @@ const postLogin = async (req, res) => {
       });
     }
 
-    req.session.user=userRecord
-    
+    req.session.user = userRecord;
+
     return res.redirect("/");
   } catch {
     console.error("Login verification error:", error);
@@ -180,12 +180,12 @@ const postForgotpassword = async (req, res) => {
 const postResetpassword = async (req, res) => {
   try {
     const { email, otp, password } = req.body;
-    const userRecord=await User.findOne({email})
-    if(!userRecord){
-      return res.render('user/resetpassword',{
+    const userRecord = await User.findOne({ email });
+    if (!userRecord) {
+      return res.render("user/resetpassword", {
         email,
-        error:'Something went wrong'
-      })
+        error: "Something went wrong",
+      });
     }
 
     const otpRecord = await OTP.findOne({ email });
@@ -232,51 +232,60 @@ const resetPasswordResendOtp = async (req, res) => {
   }
 };
 
-const loadAdminLogin = async (req, res) => {;
-try{
-  return res.render('admin/login')
-}
-catch(error){
-  console.log('login page is loading')
-  res.status(500).send('Server error loading login page')
-}
+const loadAdminLogin = async (req, res) => {
+  try {
+    return res.render("admin/login");
+  } catch (error) {
+    console.log("login page is loading");
+    res.status(500).send("Server error loading login page");
+  }
 };
 
-const postAdminLogin=async(req,res)=>{
+const postAdminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const userRecord = await User.findOne({ email });
+
+    if (!userRecord) {
+      return res.render("admin/login", {
+        error: "User not exist",
+      });
+    }
+
+    if (!userRecord.isAdmin) {
+      return res.render("admin/login", {
+        error: "You are not authorized",
+      });
+    }
+    const isMatch = await bcrypt.compare(password, userRecord.password);
+
+    if (!isMatch) {
+      return res.render("admin/login", {
+        error: "Incorrect Password,Please Try Again ",
+      });
+    }
+    req.session.user = userRecord;
+    return res.redirect("dashboard");
+  } catch (error) {
+    console.log("Admin login error", error);
+    res.status(500).send("Internal server error");
+  }
+};
+
+const logoutUser=(req,res)=>{
   try{
-    const {email,password}=req.body
-    const userRecord=await User.findOne({email})
-
-    if(!userRecord){
-      return res.render('admin/login',{
-        error:'User not exist'
-      })
-    }
-
-    if(!userRecord.isAdmin){
-      return res.render('admin/login',{
-        error:'You are not authorized'
-      })
-    }
-    const isMatch=await bcrypt.compare(password,userRecord.password)
-
-    if(!isMatch){
-      return res.render('admin/login',{
-        error:'Incorrect Password,Please Try Again '
-      })
-    }
-    req.session.user=userRecord
-    return res.redirect('dashboard')
+    req.session.destroy((err)=>{
+      if(err){
+        console.log(err)
+        return res.redirect('/home')
+      }
+      res.redirect('/login')
+    })
   }
   catch(error){
-    console.log('Admin login error',error)
-    res.status(500).send('Internal server error')
+
   }
 }
-
-
-
-
 
 module.exports = {
   loadLoginPage,
@@ -291,5 +300,7 @@ module.exports = {
   postForgotpassword,
   postResetpassword,
   resetPasswordResendOtp,
-  postAdminLogin
+  postAdminLogin,
+  logoutUser
 };
+

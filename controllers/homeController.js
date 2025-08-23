@@ -16,8 +16,7 @@ const loadAdminDashboard = async (req, res) => {
   }
 };
 
-
 module.exports = {
-    loadHomepage,
-    loadAdminDashboard
-}
+  loadHomepage,
+  loadAdminDashboard,
+};

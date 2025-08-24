@@ -32,10 +32,10 @@
             <button type="submit" class="primary-btn">SIGN UP</button>
       </form>
 
-      <button class="google-btn">
+    <a href="/auth/google">  <button class="google-btn">
         <img src="/img/google.png" alt="Google" class="google-icon" />
         Sign up with Google
-      </button>
+      </button></a>
 
       <div class="auth-bottom">
         <p class="bottom-text">Already have an account?</p>
@@ -86,8 +86,8 @@
   }
 
   function passwordValidateChecking() {
-    const passval = password.value
-    const confirmval = confirmpassword.value
+    const passval = password.value.trim()
+    const confirmval = confirmpassword.value.trim()
     const alpha = /[A-Za-z]/
     const digit = /\d/
 

@@ -49,6 +49,11 @@ const loadResetpassword = async (req, res) => {
 const postSignup = async (req, res) => {
   const { name, email, password } = req.body;
   try {
+    if (!password) {
+      return res.render("user/signup", {
+        error: "Password is required",
+      });
+    }
     const isUserExists = await User.findOne({ email });
     if (isUserExists) {
       return res.render("user/signup", { email, error: "User already exists" });
@@ -303,6 +308,25 @@ const logoutAdmin = (req, res) => {
   }
 };
 
+const googleAuth = async (req, res) => {
+  try {
+    const { name, email, picture } = req.user?._json;
+    const isExist = await User.findOne({ email });
+    let newUser
+    if (!isExist) {
+       newUser = new User({ name, email, picture });
+      await newUser.save();
+    }
+    req.session.user=isExist || newUser
+     return res.redirect("/");
+  }
+   
+  catch (error) {
+    console.error("error for google auth", error);
+    res.status(500).send("internal server error");
+  }
+}
+
 module.exports = {
   loadLoginPage,
   loadSignupPage,
@@ -319,4 +343,5 @@ module.exports = {
   postAdminLogin,
   logoutUser,
   logoutAdmin,
+  googleAuth,
 };

@@ -33,28 +33,36 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>John Doe</td>
-                                <td>john@example.com</td>
-                                <td class="unblocked">Active</td>
-                                <td>2025-01-15</td>
-                                <td>
-                                    <button class="block">BLOCK</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Jane Smith</td>
-                                <td>jane@example.com</td>
-                                <td class="blocked">Blocked</td>
-                                <td>2025-02-03</td>
-                                <td>
-                                    <button class="unblock">UNBLOCK</button>
-                                </td>
-                            </tr>
-                        </tbody>
+                       <tbody>
+    <% if (typeof data !== 'undefined' && data.length > 0) { %>
+        <% for (let i = 0; i < data.length; i++) { %>
+            <tr>
+                <td><%= data[i].SNo %></td>
+                <td><%= data[i].Name %></td>
+                <td><%= data[i].Email %></td>
+                <td><%= data[i].Status %></td>
+                <td><%= data[i].Joined %></td>
+                <td>
+                    <% if (data[i].Status === "Active") { %>
+                        <a href="/admin/blockUser?id=<%= data[i]._id %>">
+                            <button class="block"><i class="fa-solid fa-ban"></i> Block</button>
+                        </a>
+                    <% } else { %>
+                        <a href="/admin/unblockUser?id=<%= data[i]._id %>">
+                            <button class="unblock"><i class="fa-solid fa-unlock"></i> Unblock</button>
+                        </a>
+                    <% } %>
+                </td>
+            </tr>
+        <% } %>
+    <% } else { %>
+        <tr>
+            <td colspan="6" style="text-align:center;">No users found</td>
+        </tr>
+    <% } %>
+</tbody>
+
+
                     </table>
                 </section>
             </main>

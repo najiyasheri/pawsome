@@ -1,71 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
+<%- include('../partials/admin/sidebar') %>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - User Management</title>
-    <link rel="stylesheet" href="/styles/layout.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
-        integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-</head>
-<body>
-    <div class="dashboard">
-        <%- include('../partials/admin/sidebar') %>
-            <main class="content">
-                <header class="topbar">
-                    <h1>User Management</h1>
-                    <div class="right">
-                        <div><input type="text" placeholder="Search customer..."></div>
-                    </div>
-                </header>
-                <button class="filter"><i class="fa-solid fa-filter"></i>Filter</button>
-                <section class="table-container">
-                    <table class="user-table">
-                        <thead>
-                            <tr>
-                                <th>SNo</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Status</th>
-                                <th>Joined</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                       <tbody>
-    <% if (typeof data !== 'undefined' && data.length > 0) { %>
-        <% for (let i = 0; i < data.length; i++) { %>
-            <tr>
-                <td><%= data[i].SNo %></td>
-                <td><%= data[i].Name %></td>
-                <td><%= data[i].Email %></td>
-                <td><%= data[i].Status %></td>
-                <td><%= data[i].Joined %></td>
-                <td>
-                    <% if (data[i].Status === "Active") { %>
-                        <a href="/admin/blockUser?id=<%= data[i]._id %>">
-                            <button class="block"><i class="fa-solid fa-ban"></i> Block</button>
-                        </a>
-                    <% } else { %>
-                        <a href="/admin/unblockUser?id=<%= data[i]._id %>">
-                            <button class="unblock"><i class="fa-solid fa-unlock"></i> Unblock</button>
-                        </a>
-                    <% } %>
-                </td>
-            </tr>
-        <% } %>
-    <% } else { %>
-        <tr>
-            <td colspan="6" style="text-align:center;">No users found</td>
-        </tr>
-    <% } %>
-</tbody>
-
-
-                    </table>
-                </section>
-            </main>
+<section class="p-6">
+    <div>
+        <h1>User Management</h1>
     </div>
-</body>
-</html>
+    <div class="flex justify-between items-center mb-6">
+        <form class="w-full max-w-md">
+            <label for="default-search" class="sr-only">Search</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 20 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                    </svg>
+                </div>
+                <input type="search" id="default-search"
+                    class="block w-full p-3 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Search products..." required />
+            </div>
+        </form>
+
+        <button type="button"
+            class="ml-4 flex items-center px-5 py-2.5 text-sm font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300">
+            <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 21">
+                <path
+                    d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z" />
+            </svg>
+            Filter
+        </button>
+    </div>
+
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg mb-6">
+        <table class="w-full text-sm text-left text-gray-500">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Product name</th>
+                    <th scope="col" class="px-6 py-3">Color</th>
+                    <th scope="col" class="px-6 py-3">Category</th>
+                    <th scope="col" class="px-6 py-3">Price</th>
+                    <th scope="col" class="px-6 py-3">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="bg-white border-b">
+                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                        Apple MacBook Pro 17"
+                    </th>
+                    <td class="px-6 py-4">Silver</td>
+                    <td class="px-6 py-4">Laptop</td>
+                    <td class="px-6 py-4">$2999</td>
+                    <td class="px-6 py-4">
+                        <a href="#" class="text-blue-600 hover:underline">Edit</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-center">
+        <nav aria-label="Page navigation example">
+            <ul class="flex items-center -space-x-px h-10 text-base">
+                <li>
+                    <a href="#"
+                        class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700">
+                        <span class="sr-only">Previous</span>
+                        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 6 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M5 1 1 5l4 4" />
+                        </svg>
+                    </a>
+                </li>
+                <li><a href="#"
+                        class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100">1</a>
+                </li>
+                <li><a href="#"
+                        class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100">2</a>
+                </li>
+                <li><a href="#"
+                        class="z-10 flex items-center justify-center px-4 h-10 leading-tight text-blue-600 border border-blue-300 bg-blue-50">3</a>
+                </li>
+                <li><a href="#"
+                        class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100">4</a>
+                </li>
+                <li>
+                    <a href="#"
+                        class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700">
+                        <span class="sr-only">Next</span>
+                        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 6 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="m1 9 4-4-4-4" />
+                        </svg>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</section>

@@ -9,15 +9,14 @@ const loadHomepage = async (req, res) => {
 
 const loadAdminDashboard = async (req, res) => {
   try {
-    return res.render("admin/home");
+    return res.render("admin/dashboard");
   } catch (error) {
     console.log("home page not found");
     res.status(500).send("server error while loading Home page");
   }
 };
 
-
 module.exports = {
-    loadHomepage,
-    loadAdminDashboard
-}
+  loadHomepage,
+  loadAdminDashboard,
+};

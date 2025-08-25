@@ -1,6 +1,6 @@
-const User = require("../models/userSchema");
+const User = require("../models/User");
 const bcrypt = require("bcrypt");
-const OTP = require("../models/otpSchema");
+const OTP = require("../models/Otp");
 const {
   generateOTP,
   generateExpiry,
@@ -49,6 +49,11 @@ const loadResetpassword = async (req, res) => {
 const postSignup = async (req, res) => {
   const { name, email, password } = req.body;
   try {
+    if (!password) {
+      return res.render("user/signup", {
+        error: "Password is required",
+      });
+    }
     const isUserExists = await User.findOne({ email });
     if (isUserExists) {
       return res.render("user/signup", { email, error: "User already exists" });
@@ -119,6 +124,7 @@ const postLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
     const userRecord = await User.findOne({ email });
+
     if (!userRecord) {
       console.log("user not found");
       return res.render("user/login", {
@@ -133,7 +139,7 @@ const postLogin = async (req, res) => {
         error: "Invalid email or password",
       });
     }
-    console.log(password);
+
     const isMatch = await bcrypt.compare(password, userRecord.password);
     if (!isMatch) {
       console.log("password is not matching");
@@ -142,6 +148,9 @@ const postLogin = async (req, res) => {
         error: "Invalid email or password",
       });
     }
+
+    req.session.user = userRecord;
+
     return res.redirect("/");
   } catch {
     console.error("Login verification error:", error);
@@ -176,13 +185,19 @@ const postForgotpassword = async (req, res) => {
 const postResetpassword = async (req, res) => {
   try {
     const { email, otp, password } = req.body;
+    const userRecord = await User.findOne({ email });
+    if (!userRecord) {
+      return res.render("user/resetpassword", {
+        email,
+        error: "Something went wrong",
+      });
+    }
 
     const otpRecord = await OTP.findOne({ email });
-
     if (!otpRecord || otpRecord.expiredAt < new Date()) {
       return res.render("user/resetpassword", {
         email,
-        error: "",
+        error: "Invalid or expired OTP",
       });
     }
 
@@ -222,11 +237,95 @@ const resetPasswordResendOtp = async (req, res) => {
   }
 };
 
-const loadAdminLogin = async (req, res) => {;
-
+const loadAdminLogin = async (req, res) => {
+  try {
+    return res.render("admin/login");
+  } catch (error) {
+    console.log("login page is loading");
+    res.status(500).send("Server error loading login page");
+  }
 };
 
+const postAdminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const userRecord = await User.findOne({ email });
 
+    if (!userRecord) {
+      return res.render("admin/login", {
+        error: "User not exist",
+      });
+    }
+
+    if (!userRecord.isAdmin) {
+      return res.render("admin/login", {
+        error: "You are not authorized",
+      });
+    }
+    const isMatch = await bcrypt.compare(password, userRecord.password);
+
+    if (!isMatch) {
+      return res.render("admin/login", {
+        error: "Incorrect Password,Please Try Again ",
+      });
+    }
+    req.session.user = userRecord;
+    return res.redirect("dashboard");
+  } catch (error) {
+    console.log("Admin login error", error);
+    res.status(500).send("Internal server error");
+  }
+};
+
+const logoutUser = (req, res) => {
+  try {
+    req.session.destroy((err) => {
+      if (err) {
+        console.log(err);
+        return res.redirect("/home");
+      }
+      res.redirect("/login");
+    });
+  } catch (error) {
+    console.log("Admin logout error", error);
+    res.status(500).send("Internal server error");
+  }
+};
+
+const logoutAdmin = (req, res) => {
+  try {
+    req.session.destroy((err) => {
+      if (err) {
+        console.log(err);
+        return res.redirect("/dashboard");
+      }
+
+      res.redirect("/admin/login");
+    });
+  } catch (error) {
+    console.log("Admin logout error", error);
+    res.status(500).send("Internal server error");
+  }
+};
+
+const googleAuth = async (req, res) => {
+  try {
+    const { name, email, picture } = req.user?._json;
+    const isExist = await User.findOne({ email });
+    let newUser
+    if (!isExist) {
+       newUser = new User({ name, email, picture });
+      await newUser.save();
+    }
+    req.session.user=isExist || newUser
+     return res.redirect("/");
+  }
+   
+  catch (error) {
+    console.error("error for google auth", error);
+    res.status(500).send("internal server error");
+  }
+}
 
 module.exports = {
   loadLoginPage,
@@ -241,4 +340,8 @@ module.exports = {
   postForgotpassword,
   postResetpassword,
   resetPasswordResendOtp,
+  postAdminLogin,
+  logoutUser,
+  logoutAdmin,
+  googleAuth,
 };

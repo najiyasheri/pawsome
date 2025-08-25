@@ -15,25 +15,27 @@
       <p class="auth-subtitle">Enter your details below</p>
 
       <form id="signform" action="/signup" method="POST" class="auth-form">
-           <% if(typeof error !== 'undefined') { %>
-        <div class="error-message"><%=error%></div>
-        <% } %>
-        <input type="text" placeholder="Name" class="input-field" id="name" name="name" />
-        <div id="error1" class="error-message"></div>
-        <input type="email" placeholder="Email" class="input-field" id="email" name="email" />
-        <div id="error2" class="error-message"></div>
-        <input type="password" placeholder="Password" class="input-field" id="password" name="password" />
-        <div id="error3" class="error-message"></div>
-        <input type="password" placeholder="Confirm password" class="input-field" id="confirm-password"
-          name="confirm-password" />
-        <div id="error4" class="error-message"></div>
-        <button type="submit" class="primary-btn">SIGN UP</button>
+        <% if(typeof error !=='undefined' ) { %>
+          <div class="error-message">
+            <%=error%>
+          </div>
+          <% } %>
+            <input type="text" placeholder="Name" class="input-field" id="name" name="name" />
+            <div id="error1" class="error-message"></div>
+            <input type="email" placeholder="Email" class="input-field" id="email" name="email" />
+            <div id="error2" class="error-message"></div>
+            <input type="password" placeholder="Password" class="input-field" id="password" name="password" />
+            <div id="error3" class="error-message"></div>
+            <input type="password" placeholder="Confirm password" class="input-field" id="confirm-password"
+              name="confirm-password" />
+            <div id="error4" class="error-message"></div>
+            <button type="submit" class="primary-btn">SIGN UP</button>
       </form>
 
-      <button class="google-btn">
+    <a href="/auth/google">  <button class="google-btn">
         <img src="/img/google.png" alt="Google" class="google-icon" />
         Sign up with Google
-      </button>
+      </button></a>
 
       <div class="auth-bottom">
         <p class="bottom-text">Already have an account?</p>
@@ -84,8 +86,8 @@
   }
 
   function passwordValidateChecking() {
-    const passval = password.value
-    const confirmval = confirmpassword.value
+    const passval = password.value.trim()
+    const confirmval = confirmpassword.value.trim()
     const alpha = /[A-Za-z]/
     const digit = /\d/
 

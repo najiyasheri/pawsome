@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+       <title><%= typeof title !== 'undefined' ? title : "Admin Panel" %></title>
+  
+    <link href="/styles/output.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body class="flex">
+
+  <!-- Sidebar -->
+  <div class="w-64">
+    <%- include('../partials/admin/sidebar') %>
+  </div>
+    
+  <!-- Main content -->
+  <main class="flex-1 p-6">
+    <%- body %>
+  </main>
+
+</body>
+
+</html>

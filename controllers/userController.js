@@ -1,3 +1,4 @@
+const { name } = require("ejs");
 const User = require("../models/User");
 
 const loadUserManagement = async (req, res) => {
@@ -6,31 +7,33 @@ const loadUserManagement = async (req, res) => {
     if (req.query.search) {
       search = req.query.search;
     }
-    let page = 1;
-    if (req.query.page) {
-      page = req.query.page;
-    }
+    let page = parseInt(req.query.page) || 1
     const limit = 3;
-    const userData = await User.find({
-      isAdmin: false,
-      $or: [
-        { name: { $regex: ".*" + search + ".*" } },
-        { email: { $regex: ".*" + search + ".*" } },
-      ],
-    })
+
+    const filter={
+      isAdmin:false,
+      $or:[
+        {name:{$regex:".*"+search+".*",$options:"i"}},
+        {email:{$regex:".*"+search+".*",$options:"i"}}
+      ]
+    }
+    
+    const userData = await User.find(filter)
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .exec();
 
-    const count = await User.find({
-      isAdmin: false,
-      $or: [
-        { name: { $regex: ".*" + search + ".*" } },
-        { email: { $regex: ".*" + search + ".*" } },
-      ],
-    }).countDocuments();
-    res.render("admin/userManagement");
-  } catch (error) {}
+    const count = await User.countDocuments(filter);
+
+    const totalPages=Math.ceil(count/limit)
+
+    res.render("admin/userManagement",{title:'User-Management',userData,currentPage:page,totalPages,limit,layout: "layouts/adminLayout"});
+  } catch (error) 
+    {
+    console.log("Pagination error:", error);
+    res.status(500).send("Internal Server Error");
+  }
+  
 };
 module.exports = {
   loadUserManagement,

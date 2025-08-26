@@ -59,9 +59,12 @@
                                 <%=user.createdAt.toLocaleDateString("en-IN",{year:'numeric',month:'short',day:'numeric'})
                                     %></td>
                             <td class="px-6 py-4">
-                                <a href="/admin/toggle-block/<%= user._id %>" class="text-yellow-600 hover:underline">
-                                    <%= user.isBlocked ? 'Unblock' : 'Block' %>
-                                </a>
+                               <% if(user.isBlocked){ %>
+  <a href="/admin/userunBlocked?id=<%= user._id %>" class="text-yellow-600 hover:text-green-500">Unblock</a>
+<% } else { %>
+  <a href="/admin/userBlocked?id=<%= user._id %>" class="text-yellow-600 hover:text-red-500">Block</a>
+<% } %>
+
                             </td>
                         </tr>
                         <% }) %>

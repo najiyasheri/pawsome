@@ -26,8 +26,17 @@ const addCategory=async(req,res)=>{
 
 const getCategory=async(req,res)=>{
     try{
+        let page=parseInt(req.query.page)||1
+        const limit=3
+
         const categories=await Category.find({})
-      return res.render('admin/categoryManagement',{title:'Category-Management',layout: "layouts/adminLayout",categories})
+        .sort({createdAt:-1})
+        .limit(limit*1)
+        .skip((page-1)*limit)
+        .exec()
+        const count=await Category.countDocuments()
+        const totalPages=Math.ceil(count/limit)
+        return res.render('admin/categoryManagement',{title:'Category-Management',layout: "layouts/adminLayout",categories ,limit,totalPages,currentPage:page})
     }
 
     catch(error){

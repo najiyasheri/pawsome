@@ -29,7 +29,9 @@ const loadUserManagement = async (req, res) => {
 
     const totalPages=Math.ceil(count/limit)
 
-    res.render("admin/userManagement",{title:'User-Management',userData,currentPage:page,totalPages,limit,layout: "layouts/adminLayout",search});
+    res.render("admin/userManagement",
+      {title:'User-Management',userData,currentPage:page,
+        totalPages,limit,layout: "layouts/adminLayout",search});
   } catch (error) 
     {
     console.log("Pagination error:", error);

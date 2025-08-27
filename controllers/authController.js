@@ -12,7 +12,7 @@ const saltRound = 10;
 const loadLoginPage = async (req, res) => {
   try {
     let msg = req.query.msg;
-    return res.render("user/login", { msg });
+    return res.render("user/login", {layout:false,msg});
   } catch (error) {
     console.log("login page is loading");
     res.status(500).send("server error loading Login page");
@@ -21,7 +21,7 @@ const loadLoginPage = async (req, res) => {
 
 const loadSignupPage = async (req, res) => {
   try {
-    return res.render("user/signup");
+    return res.render("user/signup", {layout:false });
   } catch (error) {
     console.log("signup page is loading");
     res.status(500).send("server error loading signup page");
@@ -30,7 +30,7 @@ const loadSignupPage = async (req, res) => {
 
 const loadForgotpassword = async (req, res) => {
   try {
-    return res.render("user/forgotpassword");
+    return res.render("user/forgotpassword",{layout:false });
   } catch (error) {
     console.log("forgotpassword page is loading");
     res.status(500).send("server error loading forgotpassword page");
@@ -39,7 +39,7 @@ const loadForgotpassword = async (req, res) => {
 
 const loadResetpassword = async (req, res) => {
   try {
-    return res.render("user/resetpassword");
+    return res.render("user/resetpassword",{layout:false });
   } catch (error) {
     console.log("forgotpassword page is loading");
     res.status(500).send("server error loading forgotpassword page");
@@ -151,7 +151,7 @@ const postLogin = async (req, res) => {
 
     req.session.user = userRecord;
 
-    return res.redirect("/");
+    return res.redirect("/",);
   } catch {
     console.error("Login verification error:", error);
     res.status(500).send("Internal server error during Login verification");
@@ -239,7 +239,7 @@ const resetPasswordResendOtp = async (req, res) => {
 
 const loadAdminLogin = async (req, res) => {
   try {
-    return res.render("admin/login");
+    return res.render("admin/login",{layout:false});
   } catch (error) {
     console.log("login page is loading");
     res.status(500).send("Server error loading login page");
@@ -254,12 +254,14 @@ const postAdminLogin = async (req, res) => {
     if (!userRecord) {
       return res.render("admin/login", {
         error: "User not exist",
+        layout:false
       });
     }
 
     if (!userRecord.isAdmin) {
       return res.render("admin/login", {
         error: "You are not authorized",
+        layout:false
       });
     }
     const isMatch = await bcrypt.compare(password, userRecord.password);
@@ -267,6 +269,7 @@ const postAdminLogin = async (req, res) => {
     if (!isMatch) {
       return res.render("admin/login", {
         error: "Incorrect Password,Please Try Again ",
+        layout:false
       });
     }
     req.session.user = userRecord;

@@ -3,42 +3,41 @@
     <h1 class="font-bold mb-10 text-2xl">Category Management</h1>
   </div>
   <div class="flex justify-between items-center mb-6">
-   <form class="flex w-full max-w-md" method="GET" action="/admin/category">
-  <label for="default-search" class="sr-only">Search</label>
-  
-  <!-- Search Input -->
-  <div class="relative flex-grow">
-    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-      <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-      </svg>
-    </div>
-    <input type="search" id="default-search" name="search"
-      class="block w-full p-3 pl-10 text-sm text-gray-900 border border-gray-300 rounded-l-lg bg-gray-50 focus:ring-yellow-500 focus:border-yellow-500"
-      placeholder="Search Users..." required />
-  </div>
+    <form class="flex w-full max-w-md" method="GET" action="/admin/category">
+      <label for="default-search" class="sr-only">Search</label>
 
-  <!-- Search Button -->
-  <button type="submit"
-    class="px-5 py-2.5 bg-yellow-600 text-white font-medium rounded-r-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500">
-    Search
-  </button>
+      <!-- Search Input -->
+      <div class="relative flex-grow">
+        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+          <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+          </svg>
+        </div>
+        <input type="search" id="default-search" name="search"
+          class="block w-full p-3 pl-10 text-sm text-gray-900 border border-gray-300 rounded-l-lg bg-gray-50 focus:ring-yellow-500 focus:border-yellow-500"
+          placeholder="Search Users..." required />
+      </div>
 
-   <% if (search && search.trim() !== "") { %>
-    <a href="/admin/category"
-      class="ml-2 px-5 py-2.5 bg-red-400 text-white rounded-lg hover:bg-gray-500">
-      Clear
-    </a>
-  <% } %>
-</form>
+      <!-- Search Button -->
+      <button type="submit"
+        class="px-5 py-2.5 bg-yellow-600 text-white font-medium rounded-r-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+        Search
+      </button>
+
+      <% if (search && search.trim() !=="" ) { %>
+        <a href="/admin/category" class="ml-2 px-5 py-2.5 bg-red-400 text-white rounded-lg hover:bg-gray-500">
+          Clear
+        </a>
+        <% } %>
+    </form>
 
     <button type="button" data-modal-target="crud-modal" data-modal-toggle="crud-modal"
       class="ml-4 flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-300 focus:ring-4 focus:outline-none focus:ring-yellow-300">
 
       Add Category
     </button>
-    
+
   </div>
   <div class="relative overflow-x-auto shadow-md sm:rounded-lg mb-6">
     <table class="w-full text-sm text-left text-gray-500">
@@ -53,49 +52,55 @@
         </tr>
       </thead>
       <tbody>
-              <% if(categories && categories.length) { %>
+        <% if(categories && categories.length) { %>
 
           <% categories.forEach((category,i)=> { %>
             <tr class="bg-white border-b">
               <td class="px-6 py-4">
-                 <%=(currentPage-1)*limit+(i+1)%>
+                <%=(currentPage-1)*limit+(i+1)%>
               </td>
               <th scope="row" class="px-6 py-4  font-medium text-gray-600 whitespace-nowrap uppercase">
-                 <%=category.name %>
+                <%=category.name %>
               </th>
-              <td class="px-6 py-4"><%= category.description %></td>
               <td class="px-6 py-4">
-              <%= category.isBlocked ? 'Blocked' : "Active" %>
+                <%= category.description %>
               </td>
               <td class="px-6 py-4">
-               <%=category.createdAt.toLocaleDateString("en-IN",{year:'numeric',month:'short',day:'numeric'}) %>
+                <%= category.isBlocked ? 'Blocked' : "Active" %>
               </td>
               <td class="px-6 py-4">
-                <div><a href="">Edit</a></div>
+                <%=category.createdAt.toLocaleDateString("en-IN",{year:'numeric',month:'short',day:'numeric'}) %>
+              </td>
+              <td class="px-6 py-4">
+                <div><button type="button" data-modal-target="edit-modal" data-modal-toggle="edit-modal"
+                    class="text-blue-600 hover:text-yellow-600 edit-btn" data-id="<%= category._id %>"
+                    data-name="<%= category.name %>" data-description="<%= category.description %>">
+                    Edit
+                  </button></div>
                 <div>
                   <% if(category.isBlocked){ %>
-                  <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
-                    class="text-yellow-600 hover:text-green-500 confirm-action cursor-pointer"
-                    data-url="/admin/categoryBlock?id=<%= category._id %>&search=<%= search %>&page=<%= currentPage %>">
-                    Unblock
-                  </button>
-                  <% } else { %>
                     <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
-                      class="text-yellow-600 hover:text-red-500 confirm-action cursor-pointer"
+                      class="text-yellow-600 hover:text-green-500 confirm-action cursor-pointer"
                       data-url="/admin/categoryBlock?id=<%= category._id %>&search=<%= search %>&page=<%= currentPage %>">
-                      Block
+                      Unblock
                     </button>
-                    <% } %>
+                    <% } else { %>
+                      <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
+                        class="text-yellow-600 hover:text-red-500 confirm-action cursor-pointer"
+                        data-url="/admin/categoryBlock?id=<%= category._id %>&search=<%= search %>&page=<%= currentPage %>">
+                        Block
+                      </button>
+                      <% } %>
                 </div>
 
               </td>
             </tr>
 
-             <% }) %>
+            <% }) %>
 
               <% } else{%>
                 <td class="p-2">User Data Not Found</td>
-                <% } %> 
+                <% } %>
 
       </tbody>
     </table>
@@ -179,7 +184,8 @@
 </div>
 
 
-<div id="crud-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+<div id="crud-modal" tabindex="-1" aria-hidden="true"
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
   <div class="relative p-4 w-full max-w-md max-h-full">
     <!-- Modal content -->
     <div class="relative bg-white rounded-lg shadow-sm">
@@ -188,9 +194,12 @@
         <h3 class="text-lg font-semibold text-gray-900">
           Create New Category
         </h3>
-        <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center" data-modal-toggle="crud-modal">
+        <button type="button"
+          class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center"
+          data-modal-toggle="crud-modal">
           <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
           </svg>
           <span class="sr-only">Close modal</span>
         </button>
@@ -200,17 +209,73 @@
         <div class="grid gap-4 mb-4 grid-cols-2">
           <div class="col-span-2">
             <label for="name" class="block mb-2 text-sm font-medium text-gray-900">Name</label>
-            <input type="text" name="name" id="name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" placeholder="Type category name" required>
+            <input type="text" name="name" id="name"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+              placeholder="Type category name" required>
           </div>
           <div class="col-span-2">
             <label for="description" class="block mb-2 text-sm font-medium text-gray-900">Category Description</label>
-            <textarea name="description" id="description" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Write category description here"></textarea>                    
+            <textarea name="description" id="description" rows="4"
+              class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Write category description here"></textarea>
           </div>
         </div>
-        <button type="submit" class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-          <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+        <button type="submit"
+          class="text-white inline-flex items-center bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+          <svg class="me-1 -ms-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd"
+              d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+              clip-rule="evenodd"></path>
+          </svg>
           Add new category
         </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div id="edit-modal" tabindex="-1" aria-hidden="true" 
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 
+  justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+
+  <div class="relative p-4 w-full max-w-md max-h-full">
+    <div class="relative bg-white rounded-lg shadow-sm">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-4 border-b rounded-t border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Edit Category</h3>
+        <button type="button" class="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8" 
+          data-modal-toggle="edit-modal">
+          ✕
+        </button>
+      </div>
+
+      <!-- Body -->
+      <form id="edit-form" method="POST">
+        <input type="hidden" name="id" id="edit-id">
+        <div class="p-4 grid gap-4 grid-cols-2">
+          <div class="col-span-2">
+            <label for="edit-name" class="block mb-2 text-sm font-medium text-gray-900">Name</label>
+            <input type="text" name="name" id="edit-name" 
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
+              focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required>
+          </div>
+          <div class="col-span-2">
+            <label for="edit-description" class="block mb-2 text-sm font-medium text-gray-900">Description</label>
+            <textarea name="description" id="edit-description" rows="4"
+              class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg 
+              border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
+          </div>
+        </div>
+
+        <div class="p-4 flex justify-end gap-3">
+          <button type="button" data-modal-toggle="edit-modal"
+            class="px-5 py-2.5 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+          <button type="submit" 
+            class="px-5 py-2.5 bg-blue-700 text-white rounded-lg hover:bg-blue-800">
+            Update Category
+          </button>
+        </div>
       </form>
     </div>
   </div>
@@ -229,7 +294,20 @@
   document.getElementById('confirm-yes').addEventListener('click', () => {
     if (targetUrl) window.location.href = targetUrl;
   });
+
+
+   document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      const name = btn.getAttribute('data-name');
+      const description = btn.getAttribute('data-description');
+
+      document.getElementById('edit-id').value = id;
+      document.getElementById('edit-name').value = name;
+      document.getElementById('edit-description').value = description;
+
+      // Update form action dynamically
+      document.getElementById('edit-form').action = `/admin/category/edit/${id}`;
+    });
+  });
 </script>
-
-
-

@@ -63,26 +63,47 @@ const toggleBlock = async (req, res) => {
   try {
     let id = req.query.id;
     const category = await Category.findById(id);
-    if(!category){
-        return res.render('admin/categoryManagement',{
-            error:'there is no category'
-        })
+    if (!category) {
+      return res.render("admin/categoryManagement", {
+        error: "there is no category",
+      });
     }
     category.isBlocked = !category.isBlocked;
     await category.save();
-     const search = req.query.search || "";
+    const search = req.query.search || "";
     const page = req.query.page || 1;
-
-
 
     return res.redirect(`/admin/category?page=${page}&search=${search}`);
   } catch (error) {
-    console.error("error for fetching category" , error);
+    console.error("error for fetching category", error);
+  }
+};
+
+const categoryEdit = async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    const id = req.params.id;
+    const category = await Category.findById(id);
+    if (!category) {
+      console.log("category with is id not exist", id);
+
+      return res.render("admin/categoryManagement", {
+        error: "there is some error occur",
+      });
+    }
+    category.name = name || category.name;
+    category.description = description || category.description;
+
+    await category.save();
+    return res.redirect('/admin/category')
+  } catch (error) {
+
   }
 };
 
 module.exports = {
   getCategory,
   addCategory,
-  toggleBlock
+  toggleBlock,
+  categoryEdit
 };

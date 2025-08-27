@@ -26,17 +26,30 @@ const addCategory=async(req,res)=>{
 
 const getCategory=async(req,res)=>{
     try{
+        let search=""
+        if(req.query.search){
+            search=req.query.search
+        }
         let page=parseInt(req.query.page)||1
         const limit=3
 
-        const categories=await Category.find({})
+        const filter= search
+        ? {
+            $or: [
+                { name: { $regex: search, $options: "i" } },         
+                { description: { $regex: search, $options: "i" } }
+            ]
+        }
+        : {};
+
+        const categories=await Category.find(filter)
         .sort({createdAt:-1})
         .limit(limit*1)
         .skip((page-1)*limit)
         .exec()
         const count=await Category.countDocuments()
         const totalPages=Math.ceil(count/limit)
-        return res.render('admin/categoryManagement',{title:'Category-Management',layout: "layouts/adminLayout",categories ,limit,totalPages,currentPage:page})
+        return res.render('admin/categoryManagement',{title:'Category-Management',layout: "layouts/adminLayout",categories ,limit,totalPages,currentPage:page,search})
     }
 
     catch(error){

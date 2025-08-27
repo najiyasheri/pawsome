@@ -3,7 +3,7 @@
     <h1 class="font-bold mb-10 text-2xl">Category Management</h1>
   </div>
   <div class="flex justify-between items-center mb-6">
-   <form class="flex w-full max-w-md" method="GET" action="/admin/users">
+   <form class="flex w-full max-w-md" method="GET" action="/admin/category">
   <label for="default-search" class="sr-only">Search</label>
   
   <!-- Search Input -->
@@ -25,8 +25,8 @@
     Search
   </button>
 
-   <% if (true) { %>
-    <a href="/admin/users"
+   <% if (search && search.trim() !== "") { %>
+    <a href="/admin/category"
       class="ml-2 px-5 py-2.5 bg-red-400 text-white rounded-lg hover:bg-gray-500">
       Clear
     </a>
@@ -58,12 +58,12 @@
           <% categories.forEach((category,i)=> { %>
             <tr class="bg-white border-b">
               <td class="px-6 py-4">
-                 <%= i%>
+                 <%=(currentPage-1)*limit+(i+1)%>
               </td>
               <th scope="row" class="px-6 py-4  font-medium text-gray-600 whitespace-nowrap uppercase">
                  <%=category.name %>
               </th>
-              <td class="px-6 py-4">Status</td>
+              <td class="px-6 py-4"><%= category.description %></td>
               <td class="px-6 py-4">
               <%= category.isBlocked ? 'Blocked' : "Active" %>
               </td>

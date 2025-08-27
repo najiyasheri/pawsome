@@ -10,6 +10,7 @@ const db=require('./config/db')
 const userRouter=require('./routes/user.routes')
 const adminRouter=require('./routes/admin.routes')
 
+
 db()
 
 

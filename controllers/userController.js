@@ -1,4 +1,4 @@
-const { name } = require("ejs");
+
 const User = require("../models/User");
 
 const loadUserManagement = async (req, res) => {

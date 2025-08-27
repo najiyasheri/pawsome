@@ -50,7 +50,7 @@ try{
     res.redirect(`/admin/users?page=${page}&search=${search}`);
 }
 catch(error){
-  res.redirect('/pageerror')
+  res.redirect('/admin/users')
 }
 
 }

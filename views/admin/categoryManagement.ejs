@@ -71,19 +71,22 @@
                <%=category.createdAt.toLocaleDateString("en-IN",{year:'numeric',month:'short',day:'numeric'}) %>
               </td>
               <td class="px-6 py-4">
-                <% if(category.isBlocked){ %>
+                <div><a href="">Edit</a></div>
+                <div>
+                  <% if(category.isBlocked){ %>
                   <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
                     class="text-yellow-600 hover:text-green-500 confirm-action cursor-pointer"
-                    data-url="">
+                    data-url="/admin/categoryBlock?id=<%= category._id %>&search=<%= search %>&page=<%= currentPage %>">
                     Unblock
                   </button>
                   <% } else { %>
                     <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
                       class="text-yellow-600 hover:text-red-500 confirm-action cursor-pointer"
-                      data-url="">
+                      data-url="/admin/categoryBlock?id=<%= category._id %>&search=<%= search %>&page=<%= currentPage %>">
                       Block
                     </button>
                     <% } %>
+                </div>
 
               </td>
             </tr>
@@ -104,7 +107,7 @@
       <ul class="flex items-center -space-x-px h-10 text-base">
         <!-- Previous Button -->
         <li>
-          <a href="/admin/category?page=<%= currentPage - 1 %>&limit=<%= limit %>"
+          <a href="/admin/category?page=<%= currentPage - 1 %>&limit=<%= limit %>&search=<%= search %>"
             class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700  %>">
             <span class="sr-only">Previous</span>
             <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
@@ -117,7 +120,7 @@
         <!-- Page Numbers -->
         <% for(let i=1; i <=totalPages; i++) { %>
           <li>
-            <a href="/admin/category?page=<%= i %>&limit=<%= limit %>"
+            <a href="/admin/category?page=<%= i %>&limit=<%= limit %>&search=<%= search %>"
               class="flex items-center justify-center px-4 h-10 leading-tight  bg-white border  hover:bg-gray-100 %>">
               <%= i %>
             </a>
@@ -126,7 +129,7 @@
 
             <!-- Next Button -->
             <li>
-              <a href="/admin/category?page=<%= currentPage + 1 %>&limit=<%= limit %>"
+              <a href="/admin/category?page=<%= currentPage + 1 %>&limit=<%= limit %>&search=<%= search %>"
                 class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 ">
                 <span class="sr-only">Next</span>
                 <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
@@ -212,6 +215,21 @@
     </div>
   </div>
 </div>
+
+
+<script>let targetUrl = null;
+
+  document.querySelectorAll('.confirm-action').forEach(btn => {
+    btn.addEventListener('click', () => {
+      targetUrl = btn.getAttribute('data-url');
+      document.getElementById('popup-modal').classList.remove('hidden');
+    });
+  });
+
+  document.getElementById('confirm-yes').addEventListener('click', () => {
+    if (targetUrl) window.location.href = targetUrl;
+  });
+</script>
 
 
 

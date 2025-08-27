@@ -3,28 +3,44 @@
     <h1 class="font-bold mb-10 text-2xl">User Management</h1>
   </div>
   <div class="flex justify-between items-center mb-6">
-    <form class="w-full max-w-md" method="GET" action="/admin/users">
-      <label for="default-search" class="sr-only">Search</label>
-      <div class="relative">
-        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-          </svg>
-        </div>
-        <input type="search" id="default-search" name="search"
-          class="block w-full p-3 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-yellow-500 focus:border-yellow-500"
-          placeholder="Search Users..." required />
+   <form class="flex w-full max-w-md" method="GET" action="/admin/users">
+  <label for="default-search" class="sr-only">Search</label>
+  
+  <!-- Search Input -->
+  <div class="relative flex-grow">
+    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+      <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+      </svg>
+    </div>
+    <input type="search" id="default-search" name="search"
+      class="block w-full p-3 pl-10 text-sm text-gray-900 border border-gray-300 rounded-l-lg bg-gray-50 focus:ring-yellow-500 focus:border-yellow-500"
+      placeholder="Search Users..." required />
+  </div>
 
-      </div>
-      <div><button type="submit" class="">Search</button></div>
-    </form>
 
-    <button type="button"
+
+
+  <!-- Search Button -->
+  <button type="submit"
+    class="px-5 py-2.5 bg-yellow-600 text-white font-medium rounded-r-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+    Search
+  </button>
+
+   <% if (search && search.trim() !== "") { %>
+    <a href="/admin/users"
+      class="ml-2 px-5 py-2.5 bg-red-400 text-white rounded-lg hover:bg-gray-500">
+      Clear
+    </a>
+  <% } %>
+</form>
+
+    <!-- <button type="button"
       class="ml-4 flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-300 focus:ring-4 focus:outline-none focus:ring-yellow-300">
       <i class="fa-solid fa-filter"></i>
       Filter
-    </button>
+    </button> -->
   </div>
 
   <div class="relative overflow-x-auto shadow-md sm:rounded-lg mb-6">
@@ -60,13 +76,13 @@
               <td class="px-6 py-4">
                 <% if(user.isBlocked){ %>
                   <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
-                    class="text-yellow-600 hover:text-green-500 confirm-action"
+                    class="text-yellow-600 hover:text-green-500 confirm-action cursor-pointer"
                     data-url="/admin/userunBlocked?id=<%= user._id %>&search=<%= search %>&page=<%= currentPage %>">
                     Unblock
                   </button>
                   <% } else { %>
                     <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
-                      class="text-yellow-600 hover:text-red-500 confirm-action"
+                      class="text-yellow-600 hover:text-red-500 confirm-action cursor-pointer"
                       data-url="/admin/userBlocked?id=<%= user._id %>&search=<%= search %>&page=<%= currentPage %>">
                       Block
                     </button>

@@ -9,7 +9,7 @@ const loadUserManagement = async (req, res) => {
       search = req.query.search;
     }
     let page = parseInt(req.query.page) || 1
-    const limit = 3;
+    const limit = 5;
 
     const filter={
       isAdmin:false,
@@ -20,6 +20,7 @@ const loadUserManagement = async (req, res) => {
     }
     
     const userData = await User.find(filter)
+      .sort({createdAt:-1})
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .exec();

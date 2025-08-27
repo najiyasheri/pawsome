@@ -3,6 +3,7 @@ const User = require("../models/User");
 
 const loadUserManagement = async (req, res) => {
   try {
+ 
     let search = "";
     if (req.query.search) {
       search = req.query.search;
@@ -27,7 +28,7 @@ const loadUserManagement = async (req, res) => {
 
     const totalPages=Math.ceil(count/limit)
 
-    res.render("admin/userManagement",{title:'User-Management',userData,currentPage:page,totalPages,limit,layout: "layouts/adminLayout"});
+    res.render("admin/userManagement",{title:'User-Management',userData,currentPage:page,totalPages,limit,layout: "layouts/adminLayout",search});
   } catch (error) 
     {
     console.log("Pagination error:", error);
@@ -41,7 +42,9 @@ const userBlocked=async(req,res)=>{
 try{
   let id=req.query.id
   await User.updateOne({_id:id},{$set:{isBlocked:true}})
-   res.redirect('/admin/users');
+     const search = req.query.search || "";
+    const page = req.query.page || 1;
+    res.redirect(`/admin/users?page=${page}&search=${search}`);
 }
 catch(error){
   res.redirect('/pageerror')
@@ -53,7 +56,9 @@ const userunBlocked=async(req,res)=>{
   try {
     let id=req.query.id
     await User.updateOne({_id:id},{$set:{isBlocked:false}})
-    res.redirect('/admin/users')
+      const search = req.query.search || "";
+    const page = req.query.page || 1;
+    res.redirect(`/admin/users?page=${page}&search=${search}`);
   } catch (error) {
     res.redirect('/pageerror')
   }

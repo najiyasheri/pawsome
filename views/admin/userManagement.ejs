@@ -3,7 +3,7 @@
     <h1 class="font-bold mb-10 text-2xl">User Management</h1>
   </div>
   <div class="flex justify-between items-center mb-6">
-    <form class="w-full max-w-md">
+    <form class="w-full max-w-md" method="GET" action="/admin/users">
       <label for="default-search" class="sr-only">Search</label>
       <div class="relative">
         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -12,10 +12,12 @@
               d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
           </svg>
         </div>
-        <input type="search" id="default-search"
+        <input type="search" id="default-search" name="search"
           class="block w-full p-3 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-yellow-500 focus:border-yellow-500"
-          placeholder="Search products..." required />
+          placeholder="Search Users..." required />
+
       </div>
+      <div><button type="submit" class="">Search</button></div>
     </form>
 
     <button type="button"
@@ -31,7 +33,7 @@
         <tr>
           <th scope="col" class="px-6 py-3">S.No</th>
           <th scope="col" class="px-6 py-3">Customer Name</th>
-          <th scope="col" class="px-6 py-3">Orders</th>
+          <th scope="col" class="px-6 py-3">Email</th>
           <th scope="col" class="px-6 py-3">Status</th>
           <th scope="col" class="px-6 py-3">Joined Date</th>
           <th scope="col" class="px-6 py-3">Action</th>
@@ -43,12 +45,12 @@
           <% userData.forEach((user,i)=> { %>
             <tr class="bg-white border-b">
               <td class="px-6 py-4">
-                <%=i+1%>
+                <%= (currentPage-1)*limit+(i+1)%>
               </td>
               <th scope="row" class="px-6 py-4  font-medium text-gray-600 whitespace-nowrap uppercase">
                 <%=user.name %>
               </th>
-              <td class="px-6 py-4">0</td>
+              <td class="px-6 py-4"><%=user.email %></td>
               <td class="px-6 py-4">
                 <%= user.isBlocked ? 'Blocked' : "Active" %>
               </td>
@@ -59,13 +61,13 @@
                 <% if(user.isBlocked){ %>
                   <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
                     class="text-yellow-600 hover:text-green-500 confirm-action"
-                    data-url="/admin/userunBlocked?id=<%= user._id %>">
+                    data-url="/admin/userunBlocked?id=<%= user._id %>&search=<%= search %>&page=<%= currentPage %>">
                     Unblock
                   </button>
                   <% } else { %>
                     <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
                       class="text-yellow-600 hover:text-red-500 confirm-action"
-                      data-url="/admin/userBlocked?id=<%= user._id %>">
+                      data-url="/admin/userBlocked?id=<%= user._id %>&search=<%= search %>&page=<%= currentPage %>">
                       Block
                     </button>
                     <% } %>
@@ -87,7 +89,7 @@
       <ul class="flex items-center -space-x-px h-10 text-base">
         <!-- Previous Button -->
         <li>
-          <a href="/admin/users?page=<%= currentPage - 1 %>&limit=<%= limit %>"
+          <a href="/admin/users?page=<%= currentPage - 1 %>&limit=<%= limit %>&search=<%= search %>"
             class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 <%= currentPage === 1 ? 'pointer-events-none opacity-50' : '' %>">
             <span class="sr-only">Previous</span>
             <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
@@ -100,7 +102,7 @@
         <!-- Page Numbers -->
         <% for(let i=1; i <=totalPages; i++) { %>
           <li>
-            <a href="/admin/users?page=<%= i %>&limit=<%= limit %>"
+            <a href="/admin/users?page=<%= i %>&limit=<%= limit %>&search=<%= search %>"
               class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 <%= currentPage === i ? 'z-10 text-yellow-600 border-yellow-300 bg-yellow-50' : '' %>">
               <%= i %>
             </a>
@@ -109,7 +111,7 @@
 
             <!-- Next Button -->
             <li>
-              <a href="/admin/users?page=<%= currentPage + 1 %>&limit=<%= limit %>"
+              <a href="/admin/users?page=<%= currentPage + 1 %>&limit=<%= limit %>&search=<%= search %>"
                 class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 <%= currentPage === totalPages ? 'pointer-events-none opacity-50' : '' %>">
                 <span class="sr-only">Next</span>
                 <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">

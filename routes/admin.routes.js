@@ -31,4 +31,6 @@ router.route("/product/add")
 .get(adminAuth, productController.loadAddProduct)
 .post(adminAuth,uploadProductImages,productController.addProduct)
 
+router.get('/product/block',adminAuth,productController.toggleBlock)
+
 module.exports = router;

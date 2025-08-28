@@ -64,7 +64,7 @@
                 <%= product.is_Blocked ? "Blocked" : "Active" %>
               </td>
               <td class="px-6 py-4">
-                <%= new Date(product.created_at).toLocaleDateString("en-GB", { day: "2-digit" , month: "short" ,
+                <%= new Date(product.createdAt).toLocaleDateString("en-GB", { day: "2-digit" , month: "short" ,
                   year: "numeric" }) %>
               </td>
               <td class="px-6 py-4">
@@ -78,8 +78,8 @@
                 <div>
                   <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
                     class="text-yellow-600 hover:text-<%= product.is_Blocked ? 'green-500' : 'red-500' %> confirm-action cursor-pointer"
-                    data-url="/admin/productBlock?id=<%= product._id %>&search=<%= search %>&page=<%= currentPage %>">
-                    <%= product.is_Blocked ? "Unblock" : "Block" %>
+                    data-url="/admin/product/block?id=<%= product._id %>&search=<%= search %>&page=<%= currentPage %>">
+                    <%= product.isBlocked ? "Unblock" : "Block" %>
                   </button>
                 </div>
               </td>

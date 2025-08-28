@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    category_id: {
+    categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
@@ -19,7 +19,7 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    offers_id: {
+    offersId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Offer",
       default: null,
@@ -36,24 +36,21 @@ const productSchema = new mongoose.Schema(
         return date;
       },
     },
-    is_Blocked: {
+    isBlocked: {
       type: Boolean,
       default: false,
     },
-    base_price: {
+    basePrice: {
       type: mongoose.Types.Decimal128,
       required: true,
     },
-    discount_percentage: {
+    discountPercentage: {
       type: mongoose.Types.Decimal128,
       default: 0,
     },
   },
   {
-    timestamps: {
-      createdAt: "created_at",
-      updatedAt: "updated_at",
-    },
+    timestamps:true
   }
 );
 

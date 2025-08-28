@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const variantSchema = new mongoose.Schema(
   {
-    product_id: {
+    productId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product", 
       required: true
@@ -11,7 +11,7 @@ const variantSchema = new mongoose.Schema(
       type: Number, 
       required: true
     },
-    additional_price: {
+    additionalPrice: {
       type: Number, 
       default: 0
     },
@@ -26,10 +26,7 @@ const variantSchema = new mongoose.Schema(
     }
   },
   {
-    timestamps: {
-      createdAt: "created_at",
-      updatedAt: "updated_at"
-    }
+    timestamps: true
   }
 );
 

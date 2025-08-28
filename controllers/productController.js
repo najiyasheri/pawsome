@@ -74,24 +74,24 @@ const addProduct = async (req, res) => {
     const product = new Product({
       name: req.body.name,
       description: req.body.description,
-      category_id: req.body.category,
+      categoryId: req.body.category,
       brand: req.body.brand,
       //   offers_id: req.body.offer || null,
-      return_within: req.body.returnWithin
+      returnWithin: req.body.returnWithin
         ? new Date(
             Date.now() + parseInt(req.body.returnWithin) * 24 * 60 * 60 * 1000
           )
         : undefined,
-      base_price: parseFloat(req.body.price),
-      discount_percentage: parseFloat(req.body.discount),
+      basePrice: parseFloat(req.body.price),
+      discountPercentage: parseFloat(req.body.discount),
       images,
     });
 
     const savedProduct = await product.save();
     const variants = req.body.size.map((size, index) => ({
-      product_id: savedProduct._id,
+      productId: savedProduct._id,
       size: parseInt(size),
-      additional_price: parseFloat(req.body.additionalPrice[index]) || 0,
+      additionalPrice: parseFloat(req.body.additionalPrice[index]) || 0,
       stock: parseInt(req.body.stock[index]) || 0,
     }));
 
@@ -104,8 +104,30 @@ const addProduct = async (req, res) => {
   }
 };
 
+const toggleBlock=async(req,res)=>{
+  try {
+      let id = req.query.id;
+      const product=await Product.findById(id)
+    if(!product){
+      return res.render("admin/productManagement", {
+        error: "there is no product",
+      });
+    }
+     product.isBlocked = !product.isBlocked;
+    await product.save();
+    const search = req.query.search || "";
+    const page = req.query.page || 1;
+
+    return res.redirect(`/admin/product?page=${page}&search=${search}`);
+
+  } catch (error) {
+    console.error("error for fetching product", error);
+  }
+}
+
 module.exports = {
   loadProductManagement,
   loadAddProduct,
   addProduct,
+  toggleBlock
 };

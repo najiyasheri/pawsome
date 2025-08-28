@@ -1,6 +1,10 @@
 const Category = require("../models/Category");
 const Product = require("../models/Product");
 const ProductVariant = require("../models/ProductVarient");
+const fs = require('fs')
+const path = require('path');
+
+
 
 const loadProductManagement = async (req, res) => {
   try {
@@ -151,34 +155,74 @@ const loadEditProduct = async (req, res) => {
   }
 };
 
-
 const postEditProduct = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { name, description, price, category, brand, discount } = req.body;
+  const { id } = req.params;
+        const { name, description, price, category, brand, discount, images } = req.body;
 
-    console.log(req.body)
+        // Get the product
+        const product = await Product.findById(id);
+        if (!product) {
+            return res.status(404).send("Product not found");
+        }
 
-    const newImages = req.files ? req.files.map((f) => f.filename) : [];
+        // Update basic product information
+        product.name = name;
+        product.description = description;
+        product.categoryId = category;
+        product.brand = brand;
+        product.basePrice = parseFloat(price);
+        product.discountPercentage = parseFloat(discount);
 
-    const product = await Product.findById(id);
-    if (!product) {
-      return res.status(404).send("Product not found");
-    }
+        // Handle existing images
+        const existingImages = Array.isArray(images) ? images : images ? [images] : [];
+        product.images = existingImages;
 
-    product.name = name;
-    product.description = description;
-    product.categoryId = category;
-    product.brand = brand;
-    product.basePrice = parseFloat(price);
-    product.discountPercentage = parseFloat(discount);
+        // Handle replaced and new images
+        if (req.files) {
+            const replaceImages = {};
+            const newImages = [];
 
-    if (newImages.length > 0) {
-      product.images = [...product.images, ...newImages];
-    }
+            // Categorize uploaded files
+            Object.keys(req.files).forEach(fieldName => {
+                if (fieldName.startsWith('replaceImages[')) {
+                    const index = parseInt(fieldName.match(/\d+/)[0], 10);
+                    if (!isNaN(index) && req.files[fieldName][0]) {
+                        replaceImages[index] = req.files[fieldName][0].filename;
+                    }
+                } else if (fieldName === 'images[]' && req.files[fieldName]) {
+                    newImages.push(...req.files[fieldName].map(file => file.filename));
+                }
+            });
 
-    await product.save();
-    res.redirect('/admin/product'); 
+            // Replace images at specific indices
+            for (const [index, newImage] of Object.entries(replaceImages)) {
+                const idx = parseInt(index, 10);
+                if (idx >= 0 && idx < product.images.length) {
+                    const oldImage = product.images[idx];
+                    product.images[idx] = newImage;
+                }
+            }
+
+            // Append new images if total is within limit (e.g., 4)
+            if (product.images.length + newImages.length <= 4) {
+                product.images.push(...newImages);
+            } else {
+                // Delete excess uploaded files
+                for (const newImage of newImages) {
+                    try {
+                        await fs.unlink(path.join('public/uploads', newImage));
+                    } catch (err) {
+                        console.error(`Failed to delete excess image ${newImage}:`, err);
+                    }
+                }
+                return res.status(400).send("Cannot add more than 4 images");
+            }
+        }
+
+        // Save the updated product
+        await product.save();
+        res.redirect('/admin/product');
 
   } catch (err) {
     console.error(err);

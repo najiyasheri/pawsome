@@ -246,15 +246,10 @@
                         if (file) {
                             const reader = new FileReader();
                             reader.onload = function (e) {
-                                // Remove upload placeholders (div and span)
                                 const placeholders = slot.querySelectorAll('div:not(.image-upload-slot), span');
                                 placeholders.forEach(el => el.remove());
-
-                                // Remove old img if exists
                                 const oldImg = slot.querySelector('img');
                                 if (oldImg) oldImg.remove();
-
-                                // Add new preview img
                                 const img = document.createElement('img');
                                 img.src = e.target.result;
                                 img.classList.add('w-full', 'h-full', 'object-cover', 'rounded-lg');

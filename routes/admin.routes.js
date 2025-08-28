@@ -20,4 +20,7 @@ router.route('/category')
 .get(adminAuth,categoryController.getCategory)
 .post(adminAuth,categoryController.addCategory)
 
+router.get('/categoryBlock',adminAuth,categoryController.toggleBlock)
+router.post('/category/edit/:id',adminAuth,categoryController.categoryEdit)
+
 module.exports=router

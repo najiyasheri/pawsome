@@ -33,6 +33,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname,'public')))
 app.use(expressLayout)
 app.set("layout", false);
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // app.set("layout", "layouts/adminLayout");  
 // app.set("layout", "layouts/userLayout");
 

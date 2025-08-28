@@ -3,7 +3,7 @@ const path = require('path');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/'); 
+        cb(null, 'public/uploads/'); 
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname)); 
@@ -27,6 +27,7 @@ const upload = multer({
 });
 
 // Middleware to handle file uploads for 'images' field (up to 4 files)
-const uploadProductImages = upload.array('images', 4);
+const uploadProductImages = upload.array('images[]', 4);
+
 
 module.exports = uploadProductImages;

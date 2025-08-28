@@ -40,6 +40,8 @@ const addProduct = async (req, res) => {
       )
     }
 
+    const images = req.files ? req.files.map(f => f.filename) : [];
+
      const product = new Product({
       name: req.body.name,
       description: req.body.description,
@@ -51,11 +53,10 @@ const addProduct = async (req, res) => {
         : undefined,
       base_price: parseFloat(req.body.price),
       discount_percentage: parseFloat(req.body.discount),
-      images: req.body.images || []
+      images,
     });
 
      const savedProduct = await product.save();
-
      const variants = req.body.size.map((size, index) => ({
       product_id: savedProduct._id,
       size: parseInt(size),

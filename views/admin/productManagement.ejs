@@ -25,9 +25,11 @@
         Search
       </button>
 
+       <% if (search && search.trim() !=="" ) { %>
       <a href="/admin/product" class="ml-2 px-5 py-2.5 bg-red-400 text-white rounded-lg hover:bg-gray-500">
         Clear
       </a>
+      <% } %>
     </form>
 
     <a href="/admin/product/add"> <button type="button"
@@ -40,6 +42,7 @@
       <thead class="text-xs text-gray-700 uppercase bg-gray-50">
         <tr>
           <th scope="col" class="px-6 py-3">S.No</th>
+          <th scope="col" class="px-6 py-3">Image</th>
           <th scope="col" class="px-6 py-3">Product Name</th>
           <th scope="col" class="px-6 py-3">Description</th>
           <th scope="col" class="px-6 py-3">Status</th>
@@ -53,6 +56,9 @@
             <tr class="bg-white border-b">
               <td class="px-6 py-4">
                 <%= (currentPage - 1) * limit + index + 1 %>
+              </td>
+              <td class="px-6 py-4">
+                <img src="/uploads/<%= product.images[0]  %>" alt="image is not supporting" class="max-w-16 object-contain">
               </td>
               <th scope="row" class="px-6 py-4 font-medium text-gray-600 whitespace-nowrap uppercase">
                 <%= product.name %>
@@ -69,11 +75,11 @@
               </td>
               <td class="px-6 py-4">
                 <div>
-                  <button type="button" data-modal-target="edit-modal" data-modal-toggle="edit-modal"
+                 <a href="/admin/product/edit/<%= product._id %>"> <button type="button" 
                     class="text-blue-600 hover:text-yellow-600 edit-btn" data-id="<%= product._id %>"
                     data-name="<%= product.name %>" data-description="<%= product.description %>">
                     Edit
-                  </button>
+                  </button></a>
                 </div>
                 <div>
                   <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
@@ -173,44 +179,7 @@
 
 
 
-<!-- Edit Product Modal -->
-<div id="edit-modal" tabindex="-1" aria-hidden="true"
-  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-  <div class="relative p-4 w-full max-w-md max-h-full">
-    <div class="relative bg-white rounded-lg shadow-sm">
-      <div class="flex items-center justify-between p-4 border-b rounded-t border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-900">Edit Product</h3>
-        <button type="button" class="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8"
-          data-modal-toggle="edit-modal">
-          ✕
-        </button>
-      </div>
-      <form id="edit-form" method="POST">
-        <input type="hidden" name="id" id="edit-id">
-        <div class="p-4 grid gap-4 grid-cols-2">
-          <div class="col-span-2">
-            <label for="edit-name" class="block mb-2 text-sm font-medium text-gray-900">Name</label>
-            <input type="text" name="name" id="edit-name"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
-              required>
-          </div>
-          <div class="col-span-2">
-            <label for="edit-description" class="block mb-2 text-sm font-medium text-gray-900">Description</label>
-            <textarea name="description" id="edit-description" rows="4"
-              class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"></textarea>
-          </div>
-        </div>
-        <div class="p-4 flex justify-end gap-3">
-          <button type="button" data-modal-toggle="edit-modal"
-            class="px-5 py-2.5 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
-          <button type="submit" class="px-5 py-2.5 bg-blue-700 text-white rounded-lg hover:bg-blue-800">
-            Update Product
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+
 
 <script>
   let targetUrl = null;

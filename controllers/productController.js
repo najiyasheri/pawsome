@@ -9,7 +9,7 @@ const loadProductManagement = async (req, res) => {
       search = req.query.search;
     }
     let page = parseInt(req.query.page) || 1;
-    const limit = 3;
+    const limit = 5;
     console.log(search)
     const filter = search
       ? {
@@ -125,9 +125,72 @@ const toggleBlock=async(req,res)=>{
   }
 }
 
+const loadEditProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id).populate("categoryId");
+
+    if (!product) {
+      return res.status(404).send("Product not found");
+    }
+
+    const variants = await ProductVariant.find({productId : product._id})
+
+    const categories = await Category.find({ isBlocked: false });
+
+    res.render("admin/editProduct", {
+      title: "Edit Product",
+      layout: "layouts/adminLayout",
+      product,
+      categories,
+      variants
+    });
+  } catch (error) {
+    console.error("Error loading product for edit:", error);
+    res.status(500).send("Error loading product for edit");
+  }
+};
+
+
+const postEditProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, price, category, brand, discount } = req.body;
+
+    console.log(req.body)
+
+    const newImages = req.files ? req.files.map((f) => f.filename) : [];
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).send("Product not found");
+    }
+
+    product.name = name;
+    product.description = description;
+    product.categoryId = category;
+    product.brand = brand;
+    product.basePrice = parseFloat(price);
+    product.discountPercentage = parseFloat(discount);
+
+    if (newImages.length > 0) {
+      product.images = [...product.images, ...newImages];
+    }
+
+    await product.save();
+    res.redirect('/admin/product'); 
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error updating product");
+  }
+};
+
 module.exports = {
   loadProductManagement,
   loadAddProduct,
   addProduct,
-  toggleBlock
+  toggleBlock,
+  postEditProduct,
+  loadEditProduct 
 };

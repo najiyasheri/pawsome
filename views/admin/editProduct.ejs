@@ -1,0 +1,120 @@
+<div class="max-w-4xl mx-auto">
+  <div class="mb-6">
+    <h1 class="font-bold mb-10 text-2xl">Edit Product</h1>
+  </div>
+  <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <form class="p-8" action="/admin/product/edit/<%= product._id %>" method="POST" enctype="multipart/form-data">
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-6">Basic Information</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
+            <input type="text" name="name" value="<%= product.name %>"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Product Description</label>
+            <input type="text" name="description" value="<%= product.description %>"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <select name="category"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+              <% categories.forEach(category=> { %>
+                <option value="<%= category._id %>" <%= category._id.toString() === product.categoryId.toString() ? "selected" : "" %>>
+                  <%= category.name?.toUpperCase() %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Brand</label>
+            <input type="text" name="brand" value="<%= product.brand %>"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Price</label>
+            <input type="number" name="price" value="<%= product.basePrice %>"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Discount (%)</label>
+            <input type="number" name="discount" value="<%= product.discountPercentage %>"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Images -->
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-6">Product Images</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <% product.images.forEach((img, idx) => { %>
+            <div class="relative">
+              <img src="/uploads/<%= img %>" class="w-full h-full object-cover rounded-lg">
+              <input type="file" name="images[]" class="hidden">
+              <div class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                <span class="text-white text-xs font-bold"><%= idx+1 %></span>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- Product Variants -->
+      <div class="mb-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-lg font-semibold text-gray-900">Product Variants</h2>
+          <button type="button"
+            class="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors">
+            Add Variant
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="text-left py-3 px-4">Size</th>
+                <th class="text-left py-3 px-4">Additional Price</th>
+                <th class="text-left py-3 px-4">Stock</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% variants.forEach(variant => { %>
+                <tr class="border-b border-gray-100">
+                  <td class="py-4 px-4">
+                    <input name="size[]" type="text" value="<%= variant.size %>"
+                      class="w-full px-3 py-2 border rounded-md">
+                  </td>
+                  <td class="py-4 px-4">
+                    <input name="additionalPrice[]" type="number" value="<%= variant.additionalPrice %>"
+                      class="w-full px-3 py-2 border rounded-md">
+                  </td>
+                  <td class="py-4 px-4">
+                    <input name="stock[]" type="number" value="<%= variant.stock %>"
+                      class="w-full px-3 py-2 border rounded-md">
+                  </td>
+                  <td class="py-4 px-4">
+                    <button type="button" class="remove-variant text-red-500 hover:text-red-700">Remove</button>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex items-center justify-end space-x-4 pt-6 border-t">
+        <a href="/admin/product"><button type="button"
+            class="px-6 py-2 text-sm font-medium text-gray-700 bg-white border rounded-md">Cancel</button></a>
+        <button type="submit"
+          class="px-6 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600">Update Product</button>
+      </div>
+    </form>
+  </div>
+</div>

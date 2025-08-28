@@ -1,0 +1,236 @@
+
+    <style>
+        .image-upload-slot {
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='%23e5e7eb' stroke-width='2' stroke-dasharray='6%2c 14' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+        }
+    </style>
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-6">
+            <h1 class="text-white text-xl font-medium">Add Product</h1>
+        </div>
+
+        <!-- Main Form Card -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <form class="p-8">
+                <!-- Basic Information Section -->
+                <div class="mb-8">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Basic Information</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Product Name -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
+                            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
+                        <!-- Product Description -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Product Description</label>
+                            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
+                        <!-- Category -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                                <option>Select Category</option>
+                                <option>Electronics</option>
+                                <option>Clothing</option>
+                                <option>Home & Garden</option>
+                                <option>Sports</option>
+                            </select>
+                        </div>
+
+                        <!-- Brand -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Brand</label>
+                            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
+                        <!-- SKU -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">SKU</label>
+                            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+
+                        <!-- Stock Quantity -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Stock Quantity</label>
+                            <input type="number" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Images Section -->
+                <div class="mb-8">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Product Images</h2>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <!-- Image Upload Slots -->
+                        <div class="relative">
+                            <div class="aspect-square image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-xs text-gray-500 text-center">Add Image</span>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                                <span class="text-white text-xs font-bold">1</span>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <div class="aspect-square image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-xs text-gray-500 text-center">Add Image</span>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                                <span class="text-white text-xs font-bold">2</span>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <div class="aspect-square image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-xs text-gray-500 text-center">Add Image</span>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                                <span class="text-white text-xs font-bold">3</span>
+                            </div>
+                        </div>
+
+                        <div class="relative">
+                            <div class="aspect-square image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                </div>
+                                <span class="text-xs text-gray-500 text-center">Add Image</span>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                                <span class="text-white text-xs font-bold">4</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Variants Section -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900">Product Variants</h2>
+                        <button type="button" class="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors">
+                            Add Variant
+                        </button>
+                    </div>
+
+                    <!-- Variants Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 px-4 font-medium text-gray-700 text-sm">SKU</th>
+                                    <th class="text-left py-3 px-4 font-medium text-gray-700 text-sm">Additional Price</th>
+                                    <th class="text-left py-3 px-4 font-medium text-gray-700 text-sm">Status</th>
+                                    <th class="text-left py-3 px-4 font-medium text-gray-700 text-sm">Stock</th>
+                                    <th class="w-10 py-3 px-4"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-gray-100">
+                                    <td class="py-4 px-4">
+                                        <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </td>
+                                    <td class="py-4 px-4">
+                                        <input type="number" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </td>
+                                    <td class="py-4 px-4">
+                                        <select class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                                            <option>Active</option>
+                                            <option>Inactive</option>
+                                        </select>
+                                    </td>
+                                    <td class="py-4 px-4">
+                                        <input type="number" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </td>
+                                    <td class="py-4 px-4">
+                                        <button type="button" class="text-red-500 hover:text-red-700 text-sm">
+                                            Remove Variant
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="/admin/product"><button type="button" class="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button></a>
+                    <button type="submit" class="px-6 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition-colors">
+                        Add Product
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Add some basic interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Image upload functionality
+            const imageSlots = document.querySelectorAll('.image-upload-slot');
+            imageSlots.forEach(slot => {
+                slot.addEventListener('click', function() {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = function(e) {
+                        const file = e.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                slot.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-lg">`;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+                    input.click();
+                });
+            });
+
+            // Add variant functionality
+            const addVariantBtn = document.querySelector('button[type="button"]');
+            const tbody = document.querySelector('tbody');
+            
+            addVariantBtn.addEventListener('click', function() {
+                const newRow = tbody.querySelector('tr').cloneNode(true);
+                // Clear input values
+                newRow.querySelectorAll('input').forEach(input => input.value = '');
+                newRow.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+                tbody.appendChild(newRow);
+            });
+
+            // Remove variant functionality
+            document.addEventListener('click', function(e) {
+                if (e.target.textContent === 'Remove Variant') {
+                    if (tbody.children.length > 1) {
+                        e.target.closest('tr').remove();
+                    }
+                }
+            });
+        });
+    </script>

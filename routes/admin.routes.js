@@ -7,6 +7,8 @@ const userController=require('../controllers/userController')
 const{loadUserManagement}=require('../controllers/userController')
 const categoryController=require('../controllers/categoryController')
 
+const productController=require('../controllers/productController')
+
 router.get('/users',loadUserManagement)
 router.get('/login',isLogin,authController.loadAdminLogin)
 router.post('/login',isLogin,authController.postAdminLogin)
@@ -22,5 +24,8 @@ router.route('/category')
 
 router.get('/categoryBlock',adminAuth,categoryController.toggleBlock)
 router.post('/category/edit/:id',adminAuth,categoryController.categoryEdit)
+
+router.get('/product',adminAuth,productController.loadProductManagement)
+router.get('/addProduct',adminAuth,productController.loadAddProduct)
 
 module.exports=router

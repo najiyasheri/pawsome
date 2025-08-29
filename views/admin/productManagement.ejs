@@ -67,7 +67,7 @@
                 <%= product.description %>
               </td>
               <td class="px-6 py-4">
-                <%= product.is_Blocked ? "Blocked" : "Active" %>
+                <%= product.isBlocked ? "Blocked" : "Active" %>
               </td>
               <td class="px-6 py-4">
                 <%= new Date(product.createdAt).toLocaleDateString("en-GB", { day: "2-digit" , month: "short" ,

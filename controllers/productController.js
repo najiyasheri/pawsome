@@ -137,7 +137,7 @@ const toggleBlock=async(req,res)=>{
 const loadEditProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const product = await Product.findById(id).populate("categoryId");
+    const product = await Product.findById(id);
 
     if (!product) {
       return res.status(404).send("Product not found");
@@ -146,6 +146,9 @@ const loadEditProduct = async (req, res) => {
     const variants = await ProductVariant.find({productId : product._id})
 
     const categories = await Category.find({ isBlocked: false });
+
+    console.log('product.categoryId:',product , product.categoryId);
+    console.log('categories:', categories.map(c => c._id));
 
     res.render("admin/editProduct", {
       title: "Edit Product",

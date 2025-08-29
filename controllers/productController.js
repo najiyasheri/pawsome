@@ -65,41 +65,46 @@ const loadAddProduct = async (req, res) => {
 
 const addProduct = async (req, res) => {
   try {
-    if (!req.body.size || req.body.size.length === 0) {
-      return res.render("admin/addProduct", {
-        error: "At least one variant is required",
-        title: "Products-Management",
-        layout: "layouts/adminLayout",
-      });
+    let images = [];
+
+    if (req.files && req.files['images[]']) {
+      images = req.files['images[]'].map(file => file.filename);
     }
 
-    const images = req.files ? req.files.map((f) => f.filename) : [];
+     let replacedImages = [];
+    if (req.files) {
+      for (let i = 0; i < 4; i++) {
+        if (req.files[`replaceImages[${i}]`]) {
+          replacedImages[i] = req.files[`replaceImages[${i}]`][0].filename;
+        }
+      }
+    }
 
-    const product = new Product({
+
+   const product = new Product({
       name: req.body.name,
       description: req.body.description,
       categoryId: req.body.category,
       brand: req.body.brand,
-      //   offers_id: req.body.offer || null,
+      // Offer is optional
+      // offers_id: req.body.offer || null,
       returnWithin: req.body.returnWithin
-        ? new Date(
-            Date.now() + parseInt(req.body.returnWithin) * 24 * 60 * 60 * 1000
-          )
+        ? new Date(Date.now() + parseInt(req.body.returnWithin) * 24 * 60 * 60 * 1000)
         : undefined,
-      basePrice: parseFloat(req.body.price),
-      discountPercentage: parseFloat(req.body.discount),
+      basePrice: parseFloat(req.body.price) || 0,
+      discountPercentage: parseFloat(req.body.discount) || 0,
       images,
     });
 
     const savedProduct = await product.save();
     const variants = req.body.size.map((size, index) => ({
       productId: savedProduct._id,
-      size: parseInt(size),
+      size: size.trim(), // Keep as string if size isn't numeric
       additionalPrice: parseFloat(req.body.additionalPrice[index]) || 0,
       stock: parseInt(req.body.stock[index]) || 0,
     }));
 
-    await Promise.all([savedProduct, ProductVariant.insertMany(variants)]);
+   await ProductVariant.insertMany(variants);
 
     return res.redirect("/admin/product");
   } catch (error) {
@@ -160,13 +165,11 @@ const postEditProduct = async (req, res) => {
   const { id } = req.params;
         const { name, description, price, category, brand, discount, images } = req.body;
 
-        // Get the product
         const product = await Product.findById(id);
         if (!product) {
             return res.status(404).send("Product not found");
         }
 
-        // Update basic product information
         product.name = name;
         product.description = description;
         product.categoryId = category;
@@ -174,16 +177,13 @@ const postEditProduct = async (req, res) => {
         product.basePrice = parseFloat(price);
         product.discountPercentage = parseFloat(discount);
 
-        // Handle existing images
         const existingImages = Array.isArray(images) ? images : images ? [images] : [];
         product.images = existingImages;
 
-        // Handle replaced and new images
         if (req.files) {
             const replaceImages = {};
             const newImages = [];
 
-            // Categorize uploaded files
             Object.keys(req.files).forEach(fieldName => {
                 if (fieldName.startsWith('replaceImages[')) {
                     const index = parseInt(fieldName.match(/\d+/)[0], 10);
@@ -194,8 +194,6 @@ const postEditProduct = async (req, res) => {
                     newImages.push(...req.files[fieldName].map(file => file.filename));
                 }
             });
-
-            // Replace images at specific indices
             for (const [index, newImage] of Object.entries(replaceImages)) {
                 const idx = parseInt(index, 10);
                 if (idx >= 0 && idx < product.images.length) {
@@ -204,11 +202,9 @@ const postEditProduct = async (req, res) => {
                 }
             }
 
-            // Append new images if total is within limit (e.g., 4)
             if (product.images.length + newImages.length <= 4) {
                 product.images.push(...newImages);
             } else {
-                // Delete excess uploaded files
                 for (const newImage of newImages) {
                     try {
                         await fs.unlink(path.join('public/uploads', newImage));
@@ -219,8 +215,6 @@ const postEditProduct = async (req, res) => {
                 return res.status(400).send("Cannot add more than 4 images");
             }
         }
-
-        // Save the updated product
         await product.save();
         res.redirect('/admin/product');
 

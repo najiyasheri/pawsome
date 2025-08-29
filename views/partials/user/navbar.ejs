@@ -1,0 +1,52 @@
+<header class="bg-white shadow-md py-4">
+  <div class="max-w-6xl mx-auto px-2">
+    <div class="flex justify-between items-center">
+      
+      <!-- Logo -->
+      <div>
+        <img class="w-40 object-cover" src="/img/Remove background project.png" alt="">
+      </div>
+
+      <!-- Navigation -->
+      <nav>
+        <ul class="flex space-x-8">
+          <li><a href="/" class="text-gray-800 font-medium hover:text-orange-500 transition-colors duration-300">Home</a></li>
+          <li><a href="/products" class="text-gray-800 font-medium hover:text-orange-500 transition-colors duration-300">Products</a></li>
+          <li><a href="#about" class="text-gray-800 font-medium hover:text-orange-500 transition-colors duration-300">About</a></li>
+          <li><a href="#contact" class="text-gray-800 font-medium hover:text-orange-500 transition-colors duration-300">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Right Section -->
+      <div class="flex items-center space-x-6">
+        <% if (user) { %>
+          <!-- Profile -->
+          <a href="/profile" class="text-gray-700 hover:text-orange-500 text-xl">
+            <i class="fas fa-user"></i>
+          </a>
+
+          <!-- Favorites -->
+          <a href="/favorites" class="text-gray-700 hover:text-orange-500 text-xl">
+            <i class="fas fa-heart"></i>
+          </a>
+
+          <!-- Cart -->
+          <a href="/cart" class="text-gray-700 hover:text-orange-500 text-xl">
+            <i class="fas fa-shopping-cart"></i>
+          </a>
+
+          <!-- Logout -->
+          <a href="/logout" class="bg-orange-500 text-white py-2 px-4 rounded-full hover:bg-orange-600 transition-colors duration-300 no-underline">
+            Logout
+          </a>
+        <% } else { %>
+          <!-- Login -->
+          <a href="/login" class="bg-orange-500 text-white py-2 px-4 rounded-full hover:bg-orange-600 transition-colors duration-300 no-underline">
+            Login
+          </a>
+        <% } %>
+      </div>
+
+    </div>
+  </div>
+</header>

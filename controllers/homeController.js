@@ -1,7 +1,9 @@
 const loadHomepage = async (req, res) => {
   try {
+    
     return res.render("user/home", 
-    {layout: false,
+    { title: "HomePage",
+      layout: "layouts/userLayout",
       user: req.session.user});
   } catch (error) {
     console.log("home page not found");

@@ -50,22 +50,36 @@ const postSignup = async (req, res) => {
   const { name, email, password } = req.body;
   try {
     if (!password) {
-      return res.render("user/signup", {
-        error: "Password is required",
-      });
+      return res.render("user/signup", { error: "Password is required" });
     }
-    const isUserExists = await User.findOne({ email });
-    if (isUserExists) {
+
+    // Check if verified user already exists
+    const verifiedUser = await User.findOne({ email, isVerified: true });
+    if (verifiedUser) {
       return res.render("user/signup", { email, error: "User already exists" });
     }
+
     const hashedPassword = await bcrypt.hash(password, saltRound);
-    const newUser = new User({ name, email, password: hashedPassword });
-    await newUser.save();
+
+    const newUser = await User.findOneAndUpdate(
+      { email },
+      {
+        $setOnInsert: { name, email, password: hashedPassword, isVerified: false },
+        $set: { updatedAt: new Date() }
+      },
+      { upsert: true, new: true }
+    );
+
     const otp = generateOTP();
-    const expiredAt = generateExpiry(5);
-    const otpData = new OTP({ email, otp, expiredAt });
-    await otpData.save();
+    const expiredAt = generateExpiry(5); 
+    await OTP.findOneAndUpdate(
+      { email },
+      { otp, expiredAt },
+      { upsert: true, new: true }
+    );
+
     await sendOtp(email, otp);
+
     return res.render("user/otp", { email });
   } catch (error) {
     console.error("error for save user", error);

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
 const homeController = require("../controllers/homeController");
-const {userAuth,isLogin}=require('../middlewares/authMiddleware');
+const {isLogin}=require('../middlewares/authMiddleware');
 const passport = require("passport");
 
 router.get("/", homeController.loadHomepage);

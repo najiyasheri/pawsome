@@ -4,29 +4,30 @@ const addCategory = async (req, res) => {
   try {
     const { name, description } = req.body;
     console.log(name, description);
-    const isExists = await Category.findOne({ name });
+    const isExists = await Category.findOne({
+      name: { $regex: new RegExp(`^${name}$`, "i") },
+    });
     if (isExists) {
-      return res.render("admin/categoryManagement", {
-        error: "Category already Exists",
-        title: "Category-Management",
-        layout: "layouts/adminLayout",
-      });
+      return res.redirect(
+        `/admin/category?error=${encodeURIComponent("Category already exists")}`
+      );
     }
     const newCategory = new Category({ name, description });
     await newCategory.save();
-    return res.redirect("/admin/category");
+    return res.redirect("/admin/category?success=Category added successfully");
   } catch (error) {
-    console.error("error for save Category", error);
-    res.status(500).send("internal server error");
+    console.error("Error saving category:", error);
+    return res.redirect(
+      `/admin/category?error=${encodeURIComponent("Internal server error")}`
+    );
   }
 };
 
 const getCategory = async (req, res) => {
   try {
-    let search = "";
-    if (req.query.search) {
-      search = req.query.search;
-    }
+    const error = req.query.error || null;
+    const success = req.query.success || null;
+    let search = req.query.search || "";
     let page = parseInt(req.query.page) || 1;
     const limit = 3;
 
@@ -41,11 +42,12 @@ const getCategory = async (req, res) => {
 
     const categories = await Category.find(filter)
       .sort({ createdAt: -1 })
-      .limit(limit * 1)
+      .limit(limit)
       .skip((page - 1) * limit)
       .exec();
     const count = await Category.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
+
     return res.render("admin/categoryManagement", {
       title: "Category-Management",
       layout: "layouts/adminLayout",
@@ -54,28 +56,51 @@ const getCategory = async (req, res) => {
       totalPages,
       currentPage: page,
       search,
+      error,
+      success, // Pass success message to frontend
     });
   } catch (error) {
-    console.error("error for fetching category");
+    console.error("Error fetching categories:", error);
+    return res.render("admin/categoryManagement", {
+      title: "Category-Management",
+      layout: "layouts/adminLayout",
+      categories: [],
+      limit: 3,
+      totalPages: 1,
+      currentPage: 1,
+      search: "",
+      error: "Failed to fetch categories",
+    });
   }
 };
+
 const toggleBlock = async (req, res) => {
   try {
-    let id = req.query.id;
+    const id = req.query.id;
     const category = await Category.findById(id);
     if (!category) {
-      return res.render("admin/categoryManagement", {
-        error: "there is no category",
-      });
+      return res.redirect(
+        `/admin/category?error=${encodeURIComponent("Category not found")}`
+      );
     }
     category.isBlocked = !category.isBlocked;
     await category.save();
-    const search = req.query.search || "";
-    const page = req.query.page || 1;
-
-    return res.redirect(`/admin/category?page=${page}&search=${search}`);
+    return res.redirect(
+      `/admin/category?page=${req.query.page || 1}&search=${
+        req.query.search || ""
+      }&success=${
+        category.isBlocked
+          ? "Category blocked successfully"
+          : "Category unblocked successfully"
+      }`
+    );
   } catch (error) {
-    console.error("error for fetching category", error);
+    console.error("Error toggling category block:", error);
+    return res.redirect(
+      `/admin/category?error=${encodeURIComponent(
+        "Failed to toggle category status"
+      )}`
+    );
   }
 };
 
@@ -85,19 +110,29 @@ const categoryEdit = async (req, res) => {
     const id = req.params.id;
     const category = await Category.findById(id);
     if (!category) {
-      console.log("category with is id not exist", id);
-
-      return res.render("admin/categoryManagement", {
-        error: "there is some error occur",
-      });
+      return res.redirect(
+        `/admin/category?error=${encodeURIComponent("Category not found")}`
+      );
+    }
+    const isExists = await Category.findOne({ name, _id: { $ne: id } });
+    if (isExists) {
+      return res.redirect(
+        `/admin/category?error=${encodeURIComponent(
+          "Category name already exists"
+        )}`
+      );
     }
     category.name = name || category.name;
     category.description = description || category.description;
-
     await category.save();
-    return res.redirect('/admin/category')
+    return res.redirect(
+      "/admin/category?success=Category updated successfully"
+    );
   } catch (error) {
-
+    console.error("Error editing category:", error);
+    return res.redirect(
+      `/admin/category?error=${encodeURIComponent("Failed to update category")}`
+    );
   }
 };
 
@@ -105,5 +140,5 @@ module.exports = {
   getCategory,
   addCategory,
   toggleBlock,
-  categoryEdit
+  categoryEdit,
 };

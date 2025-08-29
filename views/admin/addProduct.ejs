@@ -1,0 +1,446 @@
+<style>
+    .image-upload-slot {
+        background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='%23e5e7eb' stroke-width='2' stroke-dasharray='6%2c 14' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+    }
+    .error {
+        color: red;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+    }
+    .border-error {
+        border-color: red !important;
+    }
+</style>
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="font-bold mb-10 text-2xl">Add Product</h1>
+    </div>
+
+    <!-- Main Form Card -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <form id="productForm" class="p-8" action="/admin/product/add" method="POST" enctype="multipart/form-data">
+            <!-- Basic Information Section -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-900 mb-6">Basic Information</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Product Name -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
+                        <input type="text" name="name" id="productName"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div id="productNameError" class="error"></div>
+                    </div>
+
+                    <!-- Product Description -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Product Description</label>
+                        <input type="text" name="description" id="productDescription"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div id="productDescriptionError" class="error"></div>
+                    </div>
+
+                    <!-- Category -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <select name="category" id="category"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                            <option value="">Select Category</option>
+                            <% categories.forEach(category=> { %>
+                                <option value="<%= category._id %>">
+                                    <%= category.name?.toUpperCase() %>
+                                </option>
+                                <% }) %>
+                        </select>
+                        <div id="categoryError" class="error"></div>
+                    </div>
+
+                    <!-- Brand -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Brand</label>
+                        <input type="text" name="brand" id="brand"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div id="brandError" class="error"></div>
+                    </div>
+
+                    <!-- Offer -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Offer (Optional)</label>
+                        <select name="offer" id="offer"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white">
+                            <option value="">Select Offer</option>
+                            <option>Electronics</option>
+                            <option>Clothing</option>
+                            <option>Home & Garden</option>
+                            <option>Sports</option>
+                        </select>
+                    </div>
+
+                    <!-- Return Within -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Return Within (in days)</label>
+                        <input type="number" name="returnWithin" id="returnWithin" step="1" min="0"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div id="returnWithinError" class="error"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Price</label>
+                        <input type="number" name="price" id="price" step="0.01" min="0"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div id="priceError" class="error"></div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Discount Percentage (0 - 100)</label>
+                        <input type="number" name="discount" id="discount" step="0.01" min="0" max="100"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div id="discountError" class="error"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Images Section -->
+            <div class="mb-8">
+                <h2 class="text-lg font-semibold text-gray-900 mb-6">Product Images (Minimum 4)</h2>
+                <div id="imageError" class="error mb-4"></div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Image Upload Slots -->
+                    <div class="relative">
+                        <div
+                            class="aspect-square image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </div>
+                            <span class="text-xs text-gray-500 text-center">Add Image</span>
+                            <input type="file" accept="image/*" name="images[]" style="display: none;">
+                        </div>
+                        <div
+                            class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xs font-bold">1</span>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <div
+                            class="aspect-square image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </div>
+                            <span class="text-xs text-gray-500 text-center">Add Image</span>
+                            <input type="file" accept="image/*" name="images[]" style="display: none;">
+                        </div>
+                        <div
+                            class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xs font-bold">2</span>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <div
+                            class="aspect-square image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </div>
+                            <span class="text-xs text-gray-500 text-center">Add Image</span>
+                            <input type="file" accept="image/*" name="images[]" style="display: none;">
+                        </div>
+                        <div
+                            class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xs font-bold">3</span>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <div
+                            class="aspect-square image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+                            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </div>
+                            <span class="text-xs text-gray-500 text-center">Add Image</span>
+                            <input type="file" accept="image/*" name="images[]" style="display: none;">
+                        </div>
+                        <div
+                            class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xs font-bold">4</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Variants Section -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-semibold text-gray-900">Product Variants</h2>
+                    <button type="button" id="addVariantBtn"
+                        class="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors">
+                        Add Variant
+                    </button>
+                </div>
+
+                <!-- Variants Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left py-3 px-4 font-medium text-gray-700 text-sm">Size</th>
+                                <th class="text-left py-3 px-4 font-medium text-gray-700 text-sm">Additional Price</th>
+                                <th class="text-left py-3 px-4 font-medium text-gray-700 text-sm">Stock</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="variantsTable">
+                            <tr class="border-b border-gray-100">
+                                <td class="py-4 px-4">
+                                    <input name="size[]" type="text"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <div class="error"></div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <input name="additionalPrice[]" type="number" step="0.01" min="0"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <div class="error"></div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <input name="stock[]" type="number" step="1" min="0"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <div class="error"></div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <button type="button"
+                                        class="remove-variant text-red-500 hover:text-red-700 text-sm">
+                                        Remove Variant
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="/admin/product"><button type="button"
+                        class="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button></a>
+                <button type="submit"
+                    class="px-6 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition-colors">
+                    Add Product
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('productForm');
+    const imageSlots = document.querySelectorAll('.image-upload-slot');
+    let uploadedImages = 0;
+
+    // Validation function
+    function validateForm() {
+        let isValid = true;
+
+        // Reset error states
+        document.querySelectorAll('.error').forEach(error => error.textContent = '');
+        document.querySelectorAll('input, select').forEach(input => input.classList.remove('border-error'));
+
+        // Validate Product Name
+        const productName = document.getElementById('productName');
+        if (!productName.value.trim()) {
+            document.getElementById('productNameError').textContent = 'Product name is required';
+            productName.classList.add('border-error');
+            isValid = false;
+        } else if (/^\s+$/.test(productName.value)) {
+            document.getElementById('productNameError').textContent = 'Product name cannot be only whitespace';
+            productName.classList.add('border-error');
+            isValid = false;
+        }
+
+        // Validate Product Description
+        const productDescription = document.getElementById('productDescription');
+        if (!productDescription.value.trim()) {
+            document.getElementById('productDescriptionError').textContent = 'Product description is required';
+            productDescription.classList.add('border-error');
+            isValid = false;
+        } else if (/^\s+$/.test(productDescription.value)) {
+            document.getElementById('productDescriptionError').textContent = 'Product description cannot be only whitespace';
+            productDescription.classList.add('border-error');
+            isValid = false;
+        }
+
+        // Validate Category
+        const category = document.getElementById('category');
+        if (!category.value) {
+            document.getElementById('categoryError').textContent = 'Please select a category';
+            category.classList.add('border-error');
+            isValid = false;
+        }
+
+        // Validate Brand
+        const brand = document.getElementById('brand');
+        if (!brand.value.trim()) {
+            document.getElementById('brandError').textContent = 'Brand is required';
+            brand.classList.add('border-error');
+            isValid = false;
+        } else if (/^\s+$/.test(brand.value)) {
+            document.getElementById('brandError').textContent = 'Brand cannot be only whitespace';
+            brand.classList.add('border-error');
+            isValid = false;
+        }
+
+        // Validate Return Within
+        const returnWithin = document.getElementById('returnWithin');
+        if (!returnWithin.value || returnWithin.value < 0) {
+            document.getElementById('returnWithinError').textContent = 'Please enter a valid number of days (0 or greater)';
+            returnWithin.classList.add('border-error');
+            isValid = false;
+        } else if (!Number.isInteger(Number(returnWithin.value))) {
+            document.getElementById('returnWithinError').textContent = 'Return period must be a whole number';
+            returnWithin.classList.add('border-error');
+            isValid = false;
+        }
+
+        // Validate Price
+        const price = document.getElementById('price');
+        if (!price.value || price.value < 0) {
+            document.getElementById('priceError').textContent = 'Please enter a valid price (0 or greater)';
+            price.classList.add('border-error');
+            isValid = false;
+        }
+
+        // Validate Discount
+        const discount = document.getElementById('discount');
+        if (discount.value && (discount.value < 0 || discount.value > 100)) {
+            document.getElementById('discountError').textContent = 'Discount must be between 0 and 100';
+            discount.classList.add('border-error');
+            isValid = false;
+        }
+
+        // Validate Images
+        if (uploadedImages < 4) {
+            document.getElementById('imageError').textContent = 'Please upload at least 4 images';
+            isValid = false;
+        }
+
+        // Validate Variants
+        const variantRows = document.querySelectorAll('#variantsTable tr');
+        variantRows.forEach((row, index) => {
+            const size = row.querySelector('input[name="size[]"]');
+            const additionalPrice = row.querySelector('input[name="additionalPrice[]"]');
+            const stock = row.querySelector('input[name="stock[]"]');
+            const sizeError = row.querySelector('td:nth-child(1) .error');
+            const priceError = row.querySelector('td:nth-child(2) .error');
+            const stockError = row.querySelector('td:nth-child(3) .error');
+
+            if (!size.value.trim() || /^\s+$/.test(size.value)) {
+                sizeError.textContent = 'Size is required and cannot be only whitespace';
+                size.classList.add('border-error');
+                isValid = false;
+            }
+
+            if (!additionalPrice.value || additionalPrice.value < 0) {
+                priceError.textContent = 'Additional price must be 0 or greater';
+                additionalPrice.classList.add('border-error');
+                isValid = false;
+            }
+
+            if (!stock.value || stock.value < 0 || !Number.isInteger(Number(stock.value))) {
+                stockError.textContent = 'Stock must be a whole number (0 or greater)';
+                stock.classList.add('border-error');
+                isValid = false;
+            }
+        });
+
+        return isValid;
+    }
+
+    // Form submission handler
+    form.addEventListener('submit', function (e) {
+        if (!validateForm()) {
+            e.preventDefault();
+        }
+    });
+
+    // Image upload functionality
+    imageSlots.forEach(slot => {
+        const input = slot.querySelector('input[type="file"]');
+        input.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const placeholders = slot.querySelectorAll('div:not(.image-upload-slot), span');
+                    placeholders.forEach(el => el.remove());
+                    const oldImg = slot.querySelector('img');
+                    if (oldImg) oldImg.remove();
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.classList.add('w-full', 'h-full', 'object-cover', 'rounded-lg');
+                    slot.insertBefore(img, input);
+                    uploadedImages++;
+                    validateForm(); // Re-validate on image upload
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        slot.addEventListener('click', function () {
+            input.click();
+        });
+    });
+
+    // Add variant functionality
+    const addVariantBtn = document.getElementById('addVariantBtn');
+    const tbody = document.getElementById('variantsTable');
+
+    addVariantBtn.addEventListener('click', function () {
+        const newRow = tbody.querySelector('tr').cloneNode(true);
+        newRow.querySelectorAll('input').forEach(input => {
+            input.value = '';
+            input.classList.remove('border-error');
+        });
+        newRow.querySelectorAll('.error').forEach(error => error.textContent = '');
+        tbody.appendChild(newRow);
+    });
+
+    tbody.addEventListener('click', function (e) {
+        if (e.target.classList.contains('remove-variant')) {
+            const tr = e.target.closest('tr');
+            if (tbody.querySelectorAll('tr').length > 1) {
+                tr.remove();
+            }
+        }
+    });
+
+    // Real-time validation
+    ['productName', 'productDescription', 'category', 'brand', 'returnWithin', 'price', 'discount'].forEach(id => {
+        const input = document.getElementById(id);
+        input.addEventListener('input', validateForm);
+    });
+
+    // Real-time validation for variants
+    tbody.addEventListener('input', function (e) {
+        if (e.target.name === 'size[]' || e.target.name === 'additionalPrice[]' || e.target.name === 'stock[]') {
+            validateForm();
+        }
+    });
+});
+</script>

@@ -5,7 +5,7 @@ const homeController = require("../controllers/homeController");
 const {userAuth,isLogin}=require('../middlewares/authMiddleware');
 const passport = require("passport");
 
-router.get("/",userAuth, homeController.loadHomepage);
+router.get("/", homeController.loadHomepage);
 router.get("/login",isLogin, authController.loadLoginPage);
 router.get("/signup",isLogin, authController.loadSignupPage);
 

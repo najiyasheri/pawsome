@@ -1,26 +1,39 @@
-const express=require('express')
-const router=express.Router()
-const authController=require('../controllers/authController')
-const homeController=require('../controllers/homeController')
-const{adminAuth, isLogin}=require('../middlewares/authMiddleware')
-const userController=require('../controllers/userController')
-const{loadUserManagement}=require('../controllers/userController')
-const categoryController=require('../controllers/categoryController')
+const express = require("express");
+const router = express.Router();
+const authController = require("../controllers/authController");
+const homeController = require("../controllers/homeController");
+const { adminAuth, isLogin } = require("../middlewares/authMiddleware");
+const userController = require("../controllers/userController");
+const { loadUserManagement } = require("../controllers/userController");
+const categoryController = require("../controllers/categoryController");
+const productController = require("../controllers/productController");
+const uploadProductImages = require("../middlewares/multer");
 
-router.get('/users',loadUserManagement)
-router.get('/login',isLogin,authController.loadAdminLogin)
-router.post('/login',isLogin,authController.postAdminLogin)
-router.get('/dashboard',adminAuth,homeController.loadAdminDashboard)
-router.get('/users',adminAuth,userController.loadUserManagement)
-router.get('/logout',authController.logoutAdmin)
-router.get('/userBlocked',adminAuth,userController.userBlocked)
-router.get('/userunBlocked',adminAuth,userController.userunBlocked)
+router.get("/users", loadUserManagement);
+router.get("/login", isLogin, authController.loadAdminLogin);
+router.post("/login", isLogin, authController.postAdminLogin);
+router.get("/dashboard", adminAuth, homeController.loadAdminDashboard);
+router.get("/users", adminAuth, userController.loadUserManagement);
+router.get("/logout", authController.logoutAdmin);
+router.get("/userBlocked", adminAuth, userController.userBlocked);
+router.get("/userunBlocked", adminAuth, userController.userunBlocked);
 
-router.route('/category')
-.get(adminAuth,categoryController.getCategory)
-.post(adminAuth,categoryController.addCategory)
+router
+  .route("/category")
+  .get(adminAuth, categoryController.getCategory)
+  .post(adminAuth, categoryController.addCategory);
 
-router.get('/categoryBlock',adminAuth,categoryController.toggleBlock)
-router.post('/category/edit/:id',adminAuth,categoryController.categoryEdit)
+router.get("/categoryBlock", adminAuth, categoryController.toggleBlock);
+router.post("/category/edit/:id", adminAuth, categoryController.categoryEdit);
 
-module.exports=router
+router.get("/product", adminAuth, productController.loadProductManagement);
+router.route("/product/add")
+.get(adminAuth, productController.loadAddProduct)
+.post(adminAuth,uploadProductImages,productController.addProduct)
+
+router.get('/product/block',adminAuth,productController.toggleBlock)
+
+router.get('/product/edit/:id', adminAuth,productController.loadEditProduct);
+router.post('/product/edit/:id', adminAuth , uploadProductImages, productController.postEditProduct);
+
+module.exports = router;

@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const Category = require("../models/Category");
 const Product = require("../models/Product");
 const ProductVariant = require("../models/ProductVarient");
@@ -240,7 +241,6 @@ const userProducts = async (req, res) => {
     let sort = req.query.sort || "";
     let category = req.query.category || "";
     let priceRange = req.query.priceRange || "";
-    let brand = req.query.brand || "";
 
     // Build the filter object
     const filter = {
@@ -255,9 +255,13 @@ const userProducts = async (req, res) => {
       ];
     }
 
-    // Add category filter
     if (category) {
-      filter.category = category;
+      try {
+        filter.categoryId = new mongoose.Types.ObjectId(category);
+      } catch (err) {
+        console.error("Invalid category ID:", category);
+        filter.categoryId = null;
+      }
     }
 
     // Add price range filter
@@ -266,12 +270,6 @@ const userProducts = async (req, res) => {
       filter.basePrice = { $gte: minPrice, $lte: maxPrice };
     }
 
-    // Add brand filter
-    if (brand) {
-      filter.brand = brand;
-    }
-
-    // Build sort object
     let sortOption = { createdAt: -1 }; // Default sort
     if (sort) {
       if (sort === "price-low") sortOption = { basePrice: 1 };
@@ -281,6 +279,7 @@ const userProducts = async (req, res) => {
     }
 
     const products = await Product.find(filter)
+      .collation({ locale: "en", strength: 1 })
       .sort(sortOption)
       .limit(limit)
       .skip((page - 1) * limit)
@@ -303,7 +302,6 @@ const userProducts = async (req, res) => {
       sort,
       category,
       priceRange,
-      brand,
     });
   } catch (error) {
     console.error(error);

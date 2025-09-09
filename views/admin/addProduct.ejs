@@ -364,7 +364,30 @@
             if (!validateForm()) e.preventDefault();
         });
 
-        // ---------------- IMAGE UPLOAD + CROPPER ----------------
+        // ---------------- VARIANT HANDLING ----------------
+        const addVariantBtn = document.getElementById('addVariantBtn');
+        addVariantBtn.addEventListener('click', () => {
+            const newRow = tbody.querySelector('tr').cloneNode(true);
+            newRow.querySelectorAll('input').forEach(input => input.value = '');
+            newRow.querySelectorAll('.error').forEach(error => error.textContent = '');
+            tbody.appendChild(newRow);
+        });
+
+        tbody.addEventListener('click', e => {
+            if (e.target.classList.contains('remove-variant')) {
+                if (tbody.querySelectorAll('tr').length > 1) {
+                    e.target.closest('tr').remove();
+                }
+            }
+        });
+
+        // ---------------- REAL-TIME VALIDATION ----------------
+        ['productName', 'productDescription', 'category', 'brand', 'returnWithin', 'price', 'discount']
+            .forEach(id => document.getElementById(id).addEventListener('input', validateForm));
+        tbody.addEventListener('input', e => {
+            if (['size[]', 'additionalPrice[]', 'stock[]'].includes(e.target.name)) validateForm();
+        });
+
         imageSlots.forEach(slot => {
             const input = slot.querySelector('input[type="file"]');
 
@@ -377,7 +400,11 @@
                         currentInput = input;
                         cropModal.style.display = 'block';
                         if (cropper) cropper.destroy();
-                        cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1 });
+                        try {
+                            cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1 });
+                        } catch (error) {
+                            console.error('Failed to initialize Cropper:', error);
+                        }
                     };
                     reader.readAsDataURL(file);
                 }
@@ -420,7 +447,7 @@
                 cropper = null;
             }
             if (clearFile && currentInput) {
-                currentInput.value = ""; // reset file input
+                currentInput.value = '';
             }
         }
 
@@ -431,31 +458,7 @@
         window.addEventListener('keydown', e => {
             if (e.key === 'Escape' && cropModal.style.display === 'block') closeCropModal(true);
         });
-
-        // ---------------- VARIANT HANDLING ----------------
-        const addVariantBtn = document.getElementById('addVariantBtn');
-        addVariantBtn.addEventListener('click', () => {
-            const newRow = tbody.querySelector('tr').cloneNode(true);
-            newRow.querySelectorAll('input').forEach(input => input.value = '');
-            newRow.querySelectorAll('.error').forEach(error => error.textContent = '');
-            tbody.appendChild(newRow);
-        });
-
-        tbody.addEventListener('click', e => {
-            if (e.target.classList.contains('remove-variant')) {
-                if (tbody.querySelectorAll('tr').length > 1) {
-                    e.target.closest('tr').remove();
-                }
-            }
-        });
-
-        // ---------------- REAL-TIME VALIDATION ----------------
-        ['productName', 'productDescription', 'category', 'brand', 'returnWithin', 'price', 'discount']
-            .forEach(id => document.getElementById(id).addEventListener('input', validateForm));
-        tbody.addEventListener('input', e => {
-            if (['size[]', 'additionalPrice[]', 'stock[]'].includes(e.target.name)) validateForm();
-        });
     });
 
-    
+
 </script>

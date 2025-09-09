@@ -53,7 +53,7 @@ const postSignup = async (req, res) => {
       return res.render("user/signup", { error: "Password is required" });
     }
 
-    // Check if verified user already exists
+   
     const verifiedUser = await User.findOne({ email, isVerified: true });
     if (verifiedUser) {
       return res.render("user/signup", { email, error: "User already exists" });

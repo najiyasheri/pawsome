@@ -13,7 +13,6 @@ const loadProductManagement = async (req, res) => {
     }
     let page = parseInt(req.query.page) || 1;
     const limit = 5;
-    console.log(search);
     const filter = search
       ? {
           $or: [
@@ -99,7 +98,7 @@ const addProduct = async (req, res) => {
     const savedProduct = await product.save();
     const variants = req.body.size.map((size, index) => ({
       productId: savedProduct._id,
-      size: size.trim(), // Keep as string if size isn't numeric
+      size: size.trim(), 
       additionalPrice: parseFloat(req.body.additionalPrice[index]) || 0,
       stock: parseInt(req.body.stock[index]) || 0,
     }));
@@ -242,12 +241,12 @@ const userProducts = async (req, res) => {
     let category = req.query.category || "";
     let priceRange = req.query.priceRange || "";
 
-    // Build the filter object
+   
     const filter = {
       isBlocked: false,
     };
 
-    // Add search conditions
+    
     if (search) {
       filter.$or = [
         { name: { $regex: ".*" + search + ".*", $options: "i" } },
@@ -264,13 +263,12 @@ const userProducts = async (req, res) => {
       }
     }
 
-    // Add price range filter
     if (priceRange) {
       const [minPrice, maxPrice] = priceRange.split("-").map(Number);
       filter.basePrice = { $gte: minPrice, $lte: maxPrice };
     }
 
-    let sortOption = { createdAt: -1 }; // Default sort
+    let sortOption = { createdAt: -1 };
     if (sort) {
       if (sort === "price-low") sortOption = { basePrice: 1 };
       if (sort === "price-high") sortOption = { basePrice: -1 };

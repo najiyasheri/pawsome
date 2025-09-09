@@ -57,7 +57,7 @@ const getCategory = async (req, res) => {
       currentPage: page,
       search,
       error,
-      success, // Pass success message to frontend
+      success, 
     });
   } catch (error) {
     console.error("Error fetching categories:", error);

@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
 const upload = multer({
     storage: storage,
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB limit
+        fileSize: 5 * 1024 * 1024 
     },
     fileFilter: (req, file, cb) => {
         const filetypes = /jpeg|jpg|png|gif/;
@@ -26,13 +26,13 @@ const upload = multer({
     }
 });
 
-// Define fields for new images and replacement images
+
 const uploadProductImages = upload.fields([
-    { name: 'images[]', maxCount: 4 }, // For new images
-    { name: 'replaceImages[0]', maxCount: 1 }, // For replacing image at index 0
-    { name: 'replaceImages[1]', maxCount: 1 }, // For replacing image at index 1
-    { name: 'replaceImages[2]', maxCount: 1 }, // For replacing image at index 2
-    { name: 'replaceImages[3]', maxCount: 1 }  // For replacing image at index 3
+    { name: 'images[]', maxCount: 4 }, 
+    { name: 'replaceImages[0]', maxCount: 1 }, 
+    { name: 'replaceImages[1]', maxCount: 1 }, 
+    { name: 'replaceImages[2]', maxCount: 1 }, 
+    { name: 'replaceImages[3]', maxCount: 1 }  
 ]);
 
 

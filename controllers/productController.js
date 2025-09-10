@@ -66,7 +66,7 @@ const addProduct = async (req, res) => {
     let images = [];
 
     if (req.files && req.files["images[]"]) {
-      images = req.files["images[]"].map((file) => file.filename);
+      images = req.files["images[]"].map((file) => '/uploads/'+file.filename);
     }
 
     let replacedImages = [];

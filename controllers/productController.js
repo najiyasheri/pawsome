@@ -66,7 +66,7 @@ const addProduct = async (req, res) => {
     let images = [];
 
     if (req.files && req.files["images[]"]) {
-      images = req.files["images[]"].map((file) => '/uploads/'+file.filename);
+      images = req.files["images[]"].map((file) => "/uploads/" + file.filename);
     }
 
     let replacedImages = [];
@@ -98,7 +98,7 @@ const addProduct = async (req, res) => {
     const savedProduct = await product.save();
     const variants = req.body.size.map((size, index) => ({
       productId: savedProduct._id,
-      size: size.trim(), 
+      size: size.trim(),
       additionalPrice: parseFloat(req.body.additionalPrice[index]) || 0,
       stock: parseInt(req.body.stock[index]) || 0,
     }));
@@ -241,12 +241,10 @@ const userProducts = async (req, res) => {
     let category = req.query.category || "";
     let priceRange = req.query.priceRange || "";
 
-   
     const filter = {
       isBlocked: false,
     };
 
-    
     if (search) {
       filter.$or = [
         { name: { $regex: ".*" + search + ".*", $options: "i" } },
@@ -307,29 +305,48 @@ const userProducts = async (req, res) => {
   }
 };
 
-
-const loadProductDetails=async(req,res)=>{
+const loadProductDetails = async (req, res) => {
   try {
-    const productId=req.params
-    const product=await Product.findById(productId).lean()
-    if(!product){
-      return res.status(404).send('page not found')
-    }
+    const productId = req.params.id;
+    const product = await Product.findById(productId).lean();
+    // if (!product) {
+    //   return res.status(404).send("page not found");
+    // }
 
-    const relatedProduct=await Product.find({
-      cate
+    const relatedProducts = await Product.find({
+      categoryId: product.categoryId,
+      _id: { $ne: productId },
+      isBlocked: false,
     })
+      .limit(4)
+      .lean();
 
+    // Add dummy rating/reviews for now (or fetch from DB if you store them separately)
+    product.rating = 4.8;
+    product.reviews = [
+      { user: "Alice", rating: 5, comment: "Excellent product!" },
+      { user: "John", rating: 4, comment: "Good but delivery was late." },
+    ];
 
-    res.render('user/productDetail',{
-      title: "product-details",
+    // Calculate discount price if you want
+    product.oldPrice = product.basePrice;
+    product.discount = product.discountPercentage;
+    product.price = Math.round(
+      product.basePrice * (1 - product.discountPercentage / 100)
+    );
+
+    res.render("user/productDetail", {
+      title: "Product Details",
       layout: "layouts/userLayout",
       user: req.session.user,
-    })
+      product,
+      relatedProducts,
+    });
   } catch (error) {
-      
+    console.error("Error loading product details:", error);
+    res.status(500).send("Error loading product details");
   }
-}
+};
 
 module.exports = {
   loadProductManagement,
@@ -339,5 +356,5 @@ module.exports = {
   postEditProduct,
   loadEditProduct,
   userProducts,
-  loadProductDetails
+  loadProductDetails,
 };

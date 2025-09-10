@@ -5,11 +5,11 @@
     <!-- Left: Product Images -->
     <div>
       <div class="border rounded-lg overflow-hidden">
-        <img src="<%= product.mainImage %>" alt="<%= product.name %>" class="w-full h-[400px] object-contain">
+        <img src="/uploads/<%= product.images[0]%>" alt="<%= product.name %>" class="w-full h-[400px] object-contain">
       </div>
       <div class="flex gap-3 mt-4">
         <% product.images.forEach(img => { %>
-          <img src="<%= img %>" class="w-20 h-20 border rounded-md cursor-pointer hover:ring-2 hover:ring-orange-500">
+          <img src="/uploads/<%= img %>" class="w-20 h-20 border rounded-md cursor-pointer hover:ring-2 hover:ring-orange-500">
         <% }) %>
       </div>
     </div>

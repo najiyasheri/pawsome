@@ -6,6 +6,7 @@ const {isLogin}=require('../middlewares/authMiddleware');
 const passport = require("passport");
 
 const productController=require('../controllers/productController')
+const { loadProductDetails } = require("../controllers/productController")
 
 router.get("/", homeController.loadHomepage);
 router.get("/login",isLogin, authController.loadLoginPage);
@@ -26,5 +27,6 @@ router.get('/auth/google/callback',passport.authenticate('google',{failureRedire
 
 router.get('/products',productController.userProducts)
 
+router.get('/productDetails',productController.loadProductDetails)
 
 module.exports = router;

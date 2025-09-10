@@ -1,16 +1,5 @@
-<style>
-    .image-upload-slot {
-        background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='%23e5e7eb' stroke-width='2' stroke-dasharray='6%2c 14' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
-    }
-    .error {
-        color: red;
-        font-size: 0.75rem;
-        margin-top: 0.25rem;
-    }
-    .border-error {
-        border-color: red !important;
-    }
-</style>
+
+
 <div class="max-w-4xl mx-auto">
     <!-- Header -->
     <div class="mb-6">
@@ -30,7 +19,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
                         <input type="text" name="name" id="productName"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <div id="productNameError" class="error"></div>
+                        <div id="productNameError" class="error text-red-500"></div>
                     </div>
 
                     <!-- Product Description -->
@@ -38,7 +27,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Product Description</label>
                         <input type="text" name="description" id="productDescription"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <div id="productDescriptionError" class="error"></div>
+                        <div id="productDescriptionError" class="error text-red-500"></div>
                     </div>
 
                     <!-- Category -->
@@ -53,7 +42,7 @@
                                 </option>
                                 <% }) %>
                         </select>
-                        <div id="categoryError" class="error"></div>
+                        <div id="categoryError" class="error text-red-500"></div>
                     </div>
 
                     <!-- Brand -->
@@ -61,7 +50,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Brand</label>
                         <input type="text" name="brand" id="brand"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <div id="brandError" class="error"></div>
+                        <div id="brandError" class="error text-red-500"></div>
                     </div>
 
                     <!-- Offer -->
@@ -82,19 +71,20 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Return Within (in days)</label>
                         <input type="number" name="returnWithin" id="returnWithin" step="1" min="0"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <div id="returnWithinError" class="error"></div>
+                        <div id="returnWithinError" class="erro text-red-500"></div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Price</label>
                         <input type="number" name="price" id="price" step="0.01" min="0"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <div id="priceError" class="error"></div>
+                        <div id="priceError" class="error text-red-500"></div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Discount Percentage (0 - 100)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Discount Percentage (0 -
+                            100)</label>
                         <input type="number" name="discount" id="discount" step="0.01" min="0" max="100"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <div id="discountError" class="error"></div>
+                        <div id="discountError" class="error text-red-500"></div>
                     </div>
                 </div>
             </div>
@@ -102,10 +92,10 @@
             <!-- Product Images Section -->
             <div class="mb-8">
                 <h2 class="text-lg font-semibold text-gray-900 mb-6">Product Images (Minimum 4)</h2>
-                <div id="imageError" class="error mb-4"></div>
+                <div id="imageError" class="error text-red-500 mb-4"></div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <!-- Image Upload Slots -->
-                    <div class="relative">
+                    <div class="relative ">
                         <div
                             class="aspect-square image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
                             <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
@@ -116,7 +106,7 @@
                                 </svg>
                             </div>
                             <span class="text-xs text-gray-500 text-center">Add Image</span>
-                            <input type="file" accept="image/*" name="images[]" style="display: none;">
+                            <input type="file" id="imageInput" accept="image/*" name="images[]" style="display: none;">
                         </div>
                         <div
                             class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
@@ -182,6 +172,27 @@
                     </div>
                 </div>
             </div>
+            <!-- Modal -->
+          <!-- Modal -->
+<div id="cropModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-70 flex items-center justify-center">
+    <div class="bg-white p-6 rounded-xl max-w-[90%] max-h-[90%] flex flex-col items-center overflow-auto">
+        <!-- Cropping Image -->
+        <div class="w-full max-h-[70vh] flex justify-center mb-4">
+            <img id="cropImage" class="max-w-full max-h-full rounded-lg" />
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+            <button id="cancelCropBtn" type="button" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium rounded-lg transition">
+                Cancel
+            </button>
+            <button id="cropBtn" type="button" class="px-5 py-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold rounded-lg transition">
+                Crop & Use
+            </button>
+        </div>
+    </div>
+</div>
+
 
             <!-- Product Variants Section -->
             <div class="mb-8">
@@ -209,17 +220,17 @@
                                 <td class="py-4 px-4">
                                     <input name="size[]" type="text"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <div class="error"></div>
+                                    <div class="error text-red-500"></div>
                                 </td>
                                 <td class="py-4 px-4">
                                     <input name="additionalPrice[]" type="number" step="0.01" min="0"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <div class="error"></div>
+                                    <div class="error text-red-500" ></div>
                                 </td>
                                 <td class="py-4 px-4">
                                     <input name="stock[]" type="number" step="1" min="0"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <div class="error"></div>
+                                    <div class="error text-red-500"></div>
                                 </td>
                                 <td class="py-4 px-4">
                                     <button type="button"
@@ -248,199 +259,239 @@
     </div>
 </div>
 
+
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('productForm');
-    const imageSlots = document.querySelectorAll('.image-upload-slot');
-    let uploadedImages = 0;
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('productForm');
+        const imageSlots = document.querySelectorAll('.image-upload-slot');
+        const cropModal = document.getElementById('cropModal');
+        const cropImage = document.getElementById('cropImage');
+        const cropBtn = document.getElementById('cropBtn');
+        const cancelCropBtn = document.getElementById('cancelCropBtn');
+        const tbody = document.getElementById('variantsTable');
 
-    // Validation function
-    function validateForm() {
-        let isValid = true;
+        let uploadedImages = 0;
+        let cropper = null;
+        let currentInput = null;
 
-        // Reset error states
-        document.querySelectorAll('.error').forEach(error => error.textContent = '');
-        document.querySelectorAll('input, select').forEach(input => input.classList.remove('border-error'));
+        // ---------------- VALIDATION ----------------
+        function validateForm() {
+            let isValid = true;
+            document.querySelectorAll('.error').forEach(error => error.textContent = '');
+            document.querySelectorAll('input, select').forEach(input => input.classList.remove('border-error'));
 
-        // Validate Product Name
-        const productName = document.getElementById('productName');
-        if (!productName.value.trim()) {
-            document.getElementById('productNameError').textContent = 'Product name is required';
-            productName.classList.add('border-error');
-            isValid = false;
-        } else if (/^\s+$/.test(productName.value)) {
-            document.getElementById('productNameError').textContent = 'Product name cannot be only whitespace';
-            productName.classList.add('border-error');
-            isValid = false;
-        }
-
-        // Validate Product Description
-        const productDescription = document.getElementById('productDescription');
-        if (!productDescription.value.trim()) {
-            document.getElementById('productDescriptionError').textContent = 'Product description is required';
-            productDescription.classList.add('border-error');
-            isValid = false;
-        } else if (/^\s+$/.test(productDescription.value)) {
-            document.getElementById('productDescriptionError').textContent = 'Product description cannot be only whitespace';
-            productDescription.classList.add('border-error');
-            isValid = false;
-        }
-
-        // Validate Category
-        const category = document.getElementById('category');
-        if (!category.value) {
-            document.getElementById('categoryError').textContent = 'Please select a category';
-            category.classList.add('border-error');
-            isValid = false;
-        }
-
-        // Validate Brand
-        const brand = document.getElementById('brand');
-        if (!brand.value.trim()) {
-            document.getElementById('brandError').textContent = 'Brand is required';
-            brand.classList.add('border-error');
-            isValid = false;
-        } else if (/^\s+$/.test(brand.value)) {
-            document.getElementById('brandError').textContent = 'Brand cannot be only whitespace';
-            brand.classList.add('border-error');
-            isValid = false;
-        }
-
-        // Validate Return Within
-        const returnWithin = document.getElementById('returnWithin');
-        if (!returnWithin.value || returnWithin.value < 0) {
-            document.getElementById('returnWithinError').textContent = 'Please enter a valid number of days (0 or greater)';
-            returnWithin.classList.add('border-error');
-            isValid = false;
-        } else if (!Number.isInteger(Number(returnWithin.value))) {
-            document.getElementById('returnWithinError').textContent = 'Return period must be a whole number';
-            returnWithin.classList.add('border-error');
-            isValid = false;
-        }
-
-        // Validate Price
-        const price = document.getElementById('price');
-        if (!price.value || price.value < 0) {
-            document.getElementById('priceError').textContent = 'Please enter a valid price (0 or greater)';
-            price.classList.add('border-error');
-            isValid = false;
-        }
-
-        // Validate Discount
-        const discount = document.getElementById('discount');
-        if (discount.value && (discount.value < 0 || discount.value > 100)) {
-            document.getElementById('discountError').textContent = 'Discount must be between 0 and 100';
-            discount.classList.add('border-error');
-            isValid = false;
-        }
-
-        // Validate Images
-        if (uploadedImages < 4) {
-            document.getElementById('imageError').textContent = 'Please upload at least 4 images';
-            isValid = false;
-        }
-
-        // Validate Variants
-        const variantRows = document.querySelectorAll('#variantsTable tr');
-        variantRows.forEach((row, index) => {
-            const size = row.querySelector('input[name="size[]"]');
-            const additionalPrice = row.querySelector('input[name="additionalPrice[]"]');
-            const stock = row.querySelector('input[name="stock[]"]');
-            const sizeError = row.querySelector('td:nth-child(1) .error');
-            const priceError = row.querySelector('td:nth-child(2) .error');
-            const stockError = row.querySelector('td:nth-child(3) .error');
-
-            if (!size.value.trim() || /^\s+$/.test(size.value)) {
-                sizeError.textContent = 'Size is required and cannot be only whitespace';
-                size.classList.add('border-error');
+            const productName = document.getElementById('productName');
+            if (!productName.value.trim()) {
+                document.getElementById('productNameError').textContent = 'Product name is required';
+                productName.classList.add('border-error');
                 isValid = false;
             }
 
-            if (!additionalPrice.value || additionalPrice.value < 0) {
-                priceError.textContent = 'Additional price must be 0 or greater';
-                additionalPrice.classList.add('border-error');
+            const productDescription = document.getElementById('productDescription');
+            if (!productDescription.value.trim()) {
+                document.getElementById('productDescriptionError').textContent = 'Product description is required';
+                productDescription.classList.add('border-error');
                 isValid = false;
             }
 
-            if (!stock.value || stock.value < 0 || !Number.isInteger(Number(stock.value))) {
-                stockError.textContent = 'Stock must be a whole number (0 or greater)';
-                stock.classList.add('border-error');
+            const category = document.getElementById('category');
+            if (!category.value) {
+                document.getElementById('categoryError').textContent = 'Please select a category';
+                category.classList.add('border-error');
                 isValid = false;
+            }
+
+            const brand = document.getElementById('brand');
+            if (!brand.value.trim()) {
+                document.getElementById('brandError').textContent = 'Brand is required';
+                brand.classList.add('border-error');
+                isValid = false;
+            }
+
+            const returnWithin = document.getElementById('returnWithin');
+            if (!returnWithin.value || returnWithin.value < 0 || !Number.isInteger(Number(returnWithin.value))) {
+                document.getElementById('returnWithinError').textContent = 'Enter valid days (whole number greater than 0)';
+                returnWithin.classList.add('border-error');
+                isValid = false;
+            }
+
+            const price = document.getElementById('price');
+            if (!price.value || price.value < 0) {
+                document.getElementById('priceError').textContent = 'Price must be greater than 0';
+                price.classList.add('border-error');
+                isValid = false;
+            }
+
+            const discount = document.getElementById('discount');
+            if (discount.value && (discount.value < 0 || discount.value > 100)) {
+                document.getElementById('discountError').textContent = 'Discount must be between 0–100';
+                discount.classList.add('border-error');
+                isValid = false;
+            }
+
+            if (uploadedImages < 4) {
+                document.getElementById('imageError').textContent = 'Upload at least 4 images';
+                isValid = false;
+            }
+
+            const variantRows = document.querySelectorAll('#variantsTable tr');
+            variantRows.forEach(row => {
+                const size = row.querySelector('input[name="size[]"]');
+                const additionalPrice = row.querySelector('input[name="additionalPrice[]"]');
+                const stock = row.querySelector('input[name="stock[]"]');
+                const sizeError = row.querySelector('td:nth-child(1) .error');
+                const priceError = row.querySelector('td:nth-child(2) .error');
+                const stockError = row.querySelector('td:nth-child(3) .error');
+
+                if (!size.value.trim()) {
+                    sizeError.textContent = 'Size required';
+                    size.classList.add('border-error');
+                    isValid = false;
+                }
+                if (!additionalPrice.value || additionalPrice.value < 0) {
+                    priceError.textContent = 'Must be greater than 0';
+                    additionalPrice.classList.add('border-error');
+                    isValid = false;
+                }
+                if (!stock.value || stock.value < 0 || !Number.isInteger(Number(stock.value))) {
+                    stockError.textContent = 'Stock must be whole number greater than 0';
+                    stock.classList.add('border-error');
+                    isValid = false;
+                }
+            });
+
+            return isValid;
+        }
+
+        form.addEventListener('submit', e => {
+            if (!validateForm()) e.preventDefault();
+        });
+
+        // ---------------- VARIANT HANDLING ----------------
+        const addVariantBtn = document.getElementById('addVariantBtn');
+        addVariantBtn.addEventListener('click', () => {
+            const newRow = tbody.querySelector('tr').cloneNode(true);
+            newRow.querySelectorAll('input').forEach(input => input.value = '');
+            newRow.querySelectorAll('.error').forEach(error => error.textContent = '');
+            tbody.appendChild(newRow);
+        });
+
+        tbody.addEventListener('click', e => {
+            if (e.target.classList.contains('remove-variant')) {
+                if (tbody.querySelectorAll('tr').length > 1) {
+                    e.target.closest('tr').remove();
+                }
             }
         });
 
-        return isValid;
+        // ---------------- REAL-TIME VALIDATION ----------------
+        ['productName', 'productDescription', 'category', 'brand', 'returnWithin', 'price', 'discount']
+            .forEach(id => document.getElementById(id).addEventListener('input', validateForm));
+        tbody.addEventListener('input', e => {
+            if (['size[]', 'additionalPrice[]', 'stock[]'].includes(e.target.name)) validateForm();
+        });
+
+        imageSlots.forEach(slot => {
+            const input = slot.querySelector('input[type="file"]');
+
+            input.addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        cropImage.src = e.target.result;
+                        currentInput = input;
+                        cropModal.style.display = 'block';
+                        if (cropper) cropper.destroy();
+                        try {
+                            cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1 });
+                        } catch (error) {
+                            console.error('Failed to initialize Cropper:', error);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            slot.addEventListener('click', () => input.click());
+        });
+
+     cropBtn.addEventListener('click', () => {
+    if (!cropper || !currentInput) return;
+
+    const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
+    if (canvas) {
+        canvas.toBlob(blob => {
+            const slot = currentInput.closest('.image-upload-slot');
+            
+            // Clear the slot content completely
+            slot.innerHTML = '';
+
+            // Insert new image
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(blob);
+            img.classList.add('w-full', 'h-full', 'object-cover', 'rounded-lg');
+            slot.appendChild(img);
+
+            // Re-add the input element (hidden)
+            slot.appendChild(currentInput);
+
+            // Update file input with cropped image
+            const file = new File([blob], currentInput.files[0].name, { type: 'image/jpeg' });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            currentInput.files = dataTransfer.files;
+
+            // Increment uploaded images count if this is a new upload
+            const oldImg = slot.querySelector('img'); // Check if image was already there
+            if (!oldImg) uploadedImages++;
+
+            cropModal.style.display = 'none';
+            cropper.destroy();
+            cropper = null;
+            validateForm(); // Re-validate form
+        }, 'image/jpeg');
+    }
+});
+
+
+   function closeCropModal(clearFile = false) {
+    cropModal.style.display = 'none';
+
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
     }
 
-    // Form submission handler
-    form.addEventListener('submit', function (e) {
-        if (!validateForm()) {
-            e.preventDefault();
+    if (clearFile && currentInput) {
+        const slot = currentInput.closest('.image-upload-slot');
+        const oldImg = slot.querySelector('img');
+        const placeholderSvg = slot.querySelector('svg');
+        const placeholderSpan = slot.querySelector('span');
+
+        if (oldImg) {
+            oldImg.remove();
+            uploadedImages = Math.max(0, uploadedImages - 1); // Adjust count
         }
-    });
 
-    // Image upload functionality
-    imageSlots.forEach(slot => {
-        const input = slot.querySelector('input[type="file"]');
-        input.addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const placeholders = slot.querySelectorAll('div:not(.image-upload-slot), span');
-                    placeholders.forEach(el => el.remove());
-                    const oldImg = slot.querySelector('img');
-                    if (oldImg) oldImg.remove();
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.classList.add('w-full', 'h-full', 'object-cover', 'rounded-lg');
-                    slot.insertBefore(img, input);
-                    uploadedImages++;
-                    validateForm(); // Re-validate on image upload
-                };
-                reader.readAsDataURL(file);
-            }
+        if (placeholderSvg && placeholderSpan) {
+            placeholderSvg.classList.remove('hidden');
+            placeholderSpan.classList.remove('hidden');
+        }
+
+        currentInput.value = '';
+    }
+}
+
+
+        cancelCropBtn.addEventListener('click', () => closeCropModal(true));
+        window.addEventListener('click', e => {
+            if (e.target === cropModal) closeCropModal(true);
         });
-
-        slot.addEventListener('click', function () {
-            input.click();
+        window.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && cropModal.style.display === 'block') closeCropModal(true);
         });
     });
 
-    // Add variant functionality
-    const addVariantBtn = document.getElementById('addVariantBtn');
-    const tbody = document.getElementById('variantsTable');
 
-    addVariantBtn.addEventListener('click', function () {
-        const newRow = tbody.querySelector('tr').cloneNode(true);
-        newRow.querySelectorAll('input').forEach(input => {
-            input.value = '';
-            input.classList.remove('border-error');
-        });
-        newRow.querySelectorAll('.error').forEach(error => error.textContent = '');
-        tbody.appendChild(newRow);
-    });
-
-    tbody.addEventListener('click', function (e) {
-        if (e.target.classList.contains('remove-variant')) {
-            const tr = e.target.closest('tr');
-            if (tbody.querySelectorAll('tr').length > 1) {
-                tr.remove();
-            }
-        }
-    });
-
-    // Real-time validation
-    ['productName', 'productDescription', 'category', 'brand', 'returnWithin', 'price', 'discount'].forEach(id => {
-        const input = document.getElementById(id);
-        input.addEventListener('input', validateForm);
-    });
-
-    // Real-time validation for variants
-    tbody.addEventListener('input', function (e) {
-        if (e.target.name === 'size[]' || e.target.name === 'additionalPrice[]' || e.target.name === 'stock[]') {
-            validateForm();
-        }
-    });
-});
 </script>

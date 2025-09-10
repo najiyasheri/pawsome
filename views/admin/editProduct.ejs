@@ -168,10 +168,38 @@
   </div>
 </div>
 
+<!-- Modal -->
+<div id="cropModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-70 flex items-center justify-center">
+  <div class="bg-white p-6 rounded-xl max-w-[90%] max-h-[90%] flex flex-col items-center overflow-auto">
+    <!-- Cropping Image -->
+    <div class="w-full max-h-[70vh] flex justify-center mb-4">
+      <img id="cropImage" class="max-w-full max-h-full rounded-lg" />
+    </div>
+    <!-- Buttons -->
+    <div class="flex gap-3">
+      <button id="cancelCropBtn" type="button"
+        class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium rounded-lg transition">
+        Cancel
+      </button>
+      <button id="cropBtn" type="button"
+        class="px-5 py-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold rounded-lg transition">
+        Crop & Use
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('productForm');
     const imageSlots = document.querySelectorAll('.image-upload-slot');
+    const cropModal = document.getElementById('cropModal');
+    const cropImage = document.getElementById('cropImage');
+    const cropBtn = document.getElementById('cropBtn');
+    const cancelCropBtn = document.getElementById('cancelCropBtn');
+    let uploadedImages = parseInt("<%= product.images.length %>") // Initialize with existing images
+    let cropper = null;
+    let currentInput = null;
 
     // Validation function
     function validateForm() {
@@ -242,19 +270,19 @@
       }
 
       // Validate Images
-      let imageCount = 0;
-      // Count existing images (not replaced)
-      document.querySelectorAll('.existing-image input[type="hidden"]').forEach(() => imageCount++);
-      // Count new uploads
-      document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(input => {
-        if (input.files && input.files.length > 0) {
-          imageCount++;
-        }
-      });
-      if (imageCount < 4) {
-        document.getElementById('imageError').textContent = 'Please upload at least 4 images';
-        isValid = false;
-      }
+  let imageCount = 0;
+// Count existing images (not replaced)
+document.querySelectorAll('.existing-image input[type="hidden"]').forEach(() => imageCount++);
+// Count new or replaced images
+document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(input => {
+  if (input.files && input.files.length > 0) {
+    imageCount++;
+  }
+});
+if (imageCount < 4) {
+  document.getElementById('imageError').textContent = 'Please upload at least 4 images';
+  isValid = false;
+}
 
       // Validate Variants
       const variantRows = document.querySelectorAll('#variantsTable tr');
@@ -295,108 +323,196 @@
       }
     });
 
-    // Image upload functionality for new images
-    imageSlots.forEach(slot => {
-      slot.addEventListener('click', function () {
-        let input = slot.querySelector('input[type="file"]');
-        if (input) {
-          input.click();
+    // Image upload and cropping functionality
+    function handleImageUpload(slot, input) {
+      input.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            cropImage.src = e.target.result;
+            currentInput = input;
+            cropModal.style.display = 'block';
+            if (cropper) cropper.destroy();
+            try {
+              cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1 });
+            } catch (error) {
+              console.error('Failed to initialize Cropper:', error);
+            }
+          };
+          reader.readAsDataURL(file);
         }
       });
 
+      slot.addEventListener('click', () => input.click());
+    }
+
+    // Initialize image slots
+    imageSlots.forEach(slot => {
       const input = slot.querySelector('input[type="file"]');
       if (input) {
-        input.addEventListener('change', function (e) {
-          const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-              const placeholders = slot.querySelectorAll('div:not(.image-upload-slot), span');
-              placeholders.forEach(el => el.remove());
-              const oldImg = slot.querySelector('img');
-              if (oldImg) oldImg.remove();
-              const img = document.createElement('img');
-              img.src = e.target.result;
-              img.classList.add('w-full', 'h-full', 'object-cover', 'rounded-lg');
-              slot.insertBefore(img, input);
-              validateForm(); // Re-validate on image upload
-            };
-            reader.readAsDataURL(file);
-          }
-        });
+        handleImageUpload(slot, input);
       }
     });
 
-    // Replace existing image functionality
-    const replaceImageButtons = document.querySelectorAll('.replace-image');
-    replaceImageButtons.forEach(button => {
-      button.addEventListener('click', function () {
-        const imageContainer = button.closest('.existing-image');
-        if (imageContainer) {
-          // Get the index from the existing hidden input
-          const hiddenInput = imageContainer.querySelector('input[type="hidden"]');
-          const index = hiddenInput ? hiddenInput.name.match(/\d+/)[0] : null;
+    // Replace existing image functionality with cropping
+const replaceImageButtons = document.querySelectorAll('.replace-image');
+replaceImageButtons.forEach(button => {
+  button.addEventListener('click', function () {
+    const imageContainer = button.closest('.existing-image');
+    if (imageContainer) {
+      // Get the index from the existing hidden input
+      const hiddenInput = imageContainer.querySelector('input[type="hidden"]');
+      const index = hiddenInput ? hiddenInput.name.match(/\d+/)[0] : null;
 
-          // Remove existing image and button
-          const img = imageContainer.querySelector('img');
-          const replaceButton = imageContainer.querySelector('.replace-image');
-          if (img) img.remove();
-          if (replaceButton) replaceButton.remove();
-          if (hiddenInput) hiddenInput.remove();
+      // Preserve the index display
+      const indexDisplay = imageContainer.querySelector('.absolute.-top-2.-right-2');
 
-          // Add image-upload-slot class and content
-          imageContainer.classList.remove('existing-image');
-          imageContainer.classList.add('image-upload-slot', 'flex', 'flex-col', 'items-center', 'justify-center', 'cursor-pointer', 'hover:bg-gray-50', 'transition-colors');
+      // Remove existing image and button
+      const img = imageContainer.querySelector('img');
+      const replaceButton = imageContainer.querySelector('.replace-image');
+      if (img) img.remove();
+      if (replaceButton) replaceButton.remove();
+      if (hiddenInput) hiddenInput.remove();
 
-          // Add placeholder content
-          const placeholderDiv = document.createElement('div');
-          placeholderDiv.classList.add('w-12', 'h-12', 'bg-gray-100', 'rounded-lg', 'flex', 'items-center', 'justify-center', 'mb-2');
-          placeholderDiv.innerHTML = `
-          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-        `;
-          const placeholderSpan = document.createElement('span');
-          placeholderSpan.classList.add('text-xs', 'text-gray-500', 'text-center');
-          placeholderSpan.textContent = 'Add Image';
-          const fileInput = document.createElement('input');
-          fileInput.type = 'file';
-          fileInput.name = index ? `replaceImages[${index}]` : 'images[]';
-          fileInput.accept = 'image/*';
-          fileInput.classList.add('hidden');
+      // Add image-upload-slot class and content
+      imageContainer.classList.remove('existing-image');
+      imageContainer.classList.add('image-upload-slot', 'flex', 'flex-col', 'items-center', 'justify-center', 'cursor-pointer', 'hover:bg-gray-50', 'transition-colors');
 
-          // Append new elements
-          imageContainer.appendChild(placeholderDiv);
-          imageContainer.appendChild(placeholderSpan);
-          imageContainer.appendChild(fileInput);
+      // Add placeholder content
+      const placeholderDiv = document.createElement('div');
+      placeholderDiv.classList.add('w-12', 'h-12', 'bg-gray-100', 'rounded-lg', 'flex', 'items-center', 'justify-center', 'mb-2');
+      placeholderDiv.innerHTML = `
+        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+      `;
+      const placeholderSpan = document.createElement('span');
+      placeholderSpan.classList.add('text-xs', 'text-gray-500', 'text-center');
+      placeholderSpan.textContent = 'Add Image';
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.name = index ? `replaceImages[${index}]` : 'images[]';
+      fileInput.accept = 'image/*';
+      fileInput.classList.add('hidden');
 
-          // Add click event to new input
-          imageContainer.addEventListener('click', function () {
-            fileInput.click();
-          });
+      // Append new elements
+      imageContainer.innerHTML = ''; // Clear all content
+      imageContainer.appendChild(placeholderDiv);
+      imageContainer.appendChild(placeholderSpan);
+      imageContainer.appendChild(fileInput);
+      if (indexDisplay) imageContainer.appendChild(indexDisplay); // Re-append index display
 
-          fileInput.addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = function (e) {
-                placeholderDiv.remove();
-                placeholderSpan.remove();
-                const oldImg = imageContainer.querySelector('img');
-                if (oldImg) oldImg.remove();
-                const newImg = document.createElement('img');
-                newImg.src = e.target.result;
-                newImg.classList.add('w-full', 'h-full', 'object-cover', 'rounded-lg');
-                imageContainer.insertBefore(newImg, fileInput);
-                validateForm(); // Re-validate on image replacement
-              };
-              reader.readAsDataURL(file);
-            }
-          });
+      // Handle image upload with cropping
+      handleImageUpload(imageContainer, fileInput);
 
-          validateForm(); // Re-validate after replacing
-        }
-      });
+      // Decrease uploadedImages since an existing image was removed
+      uploadedImages = Math.max(0, uploadedImages);
+
+      validateForm(); // Re-validate after replacing
+    }
+  });
+});
+    // Crop button handler
+    // Crop button handler
+cropBtn.addEventListener('click', () => {
+  if (!cropper || !currentInput) return;
+
+  const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
+  if (canvas) {
+    canvas.toBlob(blob => {
+      const slot = currentInput.closest('.image-upload-slot');
+
+      // Preserve the index display
+      const indexDisplay = slot.querySelector('.absolute.-top-2.-right-2');
+
+      // Clear the slot content completely
+      slot.innerHTML = '';
+
+      // Insert new image
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(blob);
+      img.classList.add('w-full', 'h-full', 'object-cover', 'rounded-lg');
+      slot.appendChild(img);
+
+      // Re-add the input element (hidden)
+      slot.appendChild(currentInput);
+
+      // Re-append index display
+      if (indexDisplay) slot.appendChild(indexDisplay);
+
+      // Update file input with cropped image
+      const file = new File([blob], currentInput.files[0].name, { type: 'image/jpeg' });
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      currentInput.files = dataTransfer.files;
+
+      // Increment uploadedImages only if this is a new slot (not a replacement)
+      if (currentInput.name.startsWith('images[')) {
+        uploadedImages++;
+      }
+
+      cropModal.style.display = 'none';
+      cropper.destroy();
+      cropper = null;
+      validateForm(); // Re-validate form
+    }, 'image/jpeg');
+  }
+});
+
+    // Close crop modal
+    // Close crop modal
+function closeCropModal(clearFile = false) {
+  cropModal.style.display = 'none';
+
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+
+  if (clearFile && currentInput) {
+    const slot = currentInput.closest('.image-upload-slot');
+    const oldImg = slot.querySelector('img');
+    const placeholderSvg = slot.querySelector('svg');
+    const placeholderSpan = slot.querySelector('span');
+    const indexDisplay = slot.querySelector('.absolute.-top-2.-right-2');
+
+    if (oldImg) {
+      oldImg.remove();
+      // Only decrement if this was a new upload, not a replacement
+      if (currentInput.name.startsWith('images[')) {
+        uploadedImages = Math.max(0, uploadedImages);
+      }
+    }
+
+    if (!placeholderSvg || !placeholderSpan) {
+      slot.innerHTML = ''; // Clear all content
+      const placeholderDiv = document.createElement('div');
+      placeholderDiv.classList.add('w-12', 'h-12', 'bg-gray-100', 'rounded-lg', 'flex', 'items-center', 'justify-center', 'mb-2');
+      placeholderDiv.innerHTML = `
+        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+      `;
+      const placeholderSpan = document.createElement('span');
+      placeholderSpan.classList.add('text-xs', 'text-gray-500', 'text-center');
+      placeholderSpan.textContent = 'Add Image';
+      slot.appendChild(placeholderDiv);
+      slot.appendChild(placeholderSpan);
+      slot.appendChild(currentInput);
+      if (indexDisplay) slot.appendChild(indexDisplay);
+    }
+
+    currentInput.value = '';
+  }
+}
+
+    cancelCropBtn.addEventListener('click', () => closeCropModal(true));
+    window.addEventListener('click', e => {
+      if (e.target === cropModal) closeCropModal(true);
+    });
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && cropModal.style.display === 'block') closeCropModal(true);
     });
 
     // Add variant functionality

@@ -3,38 +3,27 @@
     <!-- Header with Search and Filters on Same Line -->
     <div class="bg-white p-4 mb-4 rounded-lg shadow-sm">
       <div class="flex flex-wrap items-center justify-between gap-6">
-        
+
         <!-- Left Side - Search Bar -->
         <form method="GET" action="/products" class="flex items-center gap-2">
           <!-- Search Input -->
-          <input 
-            type="text" 
-            id="searchInput" 
-            name="search" 
-            placeholder="Search products..."
-            value="<%= search %>"
+          <input type="text" id="searchInput" name="search" placeholder="Search products..." value="<%= search %>"
             class="px-4 py-2 border border-gray-300 rounded-l-lg 
-                   focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] w-80"
-          />
+                   focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] w-80" />
 
           <!-- Search Button -->
-          <button 
-            id="searchBtn" 
-            type="submit"
-            class="group px-6 py-2 bg-[#F9C22A] text-black rounded-r-lg 
-                   hover:bg-[#d4a81f] focus:outline-none focus:border-2 focus:border-[#d4a81f]"
-          >
+          <button id="searchBtn" type="submit" class="group px-6 py-2 bg-[#F9C22A] text-black rounded-r-lg 
+                   hover:bg-[#d4a81f] focus:outline-none focus:border-2 focus:border-[#d4a81f]">
             <i class="fas fa-search group-hover:text-white"></i>
           </button>
 
           <!-- Clear Button -->
-          <% if (search && search.trim() !== "" ) { %>
-            <a href="/products?page=1&sort=<%= sort %>&category=<%= category %>&priceRange=<%= priceRange %>"
-              class="px-4 py-2 bg-gray-500 text-white rounded-lg 
+          <% if (search && search.trim() !=="" ) { %>
+            <a href="/products?page=1&sort=<%= sort %>&category=<%= category %>&priceRange=<%= priceRange %>" class="px-4 py-2 bg-gray-500 text-white rounded-lg 
                      hover:bg-gray-600 focus:outline-none">
               Clear
             </a>
-          <% } %>
+            <% } %>
         </form>
 
         <!-- Right Side - Filters -->
@@ -44,67 +33,97 @@
           <!-- Sort -->
           <div class="flex items-center gap-2 whitespace-nowrap">
             <label class="text-sm font-medium text-gray-700 w-16 text-right">Sort by:</label>
-            <select 
-              id="sortSelect" 
-              name="sort"
-              class="px-3 py-2 border border-gray-300 rounded-lg 
+            <select id="sortSelect" name="sort" class="px-3 py-2 border border-gray-300 rounded-lg 
                      focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] w-44"
-              onchange="this.form.submit()"
-            >
-              <option value="" <%= sort === "" ? "selected" : "" %>>Default</option>
-              <option value="price-low" <%= sort === "price-low" ? "selected" : "" %>>Price: Low to High</option>
-              <option value="price-high" <%= sort === "price-high" ? "selected" : "" %>>Price: High to Low</option>
-              <option value="name-az" <%= sort === "name-az" ? "selected" : "" %>>Name: A - Z</option>
-              <option value="name-za" <%= sort === "name-za" ? "selected" : "" %>>Name: Z - A</option>
+              onchange="this.form.submit()">
+              <option value="" <%=sort==="" ? "selected" : "" %>>Default</option>
+              <option value="price-low" <%=sort==="price-low" ? "selected" : "" %>>Price: Low to High</option>
+              <option value="price-high" <%=sort==="price-high" ? "selected" : "" %>>Price: High to Low</option>
+              <option value="name-az" <%=sort==="name-az" ? "selected" : "" %>>Name: A - Z</option>
+              <option value="name-za" <%=sort==="name-za" ? "selected" : "" %>>Name: Z - A</option>
             </select>
           </div>
 
           <!-- Category -->
           <div class="flex items-center gap-2 whitespace-nowrap">
             <label class="text-sm font-medium text-gray-700 w-16 text-right">Category:</label>
-            <select 
-              id="categoryFilter" 
-              name="category"
-              class="px-3 py-2 border border-gray-300 rounded-lg 
+            <select id="categoryFilter" name="category" class="px-3 py-2 border border-gray-300 rounded-lg 
                      focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] w-44"
-              onchange="this.form.submit()"
-            >
-              <option value="" <%= category === "" ? "selected" : "" %>>All Categories</option>
-              <% categories.forEach(cat => { %>
-                <option value="<%= cat._id %>" <%= category === cat._id ? "selected" : "" %>>
+              onchange="this.form.submit()">
+              <option value="" <%=category==="" ? "selected" : "" %>>All Categories</option>
+              <% categories.forEach(cat=> { %>
+                <option value="<%= cat._id %>" <%=category===cat._id ? "selected" : "" %>>
                   <%= cat.name %>
                 </option>
-              <% }) %>
+                <% }) %>
             </select>
           </div>
 
           <!-- Price Range -->
           <div class="flex items-center gap-2 whitespace-nowrap">
             <label class="text-sm font-medium text-gray-700 w-20 text-right">Price Range:</label>
-            <select 
-              id="priceRangeFilter" 
-              name="priceRange"
-              class="px-3 py-2 border border-gray-300 rounded-lg 
+            <select id="priceRangeFilter" name="priceRange" class="px-3 py-2 border border-gray-300 rounded-lg 
                      focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] w-32"
-              onchange="this.form.submit()"
-            >
-              <option value="" <%= priceRange === "" ? "selected" : "" %>>All Prices</option>
-              <option value="0-50" <%= priceRange === "0-50" ? "selected" : "" %>>₹0 - ₹50</option>
-              <option value="51-100" <%= priceRange === "51-100" ? "selected" : "" %>>₹51 - ₹100</option>
-              <option value="101-200" <%= priceRange === "101-200" ? "selected" : "" %>>₹101 - ₹200</option>
-              <option value="201-500" <%= priceRange === "201-500" ? "selected" : "" %>>₹201 - ₹500</option>
+              onchange="this.form.submit()">
+              <option value="" <%=priceRange==="" ? "selected" : "" %>>All Prices</option>
+              <option value="0-50" <%=priceRange==="0-50" ? "selected" : "" %>>₹0 - ₹50</option>
+              <option value="51-100" <%=priceRange==="51-100" ? "selected" : "" %>>₹51 - ₹100</option>
+              <option value="101-200" <%=priceRange==="101-200" ? "selected" : "" %>>₹101 - ₹200</option>
+              <option value="201-500" <%=priceRange==="201-500" ? "selected" : "" %>>₹201 - ₹500</option>
             </select>
           </div>
 
           <!-- Clear All Filters -->
-          <% if (search && search.trim() !== "" || sort !== "" || category !== "" || priceRange !== "") { %>
-            <a href="/products"
-              class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none">
+          <% if (search && search.trim() !=="" || sort !=="" || category !=="" || priceRange !=="" ) { %>
+            <a href="/products" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none">
               Clear All
             </a>
-          <% } %>
+            <% } %>
         </form>
       </div>
     </div>
+  </div>
+  
+  <!-- products container -->
+  <div class="grid grid-cols-4 gap-6">
+    <% products.forEach(product=> { %>
+      <div class="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm relative">
+        <!-- Favorite Button -->
+        <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 heart-icon" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
+                   2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
+                   C13.09 3.81 14.76 3 16.5 3 
+                   19.58 3 22 5.42 22 8.5 
+                   c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+          </svg>
+        </button>
+        <!-- Product Image -->
+        <a href="/product/<%= product._id %>">
+         <img class="p-8 rounded-t-lg" src="uploads/<%= product.images && product.images.length > 0 ? product.images[0] : '/default.jpg' %>" alt="<%= product.name %>" />
+
+        </a>
+        <div class="px-5 pb-5">
+          <!-- Product Name -->
+          <a href="/product/<%= product._id %>">
+            <h5 class="text-xl font-semibold tracking-tight text-gray-900">
+              <%= product.name %>
+            </h5>
+          </a>
+          <div class="flex items-center mt-2.5 mb-5">
+            <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-sm ms-3">5.0</span>
+          </div>
+          <!-- Price & Add to Cart -->
+          <div class="flex items-center justify-between">
+           <span class="text-3xl font-bold text-gray-900">₹<%= product.basePrice %></span>
+
+            <a href="/cart/add/<%= product._id %>" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none 
+                    focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+              Add to cart
+            </a>
+          </div>
+        </div>
+      </div>
+      <% }) %>
   </div>
 </section>

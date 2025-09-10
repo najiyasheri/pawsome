@@ -66,7 +66,7 @@ const addProduct = async (req, res) => {
     let images = [];
 
     if (req.files && req.files["images[]"]) {
-      images = req.files["images[]"].map((file) => file.filename);
+      images = req.files["images[]"].map((file) => '/uploads/'+file.filename);
     }
 
     let replacedImages = [];
@@ -307,6 +307,30 @@ const userProducts = async (req, res) => {
   }
 };
 
+
+const loadProductDetails=async(req,res)=>{
+  try {
+    const productId=req.params
+    const product=await Product.findById(productId).lean()
+    if(!product){
+      return res.status(404).send('page not found')
+    }
+
+    const relatedProduct=await Product.find({
+      cate
+    })
+
+
+    res.render('user/productDetail',{
+      title: "product-details",
+      layout: "layouts/userLayout",
+      user: req.session.user,
+    })
+  } catch (error) {
+      
+  }
+}
+
 module.exports = {
   loadProductManagement,
   loadAddProduct,
@@ -315,4 +339,5 @@ module.exports = {
   postEditProduct,
   loadEditProduct,
   userProducts,
+  loadProductDetails
 };

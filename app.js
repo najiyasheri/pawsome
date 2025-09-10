@@ -22,6 +22,7 @@ app.use(session({
         maxAge:1000*60*60
     }
 }))
+
 app.use((req, res, next) => {
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); 
   res.setHeader("Pragma", "no-cache"); 
@@ -42,6 +43,7 @@ app.use((req, res, next) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     next();
   });
+  
 // app.set("layout", "layouts/adminLayout");  
 // app.set("layout", "layouts/userLayout");
 

@@ -1,0 +1,88 @@
+<!-- views/product-detail.ejs -->
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+
+    <!-- Left: Product Images -->
+    <div>
+      <div class="border rounded-lg overflow-hidden">
+        <img src="<%= product.mainImage %>" alt="<%= product.name %>" class="w-full h-[400px] object-contain">
+      </div>
+      <div class="flex gap-3 mt-4">
+        <% product.images.forEach(img => { %>
+          <img src="<%= img %>" class="w-20 h-20 border rounded-md cursor-pointer hover:ring-2 hover:ring-orange-500">
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- Right: Product Details -->
+    <div>
+      <h1 class="text-2xl font-bold mb-2"><%= product.name %></h1>
+      <p class="text-gray-600 mb-4"><%= product.shortDesc %></p>
+
+      <!-- Rating -->
+      <div class="flex items-center gap-2 mb-4">
+        <span class="text-yellow-400 text-lg">★</span>
+        <span class="font-semibold"><%= product.rating %></span>
+        <span class="text-gray-500 text-sm">(<%= product.reviews.length %> reviews)</span>
+      </div>
+
+      <!-- Price -->
+      <div class="flex items-center gap-3 mb-4">
+        <span class="text-2xl font-bold text-orange-600">₹<%= product.price %></span>
+        <span class="line-through text-gray-400">₹<%= product.oldPrice %></span>
+        <span class="text-green-600 font-medium"><%= product.discount %>% OFF</span>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-4 mb-6">
+        <form action="/cart/add" method="POST">
+          <input type="hidden" name="productId" value="<%= product._id %>">
+          <button type="submit" class="px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 shadow-md">Add to Cart</button>
+        </form>
+        <button class="px-6 py-3 border rounded-xl hover:bg-gray-100">Buy Now</button>
+      </div>
+
+      <!-- Quantity -->
+      <div class="flex items-center gap-3 mb-8">
+        <label class="font-medium">Quantity:</label>
+        <input type="number" name="qty" value="1" min="1" class="w-16 border rounded-md text-center">
+      </div>
+
+      <!-- Description -->
+      <div class="prose max-w-none text-gray-700">
+        <h2 class="font-bold text-lg mb-2">About this item</h2>
+        <p><%= product.description %></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reviews -->
+  <div class="mt-12">
+    <h2 class="text-xl font-bold mb-4">Reviews</h2>
+    <div class="space-y-4">
+      <% product.reviews.forEach(review => { %>
+        <div class="border p-4 rounded-lg shadow-sm">
+          <div class="flex justify-between items-center mb-2">
+            <p class="font-semibold"><%= review.user %></p>
+            <span class="text-yellow-400">★ <%= review.rating %></span>
+          </div>
+          <p class="text-gray-600"><%= review.comment %></p>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+
+  <!-- Related Products -->
+  <div class="mt-12">
+    <h2 class="text-xl font-bold mb-4">Related Products</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <% relatedProducts.forEach(rp => { %>
+        <div class="border rounded-lg p-4 hover:shadow-md">
+          <img src="<%= rp.image %>" class="w-full h-40 object-contain mb-3">
+          <p class="font-semibold text-sm"><%= rp.name %></p>
+          <p class="text-orange-600 font-bold">₹<%= rp.price %></p>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</div>

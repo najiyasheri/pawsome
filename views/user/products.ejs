@@ -1,5 +1,5 @@
 <section>
-  <div class="container mx-auto px-4 py-6">
+<div class="flex items-center justify-between gap-6 overflow-x-auto whitespace-nowrap">
     <!-- Header with Search and Filters on Same Line -->
     <div class="bg-white p-4 mb-4 rounded-lg shadow-sm">
       <div class="flex flex-wrap items-center justify-between gap-6">
@@ -85,7 +85,8 @@
   </div>
   
   <!-- products container -->
-  <div class="grid grid-cols-4 gap-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center">
+
   <% products.forEach(product => { %>
   <div class="w-60 bg-white border border-gray-200 rounded-lg shadow-sm relative flex flex-col">
     
@@ -112,7 +113,7 @@
       
       <!-- Product Name -->
       <a href="/product/<%= product._id %>">
-        <h5 class="text-lg font-semibold tracking-tight text-gray-900 line-clamp-2 h-12">
+        <h5 class="text-lg font-semibold tracking-tight text-gray-900 line-clamp-2 h-14 leading-relaxed">
           <%= product.name %>
         </h5>
       </a>

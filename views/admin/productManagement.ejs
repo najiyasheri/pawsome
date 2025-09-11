@@ -25,11 +25,11 @@
         Search
       </button>
 
-       <% if (search && search.trim() !=="" ) { %>
-      <a href="/admin/product" class="ml-2 px-5 py-2.5 bg-red-400 text-white rounded-lg hover:bg-gray-500">
-        Clear
-      </a>
-      <% } %>
+      <% if (search && search.trim() !=="" ) { %>
+        <a href="/admin/product" class="ml-2 px-5 py-2.5 bg-red-400 text-white rounded-lg hover:bg-gray-500">
+          Clear
+        </a>
+        <% } %>
     </form>
 
     <a href="/admin/product/add"> <button type="button"
@@ -58,12 +58,13 @@
                 <%= (currentPage - 1) * limit + index + 1 %>
               </td>
               <td class="px-6 py-4">
-                <img src="/uploads/<%= product.images[0]  %>" alt="image is not supporting" class="max-w-16 object-contain">
+                <img src="/uploads/<%= product.images[0]  %>" alt="image is not supporting"
+                  class="max-w-16 object-contain">
               </td>
-              <th scope="row" class="px-6 py-4 font-medium text-gray-600 whitespace-nowrap uppercase">
+              <th scope="row" class="px-6 py-4 font-medium text-gray-600  uppercase">
                 <%= product.name %>
               </th>
-              <td class="px-6 py-4">
+              <td class="px-6 py-4 max-w-xs truncate">
                 <%= product.description %>
               </td>
               <td class="px-6 py-4">
@@ -75,11 +76,11 @@
               </td>
               <td class="px-6 py-4">
                 <div>
-                 <a href="/admin/product/edit/<%= product._id %>"> <button type="button" 
-                    class="text-blue-600 hover:text-yellow-600 edit-btn" data-id="<%= product._id %>"
-                    data-name="<%= product.name %>" data-description="<%= product.description %>">
-                    Edit
-                  </button></a>
+                  <a href="/admin/product/edit/<%= product._id %>"> <button type="button"
+                      class="text-blue-600 hover:text-yellow-600 edit-btn" data-id="<%= product._id %>"
+                      data-name="<%= product.name %>" data-description="<%= product.description %>">
+                      Edit
+                    </button></a>
                 </div>
                 <div>
                   <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
@@ -102,45 +103,45 @@
   </div>
 
   <!-- Pagination -->
- <div class="flex justify-center">
-  <nav aria-label="Page navigation example">
-    <ul class="flex items-center -space-x-px h-10 text-base">
-      <!-- Previous Button -->
-      <li>
-        <a href="/admin/product?page=<%= currentPage - 1 %>&limit=<%= limit %>&search=<%= search %>"
-           class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 <%= currentPage <= 1 ? 'pointer-events-none opacity-50' : '' %>">
-          <span class="sr-only">Previous</span>
-          <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M5 1 1 5l4 4" />
-          </svg>
-        </a>
-      </li>
-
-      <!-- Page Numbers -->
-      <% for (let i = 1; i <= totalPages; i++) { %>
+  <div class="flex justify-center">
+    <nav aria-label="Page navigation example">
+      <ul class="flex items-center -space-x-px h-10 text-base">
+        <!-- Previous Button -->
         <li>
-          <a href="/admin/product?page=<%= i %>&limit=<%= limit %>&search=<%= search %>"
-             class="flex items-center justify-center px-4 h-10 leading-tight border <%= i === currentPage ? 'bg-yellow-500 text-white' : 'bg-white hover:bg-gray-100' %>">
-            <%= i %>
+          <a href="/admin/product?page=<%= currentPage - 1 %>&limit=<%= limit %>&search=<%= search %>"
+            class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 <%= currentPage <= 1 ? 'pointer-events-none opacity-50' : '' %>">
+            <span class="sr-only">Previous</span>
+            <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M5 1 1 5l4 4" />
+            </svg>
           </a>
         </li>
-      <% } %>
 
-      <!-- Next Button -->
-      <li>
-        <a href="/admin/product?page=<%= currentPage + 1 %>&limit=<%= limit %>&search=<%= search %>"
-           class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 <%= currentPage >= totalPages ? 'pointer-events-none opacity-50' : '' %>">
-          <span class="sr-only">Next</span>
-          <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="m1 9 4-4-4-4" />
-          </svg>
-        </a>
-      </li>
-    </ul>
-  </nav>
-</div>
+        <!-- Page Numbers -->
+        <% for (let i=1; i <=totalPages; i++) { %>
+          <li>
+            <a href="/admin/product?page=<%= i %>&limit=<%= limit %>&search=<%= search %>"
+              class="flex items-center justify-center px-4 h-10 leading-tight border <%= i === currentPage ? 'bg-yellow-500 text-white' : 'bg-white hover:bg-gray-100' %>">
+              <%= i %>
+            </a>
+          </li>
+          <% } %>
+
+            <!-- Next Button -->
+            <li>
+              <a href="/admin/product?page=<%= currentPage + 1 %>&limit=<%= limit %>&search=<%= search %>"
+                class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 <%= currentPage >= totalPages ? 'pointer-events-none opacity-50' : '' %>">
+                <span class="sr-only">Next</span>
+                <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="m1 9 4-4-4-4" />
+                </svg>
+              </a>
+            </li>
+      </ul>
+    </nav>
+  </div>
 
 </section>
 

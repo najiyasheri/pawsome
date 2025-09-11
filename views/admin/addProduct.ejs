@@ -311,7 +311,6 @@
 
             const returnWithin = document.getElementById('returnWithin');
             if (returnWithin.value === '' || Number(returnWithin.value) < 0 || !Number.isInteger(Number(returnWithin.value))) {
-                console.log(returnWithin.value , 'ehllo ------------------->')
                 document.getElementById('returnWithinError').textContent = 'Enter valid days (whole number 0 or greater)';
                 returnWithin.classList.add('border-error');
                 isValid = false;
@@ -332,7 +331,16 @@
                 isValid = false;
             }
 
+            document.querySelectorAll('.existing-image input[type="hidden"]').forEach(() => uploadedImages++);
+            // Count new or replaced images
+            document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(input => {
+                if (input.files && input.files.length > 0) {
+                    uploadedImages++;
+                }
+            });
+
             if (uploadedImages < 4) {
+                console.log(uploadedImages, 'entering hereeeeeeeeeeeeeeeeee')
                 document.getElementById('imageError').textContent = 'Upload at least 4 images';
                 isValid = false;
             }

@@ -66,17 +66,19 @@ const addProduct = async (req, res) => {
     let images = [];
 
     if (req.files && req.files["images[]"]) {
-      images = req.files["images[]"].map((file) => "/uploads/" + file.filename);
+      images = req.files["images[]"].map((file) => file.filename);
     }
 
-    let replacedImages = [];
-    if (req.files) {
-      for (let i = 0; i < 4; i++) {
-        if (req.files[`replaceImages[${i}]`]) {
-          replacedImages[i] = req.files[`replaceImages[${i}]`][0].filename;
-        }
-      }
-    }
+    // let replacedImages = [];
+    // if (req.files) {
+    //   for (let i = 0; i < 4; i++) {
+    //     if (req.files[`replaceImages[${i}]`]) {
+    //       replacedImages[i] = req.files[`replaceImages[${i}]`][0].filename;
+    //     }
+    //   }
+    // }
+
+    // console.log(images)
 
     const product = new Product({
       name: req.body.name,
@@ -145,11 +147,6 @@ const loadEditProduct = async (req, res) => {
 
     const categories = await Category.find({ isBlocked: false });
 
-    console.log("product.categoryId:", product, product.categoryId);
-    console.log(
-      "categories:",
-      categories.map((c) => c._id)
-    );
 
     res.render("admin/editProduct", {
       title: "Edit Product",
@@ -167,8 +164,7 @@ const loadEditProduct = async (req, res) => {
 const postEditProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, price, category, brand, discount, images } =
-      req.body;
+    const { name, description, price, category, brand, discount, images } = req.body;
 
     const product = await Product.findById(id);
     if (!product) {
@@ -182,52 +178,79 @@ const postEditProduct = async (req, res) => {
     product.basePrice = parseFloat(price);
     product.discountPercentage = parseFloat(discount);
 
-    const existingImages = Array.isArray(images)
-      ? images
-      : images
-      ? [images]
-      : [];
+    // Parse existing images from body (hidden inputs for unreplaced slots)
+    const existingImages = Array.isArray(images) ? images : images ? [images] : [];
     product.images = existingImages;
 
-    if (req.files) {
+    // Handle uploaded files (replacements and new)
+    if (req.files && req.files.length > 0) {
       const replaceImages = {};
       const newImages = [];
 
-      Object.keys(req.files).forEach((fieldName) => {
-        if (fieldName.startsWith("replaceImages[")) {
-          const index = parseInt(fieldName.match(/\d+/)[0], 10);
-          if (!isNaN(index) && req.files[fieldName][0]) {
-            replaceImages[index] = req.files[fieldName][0].filename;
+      // Log all files for debugging
+      console.log('req.files overview:', req.files.map(f => ({ fieldname: f.fieldname, filename: f.filename })));
+
+      req.files.forEach((file) => {
+        const fieldName = file.fieldname;
+        if (fieldName.startsWith('replaceImages[')) {
+          const match = fieldName.match(/\[(\d+)\]/);
+          if (match) {
+            const index = parseInt(match[1], 10);
+            if (!isNaN(index)) {
+              replaceImages[index] = file.filename;
+            }
           }
-        } else if (fieldName === "images[]" && req.files[fieldName]) {
-          newImages.push(...req.files[fieldName].map((file) => file.filename));
+        } else if (fieldName === 'images[]') {
+          newImages.push(file.filename);
         }
       });
-      for (const [index, newImage] of Object.entries(replaceImages)) {
-        const idx = parseInt(index, 10);
+
+      // Apply replacements to product.images
+      for (const [indexStr, newImage] of Object.entries(replaceImages)) {
+        const idx = parseInt(indexStr, 10);
         if (idx >= 0 && idx < product.images.length) {
+          // Optional: Delete old image file
           const oldImage = product.images[idx];
+          try {
+            await fs.unlink(path.join('public/uploads', oldImage));
+            console.log(`Deleted old image: ${oldImage}`);
+          } catch (err) {
+            console.error(`Failed to delete old image ${oldImage}:`, err);
+          }
           product.images[idx] = newImage;
+          console.log(`Replaced image at index ${idx}: ${newImage}`);
         }
       }
 
+      console.log('After replacements, product.images:', product.images);
+      console.log('newImages to add:', newImages);
+
+      // Add new images only if under limit
       if (product.images.length + newImages.length <= 4) {
         product.images.push(...newImages);
       } else {
+        // Delete excess new images
         for (const newImage of newImages) {
           try {
-            await fs.unlink(path.join("public/uploads", newImage));
+            await fs.unlink(path.join('public/uploads', newImage));
           } catch (err) {
             console.error(`Failed to delete excess image ${newImage}:`, err);
           }
         }
         return res.status(400).send("Cannot add more than 4 images");
       }
+    } else {
+      console.log('No files uploaded');
     }
+
     await product.save();
+    console.log('Product saved with images:', product.images);
     res.redirect("/admin/product");
   } catch (err) {
-    console.error(err);
+    console.error('Error in postEditProduct:', err);
+    if (err instanceof multer.MulterError) {
+      return res.status(400).send(`Upload error: ${err.message}`);
+    }
     res.status(500).send("Error updating product");
   }
 };

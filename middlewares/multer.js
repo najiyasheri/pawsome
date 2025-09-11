@@ -26,7 +26,14 @@ const upload = multer({
     }
 });
 
-// Use any() to handle all dynamic file fields without pre-declaring
-const uploadProductImages = upload.any();
+
+const uploadProductImages = upload.fields([
+    { name: 'images[]', maxCount: 4 }, 
+    { name: 'replaceImages[0]', maxCount: 1 }, 
+    { name: 'replaceImages[1]', maxCount: 1 }, 
+    { name: 'replaceImages[2]', maxCount: 1 }, 
+    { name: 'replaceImages[3]', maxCount: 1 }  
+]);
+
 
 module.exports = uploadProductImages;

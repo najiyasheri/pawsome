@@ -322,7 +322,6 @@ const loadProductDetails = async (req, res) => {
     })
       .limit(4)
       .lean();
-    console.log("Related products found:", relatedProducts.length);
 
     // Add dummy rating/reviews for now (or fetch from DB if you store them separately)
     product.rating = 4.8;

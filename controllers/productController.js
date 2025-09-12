@@ -238,7 +238,7 @@ const userProducts = async (req, res) => {
   try {
     let search = req.query.search || "";
     let page = parseInt(req.query.page) || 1;
-    const limit = 5;
+    const limit = 2;
     let sort = req.query.sort || "";
     let category = req.query.category || "";
     let priceRange = req.query.priceRange || "";
@@ -275,7 +275,7 @@ const userProducts = async (req, res) => {
       if (sort === "name-az") sortOption = { name: 1 };
       if (sort === "name-za") sortOption = { name: -1 };
     }
-
+    console.log(filter)
     const products = await Product.find(filter)
       .collation({ locale: "en", strength: 1 })
       .sort(sortOption)

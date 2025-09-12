@@ -1,9 +1,13 @@
+const Product=require('../models/Product')
+
 const loadHomepage = async (req, res) => {
   try {
+     const products = await Product.find().limit(12)
     return res.render("user/home", {
       title: "HomePage",
       layout: "layouts/userLayout",
       user: req.session.user,
+      products
     });
   } catch (error) {
     console.log("home page not found");

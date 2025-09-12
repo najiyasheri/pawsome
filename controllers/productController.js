@@ -83,7 +83,7 @@ const addProduct = async (req, res) => {
     const product = new Product({
       name: req.body.name,
       description: req.body.description,
-      categoryId: req.body.category,
+      categoryId: new mongoose.Types.ObjectId(req.body.category),
       brand: req.body.brand,
       // Offer is optional
       // offers_id: req.body.offer || null,
@@ -179,7 +179,7 @@ const postEditProduct = async (req, res) => {
 
     product.name = name;
     product.description = description;
-    product.categoryId = category;
+    product.categoryId = new mongoose.Types.ObjectId(category);
     product.brand = brand;
     product.basePrice = parseFloat(price);
     product.discountPercentage = parseFloat(discount);
@@ -322,6 +322,7 @@ const loadProductDetails = async (req, res) => {
     })
       .limit(4)
       .lean();
+    console.log("Related products found:", relatedProducts.length);
 
     // Add dummy rating/reviews for now (or fetch from DB if you store them separately)
     product.rating = 4.8;

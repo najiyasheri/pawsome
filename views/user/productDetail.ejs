@@ -76,7 +76,7 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
       <% relatedProducts.forEach(rp => { %>
         <div class="border rounded-lg p-4 hover:shadow-md">
-          <img src="<%= rp.image %>" class="w-full h-40 object-contain mb-3">
+          <img src="/uploads/<%= rp.images[0] %>" class="w-full h-40 object-contain mb-3">
           <p class="font-semibold text-sm"><%= rp.name %></p>
           <p class="text-orange-600 font-bold">₹<%= rp.price %></p>
         </div>

@@ -1,37 +1,31 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drift-zoom/dist/drift-basic.min.css" />
+ <script src="https://cdn.jsdelivr.net/npm/drift-zoom/dist/Drift.min.js"></script>
+
 <!-- views/product-detail.ejs -->
 <div class="max-w-7xl mx-auto px-4 py-8">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-
-    <!-- Left: Product Images -->
 <!-- Left: Product Images -->
 <div>
-  <div class="relative border rounded-lg overflow-visible group cursor-zoom-in">
-    <img 
-      id="mainImage"
-      src="/uploads/<%= product.images[0]%>" 
-      alt="<%= product.name %>" 
-      class="w-full h-[400px] object-contain transition-transform duration-200 group-hover:scale-110"
-    >
-    <!-- Magnifier Lens (added here) -->
-    <div id="magnifierLens" class="absolute w-32 h-32 rounded-full bg-white opacity-80 border-2 border-white shadow-lg overflow-hidden pointer-events-none hidden -translate-x-1/2 -translate-y-1/2 z-10">
-      <img 
-        id="zoomedImage"
-        src="/uploads/<%= product.images[0] %>"
-        alt="<%= product.name %> zoomed"
-        class="absolute w-[800px] h-[800px] object-contain"
-      >
-    </div>
-  </div>
-  <div class="flex gap-3 mt-4">
+<div class="relative border rounded-lg overflow-visible group cursor-zoom-in">
+  <img 
+  id="mainImage"
+  src="/uploads/<%= product.images[0] %>" 
+  data-zoom="/uploads/<%= product.images[0] %>" 
+  alt="<%= product.name %>" 
+  class="w-full h-[400px] object-contain"
+/>
+
+</div>
+<div class="flex gap-3 mt-4">
     <% product.images.forEach(img => { %>
       <img 
-        src="/uploads/<%= img %>" 
+        src="/Uploads/<%= img %>" 
         class="w-20 h-20 border rounded-md cursor-pointer hover:ring-2 hover:ring-orange-500"
-        onclick="updateMainImage('/uploads/<%= img %>')"
+        onclick="updateMainImage('/Uploads/<%= img %>')"
         alt="<%= product.name %> thumbnail"
       >
     <% }) %>
-  </div>
+</div>
 </div>
 
     <!-- Right: Product Details -->
@@ -109,79 +103,57 @@
   </div>
 
   <script>
-  function updateMainImage(newSrc) {
+function updateMainImage(src) {
+    const mainImage = document.getElementById('mainImage');
+    mainImage.src = src;
+}
+  
+  let driftInstance = null;
+
+  function initDrift() {
     const mainImg = document.getElementById('mainImage');
-    const zoomedImg = document.getElementById('zoomedImage');
-    if (mainImg && zoomedImg) {
-      mainImg.src = newSrc;
-      zoomedImg.src = newSrc;
-      // Reset on swap
-      zoomedImg.style.left = '0px';
-      zoomedImg.style.top = '0px';
-    } else {
-      console.error('Images not found for update');
+    const container = document.querySelector('.group'); // wrapper div
+    if (!mainImg || !container) return;
+
+    // Destroy previous instance if exists
+    if (driftInstance) {
+      driftInstance.disable();
+      driftInstance = null;
     }
+
+    driftInstance = new Drift(mainImg, {
+      paneContainer: container,      // where to show zoom pane
+      inlinePane: false,             // false => separate pane (Amazon style)
+      hoverBoundingBox: true,
+      sourceAttribute: 'data-zoom',  // attribute for zoomed image
+      paneOffsetX: 16,               // gap between image and zoom window
+      zoomFactor: 2.5,               
+      paneHeight: 400
+    });
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    const container = document.querySelector('.group');
+  document.addEventListener("DOMContentLoaded", () => {
     const mainImg = document.getElementById('mainImage');
-    const lens = document.getElementById('magnifierLens');
-    const zoomedImg = document.getElementById('zoomedImage');
 
-    if (!container || !mainImg || !lens || !zoomedImg) {
-      console.error('Magnifier elements missing:', { container, mainImg, lens, zoomedImg });
-      return;
-    }
-
-    // Fix: Wait for image load before attaching events
-    function initMagnifier() {
-      if (mainImg.naturalWidth === 0) {
-        console.warn('Image not loaded yet, retrying...');
-        setTimeout(initMagnifier, 100); // Retry after 100ms
-        return;
-      }
-
-      const zoomFactor = 2;
-      const lensSize = 128; // w-32 = 128px
-
-      container.addEventListener('mousemove', function(e) {
-        const rect = container.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        // Clamp to bounds
-        const clampedX = Math.max(lensSize / 2, Math.min(x, rect.width - lensSize / 2));
-        const clampedY = Math.max(lensSize / 2, Math.min(y, rect.height - lensSize / 2));
-
-        // Fix: Account for Tailwind translate (center lens on mouse)
-        lens.style.left = `${clampedX}px`;
-        lens.style.top = `${clampedY}px`;
-        lens.classList.remove('hidden');
-
-        // Crop calculation (now safe after load)
-        const naturalWidth = mainImg.naturalWidth;
-        const naturalHeight = mainImg.naturalHeight;
-        const zoomedX = (x / rect.width) * naturalWidth * zoomFactor - (lensSize / 2);
-        const zoomedY = (y / rect.height) * naturalHeight * zoomFactor - (lensSize / 2);
-
-        zoomedImg.style.left = `-${Math.max(0, Math.min(zoomedX, naturalWidth * zoomFactor - lensSize))}px`;
-        zoomedImg.style.top = `-${Math.max(0, Math.min(zoomedY, naturalHeight * zoomFactor - lensSize))}px`;
-      });
-
-      container.addEventListener('mouseleave', function() {
-        lens.classList.add('hidden');
-      });
-    }
-
-    // Trigger on load (or if already loaded)
+    // Init on first load
     if (mainImg.complete) {
-      initMagnifier();
+      initDrift();
     } else {
-      mainImg.addEventListener('load', initMagnifier);
+      mainImg.addEventListener('load', initDrift, { once: true });
     }
 
-    // Re-init on thumbnail swap
-    mainImg.addEventListener('load', initMagnifier); // For new srcs
+    // Re-init when thumbnail is clicked (your updateMainImage)
+    window.updateMainImage = function(newSrc) {
+      mainImg.src = newSrc;
+      mainImg.dataset.zoom = newSrc;
+      // Drift will auto re-init on new load
+    };
+
+    // Re-init after new image loads
+    mainImg.addEventListener('load', () => {
+      mainImg.dataset.zoom = mainImg.src;
+      initDrift();
+    });
   });
 </script>
+

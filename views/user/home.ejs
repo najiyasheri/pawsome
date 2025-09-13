@@ -1,36 +1,24 @@
 <section class="w-full flex relative">
-  <img src="/img/1.png" alt="banner img" 
-       class="w-full h-auto object-fill  shadow-white" />
-<div class="absolute bg-white h-10 w-full bottom-0" style="background: linear-gradient(to top, white, transparent);"></div>
+  <img src="/img/1.png" alt="banner img" class="w-full h-auto object-fill  shadow-white" />
+  <div class="absolute bg-white h-10 w-full bottom-0" style="background: linear-gradient(to top, white, transparent);">
+  </div>
 </section>
 <section class="container mx-auto my-8 p-4 justify-items-center">
   <div class="grid grid-cols-2 md:grid-cols-4 gap-22 text-center">
 
-    <div>
-      <img src="/img/dog&cat food.png" alt="Food" 
-           class="w-32 h-32 object-cover shadow-md rounded-full mx-auto">
-      <p class="mt-2 font-medium">Food</p>
-    </div>
+    <% categories.forEach(category=> { %>
+      <div>
+        <a href="/products?category=<%= category._id %>">
+          <img src="/img/<%= category.name %>.png" alt="<%= category.name %>"
+            class="w-32 h-32 object-cover shadow-md rounded-full mx-auto">
+          <p class="mt-2 font-medium">
+            <%= category.name %>
+          </p>
+        </a>
+      </div>
+      <% }) %>
 
-    <div>
-      <img src="/img/dog & cat accesssories.png" alt="Accessories" 
-           class="w-32 h-32 object-cover shadow-md rounded-full mx-auto">
-      <p class="mt-2 font-medium">Accessories</p>
-    </div>
 
-    <div>
-      <img src="/img/dog&cat grooming.png" alt="Grooming" 
-           class="w-32 h-32 object-cover shadow-md rounded-full mx-auto">
-      <p class="mt-2 font-medium">Grooming</p>
-    </div>
-
-    <div>
-      <img src="/img/dog&cat clothes.png" alt="Clothes" 
-           class="w-32 h-32 object-cover shadow-md rounded-full mx-auto">
-      <p class="mt-2 font-medium">Clothes</p>
-    </div>
-
-  </div>
 </section>
 
 <section id="about_us" class="bg-white-50 justify-center">
@@ -39,16 +27,16 @@
       ABOUT US
     </h4>
     <p class="text-gray-600 text-center leading-relaxed">
-      At <span class="font-semibold text-yellow-500">Pawsome</span>, 
+      At <span class="font-semibold text-yellow-500">Pawsome</span>,
       we believe every paw deserves love, care, and a little bit of style!
-      From nutritious food to playful accessories, we’re here to make life better for your furry family. 
+      From nutritious food to playful accessories, we’re here to make life better for your furry family.
       Join our journey of wagging tails, happy meows, and unconditional love.
     </p>
   </div>
 </section>
 
-<section>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center md:mx-20 mb-10">
+<section class="mt-20">
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center md:mx-20 mb-10">
 
     <% products.forEach(product=> { %>
       <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm relative flex flex-col">
@@ -101,8 +89,6 @@
   </div>
 </section>
 
-
-
-
-
-
+<section class="w-full flex relative mt-20 mb-0">
+  <img src="/img/banner.jpg" alt="ad banner" class="w-full h-auto border border-gray-100">
+</section>

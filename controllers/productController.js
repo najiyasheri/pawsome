@@ -66,22 +66,24 @@ const addProduct = async (req, res) => {
     let images = [];
 
     if (req.files && req.files["images[]"]) {
-      images = req.files["images[]"].map((file) => '/uploads/'+file.filename);
+      images = req.files["images[]"].map((file) => file.filename);
     }
 
-    let replacedImages = [];
-    if (req.files) {
-      for (let i = 0; i < 4; i++) {
-        if (req.files[`replaceImages[${i}]`]) {
-          replacedImages[i] = req.files[`replaceImages[${i}]`][0].filename;
-        }
-      }
-    }
+    // let replacedImages = [];
+    // if (req.files) {
+    //   for (let i = 0; i < 4; i++) {
+    //     if (req.files[`replaceImages[${i}]`]) {
+    //       replacedImages[i] = req.files[`replaceImages[${i}]`][0].filename;
+    //     }
+    //   }
+    // }
+
+    // console.log(images)
 
     const product = new Product({
       name: req.body.name,
       description: req.body.description,
-      categoryId: req.body.category,
+      categoryId: new mongoose.Types.ObjectId(req.body.category),
       brand: req.body.brand,
       // Offer is optional
       // offers_id: req.body.offer || null,
@@ -94,11 +96,11 @@ const addProduct = async (req, res) => {
       discountPercentage: parseFloat(req.body.discount) || 0,
       images,
     });
-
+     console.log(req.body)
     const savedProduct = await product.save();
     const variants = req.body.size.map((size, index) => ({
       productId: savedProduct._id,
-      size: size.trim(), 
+      size: size.trim(),
       additionalPrice: parseFloat(req.body.additionalPrice[index]) || 0,
       stock: parseInt(req.body.stock[index]) || 0,
     }));
@@ -145,11 +147,7 @@ const loadEditProduct = async (req, res) => {
 
     const categories = await Category.find({ isBlocked: false });
 
-    console.log("product.categoryId:", product, product.categoryId);
-    console.log(
-      "categories:",
-      categories.map((c) => c._id)
-    );
+   
 
     res.render("admin/editProduct", {
       title: "Edit Product",
@@ -177,7 +175,7 @@ const postEditProduct = async (req, res) => {
 
     product.name = name;
     product.description = description;
-    product.categoryId = category;
+    product.categoryId = new mongoose.Types.ObjectId(category);
     product.brand = brand;
     product.basePrice = parseFloat(price);
     product.discountPercentage = parseFloat(discount);
@@ -188,6 +186,8 @@ const postEditProduct = async (req, res) => {
       ? [images]
       : [];
     product.images = existingImages;
+
+    console.log(req.files);
 
     if (req.files) {
       const replaceImages = {};
@@ -236,17 +236,15 @@ const userProducts = async (req, res) => {
   try {
     let search = req.query.search || "";
     let page = parseInt(req.query.page) || 1;
-    const limit = 5;
+    const limit = 2;
     let sort = req.query.sort || "";
     let category = req.query.category || "";
     let priceRange = req.query.priceRange || "";
 
-   
     const filter = {
       isBlocked: false,
     };
 
-    
     if (search) {
       filter.$or = [
         { name: { $regex: ".*" + search + ".*", $options: "i" } },
@@ -275,7 +273,7 @@ const userProducts = async (req, res) => {
       if (sort === "name-az") sortOption = { name: 1 };
       if (sort === "name-za") sortOption = { name: -1 };
     }
-
+    console.log(filter)
     const products = await Product.find(filter)
       .collation({ locale: "en", strength: 1 })
       .sort(sortOption)
@@ -307,29 +305,48 @@ const userProducts = async (req, res) => {
   }
 };
 
-
-const loadProductDetails=async(req,res)=>{
+const loadProductDetails = async (req, res) => {
   try {
-    const productId=req.params
-    const product=await Product.findById(productId).lean()
-    if(!product){
-      return res.status(404).send('page not found')
-    }
+    const productId = req.params.id;
+    const product = await Product.findById(productId).lean();
+    // if (!product) {
+    //   return res.status(404).send("page not found");
+    // }
 
-    const relatedProduct=await Product.find({
-      cate
+    const relatedProducts = await Product.find({
+      categoryId: product.categoryId,
+      _id: { $ne: productId },
+      isBlocked: false,
     })
+      .limit(4)
+      .lean();
 
+    // Add dummy rating/reviews for now (or fetch from DB if you store them separately)
+    product.rating = 4.8;
+    product.reviews = [
+      { user: "Alice", rating: 5, comment: "Excellent product!" },
+      { user: "John", rating: 4, comment: "Good but delivery was late." },
+    ];
 
-    res.render('user/productDetail',{
-      title: "product-details",
+    // Calculate discount price if you want
+    product.oldPrice = product.basePrice;
+    product.discount = product.discountPercentage;
+    product.price = Math.round(
+      product.basePrice * (1 - product.discountPercentage / 100)
+    );
+
+    res.render("user/productDetail", {
+      title: "Product Details",
       layout: "layouts/userLayout",
       user: req.session.user,
-    })
+      product,
+      relatedProducts,
+    });
   } catch (error) {
-      
+    console.error("Error loading product details:", error);
+    res.status(500).send("Error loading product details");
   }
-}
+};
 
 module.exports = {
   loadProductManagement,
@@ -339,5 +356,5 @@ module.exports = {
   postEditProduct,
   loadEditProduct,
   userProducts,
-  loadProductDetails
+  loadProductDetails,
 };

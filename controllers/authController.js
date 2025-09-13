@@ -39,6 +39,7 @@ const loadForgotpassword = async (req, res) => {
 
 const loadResetpassword = async (req, res) => {
   try {
+    const email=req.session.resetEmail
     return res.render("user/resetpassword", { layout: false });
   } catch (error) {
     console.log("forgotpassword page is loading");
@@ -194,7 +195,10 @@ const postForgotpassword = async (req, res) => {
     await otpRecord.save();
     await sendOtp(email, otp);
 
-    return res.render("user/resetpassword", { email });
+    req.session.resetEmail=email
+
+
+    return res.redirect("/resetpassword");
   } catch (error) {
     console.error("Resend otp failed");
     res.status(500).send("Internal server error");
@@ -203,7 +207,8 @@ const postForgotpassword = async (req, res) => {
 
 const postResetpassword = async (req, res) => {
   try {
-    const { email, otp, password } = req.body;
+    const {otp, password } = req.body;
+    const email = req.session.resetEmail
     const userRecord = await User.findOne({ email });
     if (!userRecord) {
       return res.render("user/resetpassword", {
@@ -241,7 +246,7 @@ const postResetpassword = async (req, res) => {
 };
 
 const resetPasswordResendOtp = async (req, res) => {
-  const { email } = req.body;
+  const  email  = req.session.resetEmail;
   try {
     await OTP.deleteMany({ email });
     const otp = generateOTP();

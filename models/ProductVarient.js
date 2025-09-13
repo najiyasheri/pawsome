@@ -8,7 +8,7 @@ const variantSchema = new mongoose.Schema(
       required: true
     },
     size: {
-      type: Number, 
+      type: String, 
       required: true
     },
     additionalPrice: {

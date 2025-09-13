@@ -96,7 +96,7 @@ const addProduct = async (req, res) => {
       discountPercentage: parseFloat(req.body.discount) || 0,
       images,
     });
-
+     console.log(req.body)
     const savedProduct = await product.save();
     const variants = req.body.size.map((size, index) => ({
       productId: savedProduct._id,
@@ -147,11 +147,7 @@ const loadEditProduct = async (req, res) => {
 
     const categories = await Category.find({ isBlocked: false });
 
-    console.log("product.categoryId:", product, product.categoryId);
-    console.log(
-      "categories:",
-      categories.map((c) => c._id)
-    );
+   
 
     res.render("admin/editProduct", {
       title: "Edit Product",
@@ -190,6 +186,8 @@ const postEditProduct = async (req, res) => {
       ? [images]
       : [];
     product.images = existingImages;
+
+    console.log(req.files);
 
     if (req.files) {
       const replaceImages = {};

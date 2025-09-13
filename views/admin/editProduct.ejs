@@ -270,19 +270,32 @@
       }
 
       // Validate Images
-      let imageCount = 0;
-      // Count existing images (not replaced)
-      document.querySelectorAll('.existing-image input[type="hidden"]').forEach(() => imageCount++);
-      // Count new or replaced images
-      document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(input => {
-        if (input.files && input.files.length > 0) {
-          imageCount++;
-        }
-      });
-      if (imageCount < 4) {
-        document.getElementById('imageError').textContent = 'Please upload at least 4 images';
-        isValid = false;
-      }
+      // Validate Images
+let imageCount = 0;
+
+// Count existing images (only those NOT in replaced/new slots, i.e., pure existing without file input)
+document.querySelectorAll('.existing-image input[type="hidden"]').forEach(hidden => {
+  if (hidden.closest('.existing-image').querySelector('input[type="file"]') === null) {
+    if (hidden.value.trim() !== '') {  // Ensure not cleared
+      imageCount++;
+    }
+  }
+});
+
+// Count new or replaced images (any slot with a file)
+document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(input => {
+  if (input.files && input.files.length > 0) {
+    imageCount++;
+    console.log('File found, total now:', imageCount);  // Optional: log only on increment for clarity
+  }
+});
+
+console.log('Final imageCount:', imageCount);  // Add this to debug final value
+
+if (imageCount < 4) {
+  document.getElementById('imageError').textContent = 'Please upload at least 4 images';
+  isValid = false;
+}
 
       // Validate Variants
       const variantRows = document.querySelectorAll('#variantsTable tr');

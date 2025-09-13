@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login Page</title>
   <link rel="stylesheet" href="/styles/auth.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+    integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body>
@@ -28,7 +31,14 @@
 
                 <input type="email" id="email" class="input-field" name="email" placeholder="Email" />
                 <div id="error1" class="error-message"></div>
-                <input type="password" id="password" class="input-field" name="password" placeholder="Password" />
+                <div class="password-container">
+
+                   <input type="password" id="password" class="input-field" name="password" placeholder="Password" />
+                    <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('password', this)"></i>
+
+                </div>
+               
+
                 <div id="error2" class="error-message"></div>
                 <div class="auth-actions">
                   <button type="submit" class="primary-btn">LOGIN</button>
@@ -99,7 +109,18 @@
       })
     })
 
-
+      function togglePassword(id, el) {
+    const input = document.getElementById(id);
+    if (input.type === "password") {
+      input.type = "text";
+      el.classList.remove("fa-eye");
+      el.classList.add("fa-eye-slash");
+    } else {
+      input.type = "password";
+      el.classList.remove("fa-eye-slash");
+      el.classList.add("fa-eye");
+    }
+  }
 
   </script>
 </body>

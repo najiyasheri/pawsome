@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create Account</title>
   <link rel="stylesheet" href="/styles/auth.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"
+    integrity="sha512-DxV+EoADOkOygM4IR9yXP8Sb2qwgidEmeqAEmDKIOfPRQZOWbXCzLC6vjbZyy0vPisbH2SyW27+ddLVCN+OMzQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body>
@@ -24,18 +27,25 @@
             <div id="error1" class="error-message"></div>
             <input type="email" placeholder="Email" class="input-field" id="email" name="email" />
             <div id="error2" class="error-message"></div>
-            <input type="password" placeholder="Password" class="input-field" id="password" name="password" />
+            <div class="password-container">
+              <input type="password" placeholder="Password" class="input-field" id="password" name="password" />
+              <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('password', this)"></i>
+            </div>
             <div id="error3" class="error-message"></div>
-            <input type="password" placeholder="Confirm password" class="input-field" id="confirm-password"
-              name="confirm-password" />
+
+            <div class="password-container">
+              <input type="password" placeholder="Confirm password" class="input-field" id="confirm-password"
+                name="confirm-password" />
+              <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('confirm-password', this)"></i>
+            </div>
             <div id="error4" class="error-message"></div>
             <button type="submit" class="primary-btn">SIGN UP</button>
       </form>
 
-    <a href="/auth/google">  <button class="google-btn">
-        <img src="/img/google.png" alt="Google" class="google-icon" />
-        Sign up with Google
-      </button></a>
+      <a href="/auth/google"> <button class="google-btn">
+          <img src="/img/google.png" alt="Google" class="google-icon" />
+          Sign up with Google
+        </button></a>
 
       <div class="auth-bottom">
         <p class="bottom-text">Already have an account?</p>
@@ -127,6 +137,21 @@
       }
     })
   })
+
+
+  function togglePassword(id, el) {
+  const input = document.getElementById(id);
+  if (input.type === "password") {
+    input.type = "text";
+    el.classList.remove("fa-eye");
+    el.classList.add("fa-eye-slash");
+  } else {
+    input.type = "password";
+    el.classList.remove("fa-eye-slash");
+    el.classList.add("fa-eye");
+  }
+}
+
 
 
 </script>

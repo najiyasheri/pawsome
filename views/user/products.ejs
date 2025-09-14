@@ -2,11 +2,10 @@
   <div class="flex items-center justify-between gap-6 overflow-x-auto whitespace-nowrap">
     <!-- Header with Search and Filters on Same Line -->
     <div class="bg-white p-4 mb-4 rounded-lg shadow-sm w-full">
-      <form id="filterForm" class="flex flex-wrap items-center justify-between gap-6">
+      <form id="filterForm" class="flex items-center justify-between gap-2 overflow-x-auto whitespace-nowrap w-full">
         <!-- Left Side - Search Bar -->
         <div class="flex items-center gap-2">
-          <input type="text" id="searchInput" name="search" placeholder="Search products..."
-            class="px-4 py-2 border border-gray-300 rounded-l-lg 
+          <input type="text" id="searchInput" name="search" placeholder="Search products..." class="px-4 py-2 border border-gray-300 rounded-l-lg 
                    focus:outline-none focus:ring-2 focus:ring-gray-50 focus:border-[#F9C22A] w-80" />
           <button type="submit" class="group px-6 py-2 bg-[#F9C22A] text-gray-700 rounded-r-lg 
                    hover:bg-[#d4a81f] focus:outline-none focus:border-2 focus:border-[#d4a81f]">
@@ -15,7 +14,7 @@
         </div>
 
         <!-- Right Side - Filters -->
-        <div class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-4">
           <!-- Sort -->
           <div class="flex items-center gap-2 whitespace-nowrap">
             <label class="text-sm font-medium text-gray-700 w-16 text-right">Sort by:</label>
@@ -35,9 +34,11 @@
             <select id="categoryFilter" name="category" class="px-3 py-2 border border-gray-300 rounded-lg 
                      focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] w-44">
               <option value="">All Categories</option>
-              <% categories.forEach(cat => { %>
-                <option value="<%= cat._id %>"><%= cat.name %></option>
-              <% }) %>
+              <% categories.forEach(cat=> { %>
+                <option value="<%= cat._id %>">
+                  <%= cat.name %>
+                </option>
+                <% }) %>
             </select>
           </div>
 
@@ -56,8 +57,8 @@
 
           <!-- Clear All Filters -->
           <div id="clearFiltersContainer" class="hidden">
-            <button type="button" id="clearFiltersBtn" 
-                    class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none">
+            <button type="button" id="clearFiltersBtn"
+              class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none">
               Clear All
             </button>
           </div>
@@ -67,7 +68,9 @@
   </div>
 
   <!-- Products container -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center md:mx-20 mb-10 products-container"></div>
+  <div
+    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center md:mx-20 mb-10 products-container">
+  </div>
 
   <!-- Pagination -->
   <div class="flex justify-center pagination">
@@ -115,11 +118,12 @@
 <script>
   async function fetchProducts(params = {}) {
     try {
-      // Clean up params to remove empty values
+      const { limit, ...userParams } = params;
       const cleanedParams = Object.fromEntries(
-        Object.entries(params).filter(([_, v]) => v !== '' && v !== undefined)
+        Object.entries(userParams).filter(([_, v]) => v !== '' && v !== undefined)
       );
-      
+      if (limit) cleanedParams.limit = limit;
+
       const query = new URLSearchParams(cleanedParams).toString();
       const res = await fetch(`/products?${query}`, {
         headers: { "Accept": "application/json" }
@@ -128,8 +132,7 @@
       if (!res.ok) throw new Error('Failed to fetch products');
 
       const data = await res.json();
-      
-      // Update products
+
       const container = document.querySelector(".products-container");
       container.innerHTML = "";
       const template = document.getElementById("product-template");
@@ -145,11 +148,9 @@
         container.appendChild(clone);
       });
 
-      // Update pagination
       const paginationList = document.querySelector(".pagination ul");
       paginationList.innerHTML = "";
 
-      // Previous button
       const prevLi = document.createElement("li");
       prevLi.innerHTML = `
         <button class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700
@@ -162,7 +163,6 @@
         </button>`;
       paginationList.appendChild(prevLi);
 
-      // Page numbers
       for (let i = 1; i <= data.totalPages; i++) {
         const li = document.createElement("li");
         li.innerHTML = `
@@ -174,7 +174,6 @@
         paginationList.appendChild(li);
       }
 
-      // Next button
       const nextLi = document.createElement("li");
       nextLi.innerHTML = `
         <button class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700
@@ -186,11 +185,12 @@
           </svg>
         </button>`;
       paginationList.appendChild(nextLi);
-
-      // Update clear filters button
       const clearContainer = document.querySelector("#clearFiltersContainer");
-      clearContainer.classList.toggle("hidden", !Object.values(cleanedParams).some(v => v));
-      
+      const hasRealFilters = Object.entries(cleanedParams).some(([k, v]) => {
+        return !["limit", "page"].includes(k) && v;
+      });
+      clearContainer.classList.toggle("hidden", !hasRealFilters);
+
     } catch (error) {
       console.error('Error fetching products:', error);
       const container = document.querySelector(".products-container");
@@ -204,12 +204,11 @@
       sort: document.getElementById("sortSelect").value,
       category: document.getElementById("categoryFilter").value,
       priceRange: document.getElementById("priceRangeFilter").value,
-      limit: 12, // Adjust as needed
+      limit: 12,
       ...extra
     };
   }
 
-  // Event listeners
   document.getElementById("filterForm").addEventListener("submit", e => {
     e.preventDefault();
     fetchProducts(getCurrentFilters());
@@ -233,10 +232,10 @@
       document.getElementById("sortSelect").value = "";
       document.getElementById("categoryFilter").value = "";
       document.getElementById("priceRangeFilter").value = "";
-      fetchProducts({});
+      fetchProducts({ limit: 12 });
     }
   });
 
-  // Initial fetch
-  fetchProducts(getCurrentFilters());
+  // Initial fetch without user filters
+  fetchProducts({ limit: 12 });
 </script>

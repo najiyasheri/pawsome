@@ -53,7 +53,7 @@
       <tbody>
         <% if (products && products.length> 0) { %>
           <% products.forEach((product, index)=> { %>
-            <tr class="bg-white border-b">
+            <tr class="bg-white border-b" id="product-<%= product._id %>">
               <td class="px-6 py-4">
                 <%= (currentPage - 1) * limit + index + 1 %>
               </td>
@@ -184,16 +184,57 @@
 
 <script>
   let targetUrl = null;
+  let targetRow = null
 
   document.querySelectorAll('.confirm-action').forEach(btn => {
     btn.addEventListener('click', () => {
       targetUrl = btn.getAttribute('data-url');
+      targetRow = btn.closest('tr')
       document.getElementById('popup-modal').classList.remove('hidden');
     });
   });
 
-  document.getElementById('confirm-yes').addEventListener('click', () => {
-    if (targetUrl) window.location.href = targetUrl;
+  document.getElementById('confirm-yes').addEventListener('click', async () => {
+    if (targetUrl){
+      try {
+        const res=await fetch(targetUrl,{
+          method: 'GET',
+          headers:{
+            'X-Requested-With': 'XMLHttpRequest' 
+          }
+        })
+        const data= await res.json()
+
+        if(!res.ok){
+          if(data.redirect){
+            window.location.href=data.redirect
+            return
+          }
+          alert(data.error || "Request failed")
+          return
+        }
+        if (data.success) {
+        const statusCell = targetRow.querySelector("td:nth-child(4)");
+        statusCell.innerText = data.isBlocked ? "Blocked" : "Active";
+
+        const actionBtn = targetRow.querySelector(".confirm-action");
+        actionBtn.textContent = data.isBlocked ? "Unblock" : "Block";
+        actionBtn.classList.toggle("hover:text-red-500", !data.isBlocked);
+        actionBtn.classList.toggle("hover:text-green-500", data.isBlocked);
+
+        actionBtn.setAttribute("data-url", `/admin/product/block?id=${data._id}`);
+      } else {
+        alert(data.error || "Failed to update user status");
+      }
+
+      } catch (error) {
+        console.error("Error:", error);
+      alert("An error occurred during the request");
+      }
+      finally {
+      document.getElementById('popup-modal').classList.add('hidden');
+    }
+    }
   });
 
   document.querySelectorAll('.edit-btn').forEach(btn => {

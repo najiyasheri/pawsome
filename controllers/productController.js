@@ -125,12 +125,10 @@ const toggleBlock = async (req, res) => {
     }
     product.isBlocked = !product.isBlocked;
     await product.save();
-    const search = req.query.search || "";
-    const page = req.query.page || 1;
-
-    return res.redirect(`/admin/product?page=${page}&search=${search}`);
+        res.json({ success: true, _id: product._id, isBlocked: product.isBlocked });
   } catch (error) {
     console.error("error for fetching product", error);
+      res.status(500).json({ success: false, error: 'Failed to toggle block status' });
   }
 };
 

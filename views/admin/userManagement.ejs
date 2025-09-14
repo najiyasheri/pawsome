@@ -218,7 +218,6 @@
         actionBtn.classList.toggle("hover:text-red-500", !data.isBlocked);
         actionBtn.classList.toggle("hover:text-green-500", data.isBlocked);
 
-        // Update URL dynamically
         actionBtn.setAttribute("data-url", `/admin/user/toggleBlock?id=${data._id}`);
       } else {
         alert(data.error || "Failed to update user status");

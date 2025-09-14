@@ -15,8 +15,8 @@ router.post("/login", isLogin, authController.postAdminLogin);
 router.get("/dashboard", adminAuth, homeController.loadAdminDashboard);
 router.get("/users", adminAuth, userController.loadUserManagement);
 router.get("/logout", authController.logoutAdmin);
-router.get("/userBlocked", adminAuth, userController.userBlocked);
-router.get("/userunBlocked", adminAuth, userController.userunBlocked);
+router.get("/user/toggleBlock", adminAuth, userController.toggleBlock);
+
 
 router
   .route("/category")

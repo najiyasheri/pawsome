@@ -30,28 +30,36 @@ const isLogin = (req, res, next) => {
 const adminAuth = async (req, res, next) => {
   try {
     if (!req.session.user) {
-      if (req.xhr || req.headers.accept.indexOf("json") > -1) {
-        return res
-          .status(401)
-          .json({ success: false, message: "Unauthorized" });
-      } else {
-        return res.redirect("/admin/login");
+      if (req.xhr) {
+        return res.status(401).json({ 
+          success: false, 
+          error: 'Not authenticated. Please log in.', 
+          redirect: '/admin/login' 
+        });
       }
+      return res.redirect("/admin/login");
     }
 
     if (!req.session.user.isAdmin) {
-      if (req.xhr || req.headers.accept.indexOf("json") > -1) {
-        return res
-          .status(401)
-          .json({ success: false, message: "Unauthorized" });
-      } else {
-        return res.redirect("/login");
+      if (req.xhr) {
+        return res.status(403).json({ 
+          success: false, 
+          error: 'Not authorized. You must be an admin.', 
+          redirect: '/login' 
+        });
       }
+      return res.redirect("/login");
     }
 
     next();
   } catch (err) {
     console.log("Error in adminAuth:", err);
+    if (req.xhr) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Internal server error' 
+      });
+    }
     res.status(500).send("Internal server error");
   }
 };

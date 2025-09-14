@@ -188,37 +188,47 @@
     });
   });
 
-  document.getElementById('confirm-yes').addEventListener('click', async () => {
-    if (targetUrl) {
-      try {
-        const res = await fetch(targetUrl, { method: "GET" });
-        const data = await res.json()
-
-        if (!data.success && data.message === "Unauthorized") {
-          alert("Session expired! Please login again.");
-          window.location.href = "/admin/login";
-        } else {
-          console.log("Success:", data);
+ document.getElementById('confirm-yes').addEventListener('click', async () => {
+  if (targetUrl) {
+    try {
+      const res = await fetch(targetUrl, { 
+        method: "GET",
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'  
         }
+      });
 
-        if (data.success) {
-          const statusCell = targetRow.querySelector("td:nth-child(4)");
-          statusCell.innerText = data.isBlocked ? "Blocked" : "Active";
+      const data = await res.json(); 
 
-          const actionBtn = targetRow.querySelector(".confirm-action");
-          actionBtn.textContent = data.isBlocked ? "Unblock" : "Block";
-          actionBtn.classList.toggle("hover:text-red-500", !data.isBlocked);
-          actionBtn.classList.toggle("hover:text-green-500", data.isBlocked);
-
-          // Update URL dynamically
-          actionBtn.setAttribute("data-url", `/admin/user/toggleBlock?id=${data._id}`);
-        } else {
-          alert("Failed to update user status");
+      if (!res.ok) {
+        if (data.redirect) {
+          window.location.href = data.redirect; 
+          return;
         }
+        alert(data.error || "Request failed");
+        return;
       }
-      catch (error) {
-        console.error("Error:", error);
+
+      if (data.success) {
+        const statusCell = targetRow.querySelector("td:nth-child(4)");
+        statusCell.innerText = data.isBlocked ? "Blocked" : "Active";
+
+        const actionBtn = targetRow.querySelector(".confirm-action");
+        actionBtn.textContent = data.isBlocked ? "Unblock" : "Block";
+        actionBtn.classList.toggle("hover:text-red-500", !data.isBlocked);
+        actionBtn.classList.toggle("hover:text-green-500", data.isBlocked);
+
+        // Update URL dynamically
+        actionBtn.setAttribute("data-url", `/admin/user/toggleBlock?id=${data._id}`);
+      } else {
+        alert(data.error || "Failed to update user status");
       }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred during the request");
+    } finally {
+      document.getElementById('popup-modal').classList.add('hidden');
     }
-  });
+  }
+});
 </script>

@@ -45,14 +45,16 @@ const loadUserManagement = async (req, res) => {
 const toggleBlock = async (req, res) => {
   try {
     let id = req.query.id;
-    const user = await User.findById(id)
-    user.isBlocked=!user.isBlocked
-    await user.save()
-    console.log('reachign here ' , user);
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' }); 
+    }
+    user.isBlocked = !user.isBlocked;
+    await user.save();
     res.json({ success: true, _id: user._id, isBlocked: user.isBlocked });
   } catch (error) {
-    console.log(error)
-    res.json({ success: false });
+    console.log(error);
+    res.status(500).json({ success: false, error: 'Failed to toggle block status' });
   }
 };
 

@@ -272,16 +272,29 @@ const userProducts = async (req, res) => {
       if (sort === "name-za") sortOption = { name: -1 };
     }
     console.log(filter)
+    
     const products = await Product.find(filter)
       .collation({ locale: "en", strength: 1 })
       .sort(sortOption)
       .limit(limit)
       .skip((page - 1) * limit)
       .exec();
-
+    console.log(products)
     const count = await Product.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
     const categories = await Category.find({ isBlocked: false });
+
+     if (req.xhr || req.headers.accept.includes("application/json")) {
+      return res.json({
+        products,
+        totalPages,
+        currentPage: page,
+        search,
+        sort,
+        category,
+        priceRange,
+      });
+    }
 
     return res.render("user/products", {
       title: "User-Product",

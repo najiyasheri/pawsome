@@ -368,7 +368,7 @@
       document.getElementById('edit-name').value = name;
       document.getElementById('edit-description').value = description;
 
-      // Update form action dynamically
+    
       document.getElementById('edit-form').action = `/admin/category/edit/${id}`;
     });
   });
@@ -382,23 +382,22 @@
     const nameError = document.getElementById("name-error");
     const descError = document.getElementById("desc-error");
 
-    // Reset error messages
+ 
     nameError.classList.add("hidden");
     descError.classList.add("hidden");
 
-    // Validate name (at least 3 chars, only letters/numbers)
+
     if (!nameInput.value.trim() || nameInput.value.trim().length < 3) {
       nameError.classList.remove("hidden");
       valid = false;
     }
 
-    // Validate description (at least 10 chars)
     if (!descInput.value.trim() || descInput.value.trim().length < 10) {
       descError.classList.remove("hidden");
       valid = false;
     }
 
-    if (!valid) e.preventDefault(); // stop form submit if invalid
+    if (!valid) e.preventDefault(); 
   });
 
   document.getElementById("edit-form").addEventListener("submit", function (e) {
@@ -410,23 +409,23 @@
     const nameError = document.getElementById("edit-name-error");
     const descError = document.getElementById("edit-desc-error");
 
-    // Reset errors
+
     nameError.classList.add("hidden");
     descError.classList.add("hidden");
 
-    // Validate name (at least 3 chars)
+
     if (!nameInput.value.trim() || nameInput.value.trim().length < 3) {
       nameError.classList.remove("hidden");
       valid = false;
     }
 
-    // Validate description (at least 10 chars)
+
     if (!descInput.value.trim() || descInput.value.trim().length < 10) {
       descError.classList.remove("hidden");
       valid = false;
     }
 
-    if (!valid) e.preventDefault(); // Stop form submit
+    if (!valid) e.preventDefault();
   });
 
 

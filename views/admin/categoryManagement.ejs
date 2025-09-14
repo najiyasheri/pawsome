@@ -9,7 +9,7 @@
       <% } %>
         <% //if (success) { %>
           <!-- <div class="mb-4 p-4 bg-  green-100 border-l-4 border-green-500 text-green-700 rounded-lg"> -->
-            <!-- <%=// success %> -->
+          <!-- <%=// success %> -->
           <!-- </div> -->
           <!-- <%// } %> -->
   </div>
@@ -66,7 +66,7 @@
         <% if(categories && categories.length) { %>
 
           <% categories.forEach((category,i)=> { %>
-            <tr class="bg-white border-b">
+            <tr class="bg-white border-b" id="category-<%= category._id %>">
               <td class="px-6 py-4">
                 <%=(currentPage-1)*limit+(i+1)%>
               </td>
@@ -284,33 +284,77 @@
           </div>
 
         </div>
-         <div class="p-4 flex justify-end gap-3">
-      <button type="button" data-modal-toggle="edit-modal"
-        class="px-5 py-2.5 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
-      <button type="submit" class="px-5 py-2.5 bg-blue-700 text-white rounded-lg hover:bg-blue-800">
-        Update Category
-      </button>
-    </div>
+        <div class="p-4 flex justify-end gap-3">
+          <button type="button" data-modal-toggle="edit-modal"
+            class="px-5 py-2.5 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 bg-blue-700 text-white rounded-lg hover:bg-blue-800">
+            Update Category
+          </button>
+        </div>
     </div>
 
-   
+
     </form>
   </div>
 </div>
 </div>
 
 
-<script>let targetUrl = null;
+<script>
+  let targetUrl = null;
+  let targetRow = null
+
 
   document.querySelectorAll('.confirm-action').forEach(btn => {
     btn.addEventListener('click', () => {
       targetUrl = btn.getAttribute('data-url');
+      targetRow = btn.closest('tr')
       document.getElementById('popup-modal').classList.remove('hidden');
     });
   });
 
-  document.getElementById('confirm-yes').addEventListener('click', () => {
-    if (targetUrl) window.location.href = targetUrl;
+  document.getElementById('confirm-yes').addEventListener('click', async () => {
+    if (targetUrl) {
+      try {
+        const res = await fetch(targetUrl, {
+          method: 'GET',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        const data = await res.json()
+
+        if (!res.ok) {
+          if (data.redirect) {
+            window.location.href = data.redirect
+            return
+          }
+          alert(data.error || "Request failed")
+          return
+        }
+        if (data.success) {
+          const statusCell = targetRow.querySelector("td:nth-child(4)");
+          statusCell.innerText = data.isBlocked ? "Blocked" : "Active";
+
+          const actionBtn = targetRow.querySelector(".confirm-action");
+          actionBtn.textContent = data.isBlocked ? "Unblock" : "Block";
+          actionBtn.classList.toggle("hover:text-red-500", !data.isBlocked);
+          actionBtn.classList.toggle("hover:text-green-500", data.isBlocked);
+
+          actionBtn.setAttribute("data-url", `/admin/categoryBlock?id=${data._id}`);
+        } else {
+          alert(data.error || "Failed to update user status");
+        }
+
+      } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred during the request");
+      }
+      finally {
+        document.getElementById('popup-modal').classList.add('hidden');
+
+      }
+    }
   });
 
 
@@ -358,32 +402,32 @@
   });
 
   document.getElementById("edit-form").addEventListener("submit", function (e) {
-  let valid = true;
+    let valid = true;
 
-  const nameInput = document.getElementById("edit-name");
-  const descInput = document.getElementById("edit-description");
+    const nameInput = document.getElementById("edit-name");
+    const descInput = document.getElementById("edit-description");
 
-  const nameError = document.getElementById("edit-name-error");
-  const descError = document.getElementById("edit-desc-error");
+    const nameError = document.getElementById("edit-name-error");
+    const descError = document.getElementById("edit-desc-error");
 
-  // Reset errors
-  nameError.classList.add("hidden");
-  descError.classList.add("hidden");
+    // Reset errors
+    nameError.classList.add("hidden");
+    descError.classList.add("hidden");
 
-  // Validate name (at least 3 chars)
-  if (!nameInput.value.trim() || nameInput.value.trim().length < 3) {
-    nameError.classList.remove("hidden");
-    valid = false;
-  }
+    // Validate name (at least 3 chars)
+    if (!nameInput.value.trim() || nameInput.value.trim().length < 3) {
+      nameError.classList.remove("hidden");
+      valid = false;
+    }
 
-  // Validate description (at least 10 chars)
-  if (!descInput.value.trim() || descInput.value.trim().length < 10) {
-    descError.classList.remove("hidden");
-    valid = false;
-  }
+    // Validate description (at least 10 chars)
+    if (!descInput.value.trim() || descInput.value.trim().length < 10) {
+      descError.classList.remove("hidden");
+      valid = false;
+    }
 
-  if (!valid) e.preventDefault(); // Stop form submit
-});
+    if (!valid) e.preventDefault(); // Stop form submit
+  });
 
 
 </script>

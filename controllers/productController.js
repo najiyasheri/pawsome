@@ -271,22 +271,30 @@ const userProducts = async (req, res) => {
       if (sort === "name-az") sortOption = { name: 1 };
       if (sort === "name-za") sortOption = { name: -1 };
     }
-    console.log(filter)
+
     
-    const products = await Product.find(filter)
+    const products = await Product.find(filter).lean()
       .collation({ locale: "en", strength: 1 })
       .sort(sortOption)
       .limit(limit)
       .skip((page - 1) * limit)
       .exec();
-    console.log(products)
     const count = await Product.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
     const categories = await Category.find({ isBlocked: false });
+     const updatedProducts = products.map((p) => {
+      return {
+        ...p,
+        oldPrice:parseFloat( p.basePrice),
+        discount: p.discountPercentage,
+        price: Math.round(p.basePrice * (1 - p.discountPercentage / 100)),
+      };
+    });
+
 
      if (req.xhr || req.headers.accept.includes("application/json")) {
       return res.json({
-        products,
+        products:updatedProducts,
         totalPages,
         currentPage: page,
         search,
@@ -300,7 +308,7 @@ const userProducts = async (req, res) => {
       title: "User-Product",
       layout: "layouts/userLayout",
       user: req.session.user,
-      products,
+      products:updatedProducts,
       categories,
       totalPages,
       limit,

@@ -104,7 +104,10 @@
           <span class="text-gray-800 text-xs font-semibold px-2 py-0.5 rounded-sm">5.0</span>
         </div>
         <div class="mt-auto flex items-center justify-between">
-          <span class="text-2xl font-bold text-gray-900 product-price">₹0</span>
+               <div>
+             <span class="text-xl font-bold text-black-600 product-price">₹0</span>
+            <span class="line-through text-gray-400 old-price">₹0</span>
+         </div>
           <a class="add-cart text-gray-900 bg-yellow-400 hover:bg-gray-600 focus:ring-4 
            focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
             Add to cart
@@ -133,6 +136,8 @@
 
       const data = await res.json();
 
+      console.log(data)
+
       const container = document.querySelector(".products-container");
       container.innerHTML = "";
       const template = document.getElementById("product-template");
@@ -143,7 +148,8 @@
         clone.querySelector(".product-img").src = `/Uploads/${p.images?.[0] || 'default.jpg'}`;
         clone.querySelector(".product-img").alt = p.name;
         clone.querySelector(".product-name").textContent = p.name;
-        clone.querySelector(".product-price").textContent = `₹${p.basePrice}`;
+        clone.querySelector(".product-price").textContent = `₹${p.price}`;
+        clone.querySelector(".old-price").textContent = `₹${p.oldPrice}`;
         clone.querySelector(".add-cart").href = `/cart/add/${p._id}`;
         container.appendChild(clone);
       });

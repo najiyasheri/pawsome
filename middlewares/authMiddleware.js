@@ -6,7 +6,7 @@ const userAuth = async (req, res, next) => {
     }
 
     const user = await User.findById(req.session.user._id);
-
+    console.log(user)
     if (user && !user.isBlocked) {
       return next();
     }

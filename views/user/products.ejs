@@ -211,6 +211,11 @@
 
   document.getElementById("filterForm").addEventListener("submit", e => {
     e.preventDefault();
+
+    const searchValue = document.getElementById("searchInput").value.trim();
+    if (searchValue.length === 0 && document.getElementById("searchInput").value !== "") {
+      return; 
+    }
     fetchProducts(getCurrentFilters());
   });
 

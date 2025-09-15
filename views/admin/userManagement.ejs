@@ -3,7 +3,7 @@
     <h1 class="font-bold mb-10 text-2xl">User Management</h1>
   </div>
   <div class="flex justify-between items-center mb-6">
-    <form class="flex w-full max-w-md" method="GET" action="/admin/users">
+    <form id="searchForm" class="flex w-full max-w-md" method="GET" action="/admin/users">
       <label for="default-search" class="sr-only">Search</label>
 
       <!-- Search Input -->
@@ -188,46 +188,57 @@
     });
   });
 
- document.getElementById('confirm-yes').addEventListener('click', async () => {
-  if (targetUrl) {
-    try {
-      const res = await fetch(targetUrl, { 
-        method: "GET",
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'  
-        }
-      });
+  document.getElementById('confirm-yes').addEventListener('click', async () => {
+    if (targetUrl) {
+      try {
+        const res = await fetch(targetUrl, {
+          method: "GET",
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        });
 
-      const data = await res.json(); 
+        const data = await res.json();
 
-      if (!res.ok) {
-        if (data.redirect) {
-          window.location.href = data.redirect; 
+        if (!res.ok) {
+          if (data.redirect) {
+            window.location.href = data.redirect;
+            return;
+          }
+          alert(data.error || "Request failed");
           return;
         }
-        alert(data.error || "Request failed");
-        return;
+
+        if (data.success) {
+          const statusCell = targetRow.querySelector("td:nth-child(4)");
+          statusCell.innerText = data.isBlocked ? "Blocked" : "Active";
+
+          const actionBtn = targetRow.querySelector(".confirm-action");
+          actionBtn.textContent = data.isBlocked ? "Unblock" : "Block";
+          actionBtn.classList.toggle("hover:text-red-500", !data.isBlocked);
+          actionBtn.classList.toggle("hover:text-green-500", data.isBlocked);
+
+          actionBtn.setAttribute("data-url", `/admin/user/toggleBlock?id=${data._id}`);
+        } else {
+          alert(data.error || "Failed to update user status");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred during the request");
+      } finally {
+        document.getElementById('popup-modal').classList.add('hidden');
       }
-
-      if (data.success) {
-        const statusCell = targetRow.querySelector("td:nth-child(4)");
-        statusCell.innerText = data.isBlocked ? "Blocked" : "Active";
-
-        const actionBtn = targetRow.querySelector(".confirm-action");
-        actionBtn.textContent = data.isBlocked ? "Unblock" : "Block";
-        actionBtn.classList.toggle("hover:text-red-500", !data.isBlocked);
-        actionBtn.classList.toggle("hover:text-green-500", data.isBlocked);
-
-        actionBtn.setAttribute("data-url", `/admin/user/toggleBlock?id=${data._id}`);
-      } else {
-        alert(data.error || "Failed to update user status");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred during the request");
-    } finally {
-      document.getElementById('popup-modal').classList.add('hidden');
     }
-  }
-});
+  });
+
+
+  document.getElementById("searchForm").addEventListener("submit", function (e) {
+    const input = document.getElementById("default-search");
+    input.value = input.value.trim();
+
+    if (input.value === "") {
+      e.preventDefault(); 
+    }
+  });
+
 </script>

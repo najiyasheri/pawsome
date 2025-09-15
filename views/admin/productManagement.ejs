@@ -3,7 +3,7 @@
     <h1 class="font-bold mb-10 text-2xl">Product Management</h1>
   </div>
   <div class="flex justify-between items-center mb-6">
-    <form class="flex w-full max-w-md" method="GET" action="/admin/product">
+    <form  id="searchForm" class="flex w-full max-w-md" method="GET" action="/admin/product">
       <label for="default-search" class="sr-only">Search</label>
 
       <!-- Search Input -->
@@ -250,4 +250,15 @@
       document.getElementById('edit-form').action = `/admin/product/edit/${id}`;
     });
   });
+
+  document.getElementById('searchForm').addEventListener('submit',function(e){
+    const input=document.getElementById('default-search')
+    input.value=input.value.trim()
+     if (input.value === "") {
+      e.preventDefault(); 
+    }
+
+  })
+
+
 </script>

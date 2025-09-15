@@ -1,9 +1,8 @@
 const Product=require('../models/Product')
-const category=require('../models/Category');
 const Category = require('../models/Category');
 const loadHomepage = async (req, res) => {
   try {
-     const products = await Product.find().limit(12)
+     const products = await Product.find({isBlocked:false}).limit(8)
      const categories= await Category.find({isBlocked:false})
     return res.render("user/home", {
       title: "HomePage",

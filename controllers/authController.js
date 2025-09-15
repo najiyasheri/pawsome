@@ -159,6 +159,14 @@ const postLogin = async (req, res) => {
         error: "Invalid email or password",
       });
     }
+    
+    if(userRecord.isBlocked){
+      console.log('user is blocked')
+      return res.render('user/login',{
+        email,
+        error:'user is blocked'
+      })
+    }
 
     const isMatch = await bcrypt.compare(password, userRecord.password);
     if (!isMatch) {
@@ -168,6 +176,8 @@ const postLogin = async (req, res) => {
         error: "Invalid email or password",
       });
     }
+
+
 
     req.session.user = userRecord;
 

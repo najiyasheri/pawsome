@@ -45,8 +45,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// app.set("layout", "layouts/adminLayout");
-// app.set("layout", "layouts/userLayout");
 
 app.use("/admin", adminRouter);
 app.use("/", userRouter);

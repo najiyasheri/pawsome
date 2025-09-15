@@ -473,14 +473,13 @@
                     dataTransfer.items.add(file);
                     currentInput.files = dataTransfer.files;
 
-                    // Increment uploaded images count if this is a new upload
-                    const oldImg = slot.querySelector('img'); // Check if image was already there
+                    const oldImg = slot.querySelector('img'); 
                     if (!oldImg) uploadedImages++;
 
                     cropModal.style.display = 'none';
                     cropper.destroy();
                     cropper = null;
-                    validateForm(); // Re-validate form
+                    validateForm(); 
                 }, 'image/jpeg');
             }
         });
@@ -502,7 +501,7 @@
 
                 if (oldImg) {
                     oldImg.remove();
-                    uploadedImages = Math.max(0, uploadedImages - 1); // Adjust count
+                    uploadedImages = Math.max(0, uploadedImages - 1); 
                 }
 
                 if (placeholderSvg && placeholderSpan) {

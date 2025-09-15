@@ -69,24 +69,12 @@ const addProduct = async (req, res) => {
       images = req.files["images[]"].map((file) => file.filename);
     }
 
-    // let replacedImages = [];
-    // if (req.files) {
-    //   for (let i = 0; i < 4; i++) {
-    //     if (req.files[`replaceImages[${i}]`]) {
-    //       replacedImages[i] = req.files[`replaceImages[${i}]`][0].filename;
-    //     }
-    //   }
-    // }
-
-    // console.log(images)
 
     const product = new Product({
       name: req.body.name,
       description: req.body.description,
       categoryId: new mongoose.Types.ObjectId(req.body.category),
       brand: req.body.brand,
-      // Offer is optional
-      // offers_id: req.body.offer || null,
       returnWithin: req.body.returnWithin
         ? new Date(
             Date.now() + parseInt(req.body.returnWithin) * 24 * 60 * 60 * 1000

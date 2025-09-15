@@ -320,9 +320,7 @@ const loadProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
     const product = await Product.findById(productId).lean();
-    // if (!product) {
-    //   return res.status(404).send("page not found");
-    // }
+
 
     const relatedProducts = await Product.find({
       categoryId: product.categoryId,
@@ -331,27 +329,33 @@ const loadProductDetails = async (req, res) => {
     })
       .limit(4)
       .lean();
-
-    // Add dummy rating/reviews for now (or fetch from DB if you store them separately)
     product.rating = 4.8;
     product.reviews = [
       { user: "Alice", rating: 5, comment: "Excellent product!" },
       { user: "John", rating: 4, comment: "Good but delivery was late." },
     ];
 
-    // Calculate discount price if you want
     product.oldPrice = product.basePrice;
     product.discount = product.discountPercentage;
     product.price = Math.round(
       product.basePrice * (1 - product.discountPercentage / 100)
     );
 
+     const updatedProducts = relatedProducts.map((p) => {
+      return {
+        ...p,
+        oldPrice: p.basePrice,
+        discount: p.discountPercentage,
+        price: Math.round(p.basePrice * (1 - p.discountPercentage / 100)),
+      };
+    });
+
     res.render("user/productDetail", {
       title: "Product Details",
       layout: "layouts/userLayout",
       user: req.session.user,
       product,
-      relatedProducts,
+      relatedProducts:updatedProducts,
     });
   } catch (error) {
     console.error("Error loading product details:", error);

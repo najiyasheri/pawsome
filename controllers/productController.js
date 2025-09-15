@@ -69,24 +69,12 @@ const addProduct = async (req, res) => {
       images = req.files["images[]"].map((file) => file.filename);
     }
 
-    // let replacedImages = [];
-    // if (req.files) {
-    //   for (let i = 0; i < 4; i++) {
-    //     if (req.files[`replaceImages[${i}]`]) {
-    //       replacedImages[i] = req.files[`replaceImages[${i}]`][0].filename;
-    //     }
-    //   }
-    // }
-
-    // console.log(images)
 
     const product = new Product({
       name: req.body.name,
       description: req.body.description,
       categoryId: new mongoose.Types.ObjectId(req.body.category),
       brand: req.body.brand,
-      // Offer is optional
-      // offers_id: req.body.offer || null,
       returnWithin: req.body.returnWithin
         ? new Date(
             Date.now() + parseInt(req.body.returnWithin) * 24 * 60 * 60 * 1000
@@ -125,12 +113,10 @@ const toggleBlock = async (req, res) => {
     }
     product.isBlocked = !product.isBlocked;
     await product.save();
-    const search = req.query.search || "";
-    const page = req.query.page || 1;
-
-    return res.redirect(`/admin/product?page=${page}&search=${search}`);
+        res.json({ success: true, _id: product._id, isBlocked: product.isBlocked });
   } catch (error) {
     console.error("error for fetching product", error);
+      res.status(500).json({ success: false, error: 'Failed to toggle block status' });
   }
 };
 
@@ -273,23 +259,44 @@ const userProducts = async (req, res) => {
       if (sort === "name-az") sortOption = { name: 1 };
       if (sort === "name-za") sortOption = { name: -1 };
     }
-    console.log(filter)
-    const products = await Product.find(filter)
+
+    
+    const products = await Product.find(filter).lean()
       .collation({ locale: "en", strength: 1 })
       .sort(sortOption)
       .limit(limit)
       .skip((page - 1) * limit)
       .exec();
-
     const count = await Product.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
     const categories = await Category.find({ isBlocked: false });
+     const updatedProducts = products.map((p) => {
+      return {
+        ...p,
+        oldPrice:parseFloat( p.basePrice),
+        discount: p.discountPercentage,
+        price: Math.round(p.basePrice * (1 - p.discountPercentage / 100)),
+      };
+    });
+
+
+     if (req.xhr || req.headers.accept.includes("application/json")) {
+      return res.json({
+        products:updatedProducts,
+        totalPages,
+        currentPage: page,
+        search,
+        sort,
+        category,
+        priceRange,
+      });
+    }
 
     return res.render("user/products", {
       title: "User-Product",
       layout: "layouts/userLayout",
       user: req.session.user,
-      products,
+      products:updatedProducts,
       categories,
       totalPages,
       limit,
@@ -309,9 +316,7 @@ const loadProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
     const product = await Product.findById(productId).lean();
-    // if (!product) {
-    //   return res.status(404).send("page not found");
-    // }
+
 
     const relatedProducts = await Product.find({
       categoryId: product.categoryId,
@@ -320,27 +325,33 @@ const loadProductDetails = async (req, res) => {
     })
       .limit(4)
       .lean();
-
-    // Add dummy rating/reviews for now (or fetch from DB if you store them separately)
     product.rating = 4.8;
     product.reviews = [
       { user: "Alice", rating: 5, comment: "Excellent product!" },
       { user: "John", rating: 4, comment: "Good but delivery was late." },
     ];
 
-    // Calculate discount price if you want
     product.oldPrice = product.basePrice;
     product.discount = product.discountPercentage;
     product.price = Math.round(
       product.basePrice * (1 - product.discountPercentage / 100)
     );
 
+     const updatedProducts = relatedProducts.map((p) => {
+      return {
+        ...p,
+        oldPrice: p.basePrice,
+        discount: p.discountPercentage,
+        price: Math.round(p.basePrice * (1 - p.discountPercentage / 100)),
+      };
+    });
+
     res.render("user/productDetail", {
       title: "Product Details",
       layout: "layouts/userLayout",
       user: req.session.user,
       product,
-      relatedProducts,
+      relatedProducts:updatedProducts,
     });
   } catch (error) {
     console.error("Error loading product details:", error);

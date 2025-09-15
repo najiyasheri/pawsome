@@ -85,22 +85,10 @@ const toggleBlock = async (req, res) => {
     }
     category.isBlocked = !category.isBlocked;
     await category.save();
-    return res.redirect(
-      `/admin/category?page=${req.query.page || 1}&search=${
-        req.query.search || ""
-      }&success=${
-        category.isBlocked
-          ? "Category blocked successfully"
-          : "Category unblocked successfully"
-      }`
-    );
+ res.json({ success: true, _id: category._id, isBlocked: category.isBlocked });
   } catch (error) {
     console.error("Error toggling category block:", error);
-    return res.redirect(
-      `/admin/category?error=${encodeURIComponent(
-        "Failed to toggle category status"
-      )}`
-    );
+  res.status(500).json({ success: false, error: 'Failed to toggle block status' });
   }
 };
 

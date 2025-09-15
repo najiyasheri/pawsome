@@ -276,6 +276,8 @@
         let currentInput = null;
 
         // ---------------- VALIDATION ----------------
+
+        const nameRegex = /^(?=.*[A-Za-z])[A-Za-z0-9]+(?: [A-Za-z0-9]+)*$/;
         function validateForm() {
             let isValid = true;
             document.querySelectorAll('.error').forEach(error => error.textContent = '');
@@ -286,11 +288,20 @@
                 document.getElementById('productNameError').textContent = 'Product name is required';
                 productName.classList.add('border-error');
                 isValid = false;
+            } else if (!nameRegex.test(productName.value)) {
+                document.getElementById('productNameError').textContent = 'Only letters/numbers allowed';
+                productName.classList.add('border-error');
+                isValid = false;
             }
 
             const productDescription = document.getElementById('productDescription');
             if (!productDescription.value.trim()) {
+
                 document.getElementById('productDescriptionError').textContent = 'Product description is required';
+                productDescription.classList.add('border-error');
+                isValid = false;
+            } else if (!nameRegex.test(productDescription.value)) {
+                document.getElementById('productDescriptionError').textContent = 'Only letters/numbers allowed';
                 productDescription.classList.add('border-error');
                 isValid = false;
             }
@@ -305,6 +316,10 @@
             const brand = document.getElementById('brand');
             if (!brand.value.trim()) {
                 document.getElementById('brandError').textContent = 'Brand is required';
+                brand.classList.add('border-error');
+                isValid = false;
+            } else if (!nameRegex.test(brand.value)) {
+                document.getElementById('brandError').textContent = 'Only letters/numbers allowed';
                 brand.classList.add('border-error');
                 isValid = false;
             }
@@ -356,6 +371,11 @@
 
                 if (!size.value.trim()) {
                     sizeError.textContent = 'Size required';
+                    size.classList.add('border-error');
+                    isValid = false;
+                }
+                else if (!nameRegex.test(size.value)) {
+                    sizeError.textContent = 'Only letters/numbers allowed'
                     size.classList.add('border-error');
                     isValid = false;
                 }
@@ -453,14 +473,13 @@
                     dataTransfer.items.add(file);
                     currentInput.files = dataTransfer.files;
 
-                    // Increment uploaded images count if this is a new upload
-                    const oldImg = slot.querySelector('img'); // Check if image was already there
+                    const oldImg = slot.querySelector('img'); 
                     if (!oldImg) uploadedImages++;
 
                     cropModal.style.display = 'none';
                     cropper.destroy();
                     cropper = null;
-                    validateForm(); // Re-validate form
+                    validateForm(); 
                 }, 'image/jpeg');
             }
         });
@@ -482,7 +501,7 @@
 
                 if (oldImg) {
                     oldImg.remove();
-                    uploadedImages = Math.max(0, uploadedImages - 1); // Adjust count
+                    uploadedImages = Math.max(0, uploadedImages - 1); 
                 }
 
                 if (placeholderSvg && placeholderSpan) {

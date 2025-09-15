@@ -22,7 +22,7 @@ const sendOtp = async (email, otp) => {
 
 
     const mailOptions = {
-      from: `"Pawsome" <${process.env.EMAIL_USER}>`, // Sender name + email
+      from: `"Pawsome" <${process.env.EMAIL_USER}>`, 
       to: email,
       subject: "Your OTP Code",
       html: `

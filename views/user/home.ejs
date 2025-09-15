@@ -77,7 +77,11 @@
 
           <!-- Price & Add to Cart -->
           <div class="mt-auto flex items-center justify-between">
-            <span class="text-2xl font-bold text-gray-900">₹<%= product.basePrice %></span>
+         <div>
+             <span class="text-xl font-bold text-black-600">₹<%= product.price %></span>
+            <span class="line-through text-gray-400">₹<%= product.oldPrice %></span>
+         </div>
+            
             <a href="/cart/add/<%= product._id %>" class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none 
                   focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
               Add to cart

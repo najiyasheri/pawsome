@@ -32,7 +32,7 @@ const productSchema = new mongoose.Schema(
       type: Date,
       default: () => {
         let date = new Date();
-        date.setDate(date.getDate() + 7); 
+        date.setDate(date.getDate() + 7);
         return date;
       },
     },
@@ -42,15 +42,18 @@ const productSchema = new mongoose.Schema(
     },
     basePrice: {
       type: mongoose.Types.Decimal128,
+      get: (v) => parseFloat(v.toString()),
       required: true,
     },
     discountPercentage: {
       type: mongoose.Types.Decimal128,
+      get: (v) => parseFloat(v.toString()),
       default: 0,
     },
   },
+   { toJSON: { getters: true }, toObject: { getters: true } },
   {
-    timestamps:true
+    timestamps: true,
   }
 );
 

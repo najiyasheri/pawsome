@@ -104,10 +104,10 @@
           <span class="text-gray-800 text-xs font-semibold px-2 py-0.5 rounded-sm">5.0</span>
         </div>
         <div class="mt-auto flex items-center justify-between">
-               <div>
-             <span class="text-xl font-bold text-black-600 product-price">₹0</span>
+          <div>
+            <span class="text-xl font-bold text-black-600 product-price">₹0</span>
             <span class="line-through text-gray-400 old-price">₹0</span>
-         </div>
+          </div>
           <a class="add-cart text-gray-900 bg-yellow-400 hover:bg-gray-600 focus:ring-4 
            focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
             Add to cart
@@ -128,6 +128,8 @@
       if (limit) cleanedParams.limit = limit;
 
       const query = new URLSearchParams(cleanedParams).toString();
+      console.log(query);
+
       const res = await fetch(`/products?${query}`, {
         headers: { "Accept": "application/json" }
       });
@@ -135,9 +137,6 @@
       if (!res.ok) throw new Error('Failed to fetch products');
 
       const data = await res.json();
-
-      console.log(data)
-
       const container = document.querySelector(".products-container");
       container.innerHTML = "";
       const template = document.getElementById("product-template");
@@ -205,11 +204,13 @@
   }
 
   function getCurrentFilters(extra = {}) {
+    const urlParams = new URLSearchParams(window.location.search);
+    console.log(urlParams);
     return {
-      search: document.getElementById("searchInput").value.trim(),
-      sort: document.getElementById("sortSelect").value,
-      category: document.getElementById("categoryFilter").value,
-      priceRange: document.getElementById("priceRangeFilter").value,
+      search: document.getElementById("searchInput").value.trim() || urlParams.get("search") || "",
+      sort: document.getElementById("sortSelect").value || urlParams.get("sort") || "",
+      category: document.getElementById("categoryFilter").value || urlParams.get("category") || "",
+      priceRange: document.getElementById("priceRangeFilter").value || urlParams.get("priceRange") || "",
       limit: 12,
       ...extra
     };
@@ -220,7 +221,7 @@
 
     const searchValue = document.getElementById("searchInput").value.trim();
     if (searchValue.length === 0 && document.getElementById("searchInput").value !== "") {
-      return; 
+      return;
     }
     fetchProducts(getCurrentFilters());
   });
@@ -237,16 +238,25 @@
     fetchProducts(getCurrentFilters());
   });
 
-  document.getElementById("clearFiltersContainer").addEventListener("click", e => {
-    if (e.target.id === "clearFiltersBtn") {
-      document.getElementById("searchInput").value = "";
-      document.getElementById("sortSelect").value = "";
-      document.getElementById("categoryFilter").value = "";
-      document.getElementById("priceRangeFilter").value = "";
-      fetchProducts({ limit: 12 });
-    }
-  });
+ document.getElementById("clearFiltersContainer").addEventListener("click", e => {
+  if (e.target.id === "clearFiltersBtn") {
+    // Reset form values
+    document.getElementById("searchInput").value = "";
+    document.getElementById("sortSelect").value = "";
+    document.getElementById("categoryFilter").value = "";
+    document.getElementById("priceRangeFilter").value = "";
+
+    // ✅ Clear URL params
+    const baseUrl = window.location.pathname; // e.g. "/products"
+    window.history.replaceState({}, "", baseUrl);
+
+    // Fetch again with only limit
+    fetchProducts({ limit: 12 });
+  }
+});
+
+   
 
   // Initial fetch without user filters
-  fetchProducts({ limit: 12 });
+  fetchProducts(getCurrentFilters());
 </script>

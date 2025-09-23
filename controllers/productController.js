@@ -222,11 +222,10 @@ const userProducts = async (req, res) => {
   try {
     let search = req.query.search || "";
     let page = parseInt(req.query.page) || 1;
-    const limit = 2;
+    const limit = 4;
     let sort = req.query.sort || "";
     let category = req.query.category || "";
     let priceRange = req.query.priceRange || "";
-
     const filter = {
       isBlocked: false,
     };
@@ -267,6 +266,9 @@ const userProducts = async (req, res) => {
       .limit(limit)
       .skip((page - 1) * limit)
       .exec();
+
+    console.log(products)
+      
     const count = await Product.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
     const categories = await Category.find({ isBlocked: false });
@@ -316,8 +318,7 @@ const loadProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
     const product = await Product.findById(productId).lean();
-
-
+   
     const relatedProducts = await Product.find({
       categoryId: product.categoryId,
       _id: { $ne: productId },
@@ -354,7 +355,7 @@ const loadProductDetails = async (req, res) => {
       relatedProducts:updatedProducts,
     });
   } catch (error) {
-    console.error("Error loading product details:", error);
+   console.error("Error loading product details:", error.message, error.stack)
     res.status(500).send("Error loading product details");
   }
 };

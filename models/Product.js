@@ -50,11 +50,11 @@ const productSchema = new mongoose.Schema(
       get: (v) => parseFloat(v.toString()),
       default: 0,
     },
+  }, {
+    timestamps: true,
   },
    { toJSON: { getters: true }, toObject: { getters: true } },
-  {
-    timestamps: true,
-  }
+ 
 );
 
 module.exports = mongoose.model("Product", productSchema);

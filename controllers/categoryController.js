@@ -3,7 +3,7 @@ const Category = require("../models/Category");
 const addCategory = async (req, res) => {
   try {
     const { name, description } = req.body;
-    console.log(name, description);
+    
     const isExists = await Category.findOne({
       name: { $regex: new RegExp(`^${name}$`, "i") },
     });

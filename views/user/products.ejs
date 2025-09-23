@@ -240,23 +240,17 @@
 
  document.getElementById("clearFiltersContainer").addEventListener("click", e => {
   if (e.target.id === "clearFiltersBtn") {
-    // Reset form values
+   
     document.getElementById("searchInput").value = "";
     document.getElementById("sortSelect").value = "";
     document.getElementById("categoryFilter").value = "";
     document.getElementById("priceRangeFilter").value = "";
 
-    // ✅ Clear URL params
-    const baseUrl = window.location.pathname; // e.g. "/products"
+    const baseUrl = window.location.pathname; 
     window.history.replaceState({}, "", baseUrl);
-
-    // Fetch again with only limit
     fetchProducts({ limit: 12 });
   }
 });
 
-   
-
-  // Initial fetch without user filters
   fetchProducts(getCurrentFilters());
 </script>

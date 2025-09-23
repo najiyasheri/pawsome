@@ -222,7 +222,7 @@ const userProducts = async (req, res) => {
   try {
     let search = req.query.search || "";
     let page = parseInt(req.query.page) || 1;
-    const limit = 4;
+    const limit = 2;
     let sort = req.query.sort || "";
     let category = req.query.category || "";
     let priceRange = req.query.priceRange || "";
@@ -318,7 +318,8 @@ const loadProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
     const product = await Product.findById(productId).lean();
-   
+
+
     const relatedProducts = await Product.find({
       categoryId: product.categoryId,
       _id: { $ne: productId },
@@ -355,7 +356,7 @@ const loadProductDetails = async (req, res) => {
       relatedProducts:updatedProducts,
     });
   } catch (error) {
-   console.error("Error loading product details:", error.message, error.stack)
+    console.error("Error loading product details:", error);
     res.status(500).send("Error loading product details");
   }
 };

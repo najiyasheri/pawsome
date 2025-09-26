@@ -17,6 +17,14 @@ const loadUserManagement = async (req, res) => {
       ],
     };
 
+    if(req.query.blocked==='true'){
+      filter.isBlocked=true
+    }
+    if(req.query.active==='true'){
+      filter.isBlocked=false
+    }
+   
+    console.log(filter)
     const userData = await User.find(filter)
       .sort({ createdAt: -1 })
       .limit(limit * 1)
@@ -57,6 +65,7 @@ const toggleBlock = async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to toggle block status' });
   }
 };
+
 
 
 

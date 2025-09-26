@@ -1,9 +1,9 @@
 <section>
   <div class="flex items-center justify-between gap-6 overflow-x-auto whitespace-nowrap">
-    <!-- Header with Search and Filters on Same Line -->
+
     <div class="bg-white p-4 mb-4 rounded-lg shadow-sm w-full">
       <form id="filterForm" class="flex items-center justify-between gap-2 overflow-x-auto whitespace-nowrap w-full">
-        <!-- Left Side - Search Bar -->
+      
         <div class="flex items-center gap-2">
           <input type="text" id="searchInput" name="search" placeholder="Search products..." class="px-4 py-2 border border-gray-300 rounded-l-lg 
                    focus:outline-none focus:ring-2 focus:ring-gray-50 focus:border-[#F9C22A] w-80" />
@@ -13,7 +13,7 @@
           </button>
         </div>
 
-        <!-- Right Side - Filters -->
+       
         <div class="flex items-center gap-4">
           <!-- Sort -->
           <div class="flex items-center gap-2 whitespace-nowrap">
@@ -128,7 +128,6 @@
       if (limit) cleanedParams.limit = limit;
 
       const query = new URLSearchParams(cleanedParams).toString();
-      console.log(query);
 
       const res = await fetch(`/products?${query}`, {
         headers: { "Accept": "application/json" }

@@ -24,11 +24,6 @@
         Search
       </button>
 
-
-
-
-
-
       <% if (search && search.trim() !=="" ) { %>
         <a href="/admin/users" class="ml-2 px-5 py-2.5 bg-red-400 text-white rounded-lg hover:bg-gray-500">
           Clear
@@ -36,6 +31,14 @@
         <% } %>
     </form>
 
+     <a href="/admin/users"
+      class="link ml-2 px-2 py-2 text-gray-700  rounded-lg hover:bg-gray-100">All Users</a>
+    <a href="/admin/users?blocked=true"
+      class="link ml-2 px-2 py-2 text-gray-700 rounded-lg hover:bg-gray-100">Blocked Users</a>
+    <a href="/admin/users?active=true"
+      class="link ml-2 px-2 py-2 text-gray-700  rounded-lg hover:bg-gray-100">Active Users</a>
+     
+      <div id="userList"></div>
     <!-- <button type="button"
       class="ml-4 flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-300 focus:ring-4 focus:outline-none focus:ring-yellow-300">
       <i class="fa-solid fa-filter"></i>
@@ -237,8 +240,24 @@
     input.value = input.value.trim();
 
     if (input.value === "") {
-      e.preventDefault(); 
+      e.preventDefault();
     }
   });
+
+
+  document.querySelectorAll('.link').forEach(link=>{
+    link.addEventListener('click',async function(e) {
+      e.preventDefault()
+      const url=this.getAttribute('href')
+
+      try {
+        const res = await fetch(url,{method:'GET'})
+        const html = await res.text()
+        document.querySelector('tbody').innerHTML=new DOMParser().parseFromString(html,'text/html').querySelector('tbody').innerHTML
+      } catch (error) {
+         console.error("Error fetching users:", err);
+      }
+    })
+  })
 
 </script>

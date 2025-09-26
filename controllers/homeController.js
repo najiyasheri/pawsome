@@ -3,7 +3,30 @@ const Category = require("../models/Category");
 const loadHomepage = async (req, res) => {
   try {
     const products = await Product.find({ isBlocked: false }).lean().limit(8);
-    const categories = await Category.find({ isBlocked: false });
+    const count = await Category.aggregate([
+      {
+        $match: { isBlocked: false },
+      },
+      {
+        $lookup: {
+          from: "products",
+          foreignField: "categoryId",
+          localField: "_id",
+          as: "products",
+        },
+      },
+      {
+        $addFields: {
+          productCount: { $size: ["$products"] },
+        },
+      },
+      {
+        $project: { products: 0 },
+      },
+    ]);
+
+    console.log(count);
+
     const updatedProducts = products.map((p) => {
       return {
         ...p,
@@ -17,10 +40,10 @@ const loadHomepage = async (req, res) => {
       layout: "layouts/userLayout",
       user: req.session.user,
       products: updatedProducts,
-      categories,
+      categories: count,
     });
   } catch (error) {
-    console.log("home page not found");
+    console.error("home page error", error);
     res.status(500).send("server error while loading Home page");
   }
 };

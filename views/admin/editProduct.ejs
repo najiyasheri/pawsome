@@ -269,28 +269,26 @@
         isValid = false;
       }
 
-      // Validate Images
-      // Validate Images
 let imageCount = 0;
 
-// Count existing images (only those NOT in replaced/new slots, i.e., pure existing without file input)
+
 document.querySelectorAll('.existing-image input[type="hidden"]').forEach(hidden => {
   if (hidden.closest('.existing-image').querySelector('input[type="file"]') === null) {
-    if (hidden.value.trim() !== '') {  // Ensure not cleared
+    if (hidden.value.trim() !== '') { 
       imageCount++;
     }
   }
 });
 
-// Count new or replaced images (any slot with a file)
+// Count new or replaced images
 document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(input => {
   if (input.files && input.files.length > 0) {
     imageCount++;
-    console.log('File found, total now:', imageCount);  // Optional: log only on increment for clarity
+    console.log('File found, total now:', imageCount); 
   }
 });
 
-console.log('Final imageCount:', imageCount);  // Add this to debug final value
+console.log('Final imageCount:', imageCount); 
 
 if (imageCount < 4) {
   document.getElementById('imageError').textContent = 'Please upload at least 4 images';
@@ -329,14 +327,14 @@ if (imageCount < 4) {
       return isValid;
     }
 
-    // Form submission handler
+  
     form.addEventListener('submit', function (e) {
       if (!validateForm()) {
         e.preventDefault();
       }
     });
 
-    // Image upload and cropping functionality
+
     function handleImageUpload(slot, input) {
       input.addEventListener('change', function (e) {
         const file = e.target.files[0];
@@ -360,7 +358,7 @@ if (imageCount < 4) {
       slot.addEventListener('click', () => input.click());
     }
 
-    // Initialize image slots
+ 
     imageSlots.forEach(slot => {
       const input = slot.querySelector('input[type="file"]');
       if (input) {
@@ -368,32 +366,30 @@ if (imageCount < 4) {
       }
     });
 
-    // Replace existing image functionality with cropping
-    // Replace existing image functionality with cropping
+    
     const replaceImageButtons = document.querySelectorAll('.replace-image');
     replaceImageButtons.forEach(button => {
       button.addEventListener('click', function () {
         const imageContainer = button.closest('.existing-image');
         if (imageContainer) {
-          // Get the index from the existing hidden input
+        
           const hiddenInput = imageContainer.querySelector('input[type="hidden"]');
           const index = hiddenInput ? hiddenInput.name.match(/\d+/)[0] : null;
 
-          // Preserve the index display
+       
           const indexDisplay = imageContainer.querySelector('.absolute.-top-2.-right-2');
 
-          // Remove existing image and button ONLY (KEEP hiddenInput!)
-          const img = imageContainer.querySelector('img');
+           const img = imageContainer.querySelector('img');
           const replaceButton = imageContainer.querySelector('.replace-image');
           if (img) img.remove();
           if (replaceButton) replaceButton.remove();
-          // Do NOT remove hiddenInput -- we'll clear its value later
+         
 
-          // Add image-upload-slot class and content
+          
           imageContainer.classList.remove('existing-image');
           imageContainer.classList.add('image-upload-slot', 'flex', 'flex-col', 'items-center', 'justify-center', 'cursor-pointer', 'hover:bg-gray-50', 'transition-colors');
 
-          // Add placeholder content
+      
           const placeholderDiv = document.createElement('div');
           placeholderDiv.classList.add('w-12', 'h-12', 'bg-gray-100', 'rounded-lg', 'flex', 'items-center', 'justify-center', 'mb-2');
           placeholderDiv.innerHTML = `
@@ -410,27 +406,27 @@ if (imageCount < 4) {
           fileInput.accept = 'image/*';
           fileInput.classList.add('hidden');
 
-          // Append new elements (hiddenInput already exists in DOM, but we'll reposition)
-          imageContainer.innerHTML = ''; // Clear all content
+         
+          imageContainer.innerHTML = ''; 
           imageContainer.appendChild(placeholderDiv);
           imageContainer.appendChild(placeholderSpan);
           if (hiddenInput) {
-            hiddenInput.value = ''; // Immediately mark as replaced (prevents old file from being considered "existing")
-            imageContainer.appendChild(hiddenInput); // Re-append it
+            hiddenInput.value = ''; 
+            imageContainer.appendChild(hiddenInput); 
           }
           imageContainer.appendChild(fileInput);
-          if (indexDisplay) imageContainer.appendChild(indexDisplay); // Re-append index display
+          if (indexDisplay) imageContainer.appendChild(indexDisplay); 
 
-          // Handle image upload with cropping
+       
           handleImageUpload(imageContainer, fileInput);
 
-          // No need to adjust uploadedImages -- validation counts files correctly
+         
 
-          validateForm(); // Re-validate after replacing
+          validateForm(); 
         }
       });
     });
-  // Crop button handler
+  
 cropBtn.addEventListener('click', () => {
   if (!cropper || !currentInput) return;
 
@@ -439,53 +435,51 @@ cropBtn.addEventListener('click', () => {
     canvas.toBlob(blob => {
       const slot = currentInput.closest('.image-upload-slot');
 
-      // Preserve the index display
+      
       const indexDisplay = slot.querySelector('.absolute.-top-2.-right-2');
 
-      // Find the hidden input (if replacement)
+      
       const hiddenInput = slot.querySelector('input[type="hidden"][name^="images["]');
 
-      // Clear the slot content completely
+      
       slot.innerHTML = '';
 
-      // Insert new image
+      
       const img = document.createElement('img');
       img.src = URL.createObjectURL(blob);
       img.classList.add('w-full', 'h-full', 'object-cover', 'rounded-lg');
       slot.appendChild(img);
 
-      // Re-add hidden input if it exists (already cleared to '')
+   
       if (hiddenInput) {
         slot.appendChild(hiddenInput);
       }
 
-      // Re-add the file input
+      
       slot.appendChild(currentInput);
 
-      // Re-append index display
+      
       if (indexDisplay) slot.appendChild(indexDisplay);
 
-      // Update file input with cropped image
+      
       const file = new File([blob], currentInput.files[0]?.name || 'cropped.jpg', { type: 'image/jpeg' });
       const dataTransfer = new DataTransfer();
       dataTransfer.items.add(file);
       currentInput.files = dataTransfer.files;
 
-      // Increment uploadedImages only if this is a NEW slot (not replacement)
-      if (currentInput.name === 'images[]') {  // Note: == not startsWith, since new slots are exactly 'images[]'
+     
+      if (currentInput.name === 'images[]') {  
         uploadedImages++;
       }
 
       cropModal.style.display = 'none';
       cropper.destroy();
       cropper = null;
-      validateForm(); // Re-validate form
+      validateForm(); 
     }, 'image/jpeg');
   }
 });
 
-    // Close crop modal
-    // Close crop modal
     function closeCropModal(clearFile = false) {
       cropModal.style.display = 'none';
 
@@ -503,14 +497,14 @@ cropBtn.addEventListener('click', () => {
 
         if (oldImg) {
           oldImg.remove();
-          // Only decrement if this was a new upload, not a replacement
+         
           if (currentInput.name.startsWith('images[')) {
             uploadedImages = Math.max(0, uploadedImages);
           }
         }
 
         if (!placeholderSvg || !placeholderSpan) {
-          slot.innerHTML = ''; // Clear all content
+          slot.innerHTML = ''; 
           const placeholderDiv = document.createElement('div');
           placeholderDiv.classList.add('w-12', 'h-12', 'bg-gray-100', 'rounded-lg', 'flex', 'items-center', 'justify-center', 'mb-2');
           placeholderDiv.innerHTML = `
@@ -539,7 +533,7 @@ cropBtn.addEventListener('click', () => {
       if (e.key === 'Escape' && cropModal.style.display === 'block') closeCropModal(true);
     });
 
-    // Add variant functionality
+   
     const addVariantBtn = document.querySelector('.add-variant-btn');
     const tbody = document.querySelector('#variantsTable');
 
@@ -551,7 +545,7 @@ cropBtn.addEventListener('click', () => {
       });
       newRow.querySelectorAll('.error').forEach(error => error.textContent = '');
       tbody.appendChild(newRow);
-      validateForm(); // Re-validate after adding variant
+      validateForm(); 
     });
 
     tbody.addEventListener('click', function (e) {
@@ -559,18 +553,18 @@ cropBtn.addEventListener('click', () => {
         const tr = e.target.closest('tr');
         if (tbody.querySelectorAll('tr').length > 1) {
           tr.remove();
-          validateForm(); // Re-validate after removing variant
+          validateForm(); 
         }
       }
     });
 
-    // Real-time validation
+  
     ['productName', 'productDescription', 'category', 'brand', 'price', 'discount'].forEach(id => {
       const input = document.getElementById(id);
       input.addEventListener('input', validateForm);
     });
 
-    // Real-time validation for variants
+    
     tbody.addEventListener('input', function (e) {
       if (e.target.name === 'size[]' || e.target.name === 'additionalPrice[]' || e.target.name === 'stock[]') {
         validateForm();

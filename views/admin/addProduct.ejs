@@ -278,6 +278,7 @@
         // ---------------- VALIDATION ----------------
 
         const nameRegex = /^(?=.*[A-Za-z])[A-Za-z0-9]+(?: [A-Za-z0-9]+)*$/;
+        const descRegex= /^[\s\S]{1,500}$/
         function validateForm() {
             let isValid = true;
             document.querySelectorAll('.error').forEach(error => error.textContent = '');
@@ -300,7 +301,7 @@
                 document.getElementById('productDescriptionError').textContent = 'Product description is required';
                 productDescription.classList.add('border-error');
                 isValid = false;
-            } else if (!nameRegex.test(productDescription.value)) {
+            } else if (!descRegex.test(productDescription.value)) {
                 document.getElementById('productDescriptionError').textContent = 'Only letters/numbers allowed';
                 productDescription.classList.add('border-error');
                 isValid = false;
@@ -455,19 +456,18 @@
                 canvas.toBlob(blob => {
                     const slot = currentInput.closest('.image-upload-slot');
 
-                    // Clear the slot content completely
                     slot.innerHTML = '';
 
-                    // Insert new image
+                   
                     const img = document.createElement('img');
                     img.src = URL.createObjectURL(blob);
                     img.classList.add('w-full', 'h-full', 'object-cover', 'rounded-lg');
                     slot.appendChild(img);
 
-                    // Re-add the input element (hidden)
+                   
                     slot.appendChild(currentInput);
 
-                    // Update file input with cropped image
+                 
                     const file = new File([blob], currentInput.files[0].name, { type: 'image/jpeg' });
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);

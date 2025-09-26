@@ -334,7 +334,7 @@ const logoutAdmin = (req, res) => {
     req.session.destroy((err) => {
       if (err) {
         console.log(err);
-        return res.redirect("/dashboard");
+        return res.redirect("/admin/dashboard");
       }
 
       res.redirect("/admin/login");

@@ -142,6 +142,7 @@ const loadEditProduct = async (req, res) => {
       categories,
       variants,
     });
+
   } catch (error) {
     console.error("Error loading product for edit:", error);
     res.status(500).send("Error loading product for edit");
@@ -173,7 +174,6 @@ const postEditProduct = async (req, res) => {
       : [];
     product.images = existingImages;
 
-    console.log(req.files);
 
     if (req.files) {
       const replaceImages = {};
@@ -222,11 +222,10 @@ const userProducts = async (req, res) => {
   try {
     let search = req.query.search || "";
     let page = parseInt(req.query.page) || 1;
-    const limit = 2;
+    const limit = 8;
     let sort = req.query.sort || "";
     let category = req.query.category || "";
     let priceRange = req.query.priceRange || "";
-
     const filter = {
       isBlocked: false,
     };
@@ -267,6 +266,9 @@ const userProducts = async (req, res) => {
       .limit(limit)
       .skip((page - 1) * limit)
       .exec();
+
+  
+      
     const count = await Product.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
     const categories = await Category.find({ isBlocked: false });
@@ -316,7 +318,9 @@ const loadProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
     const product = await Product.findById(productId).lean();
+   
 
+  
 
     const relatedProducts = await Product.find({
       categoryId: product.categoryId,
@@ -352,6 +356,7 @@ const loadProductDetails = async (req, res) => {
       user: req.session.user,
       product,
       relatedProducts:updatedProducts,
+
     });
   } catch (error) {
     console.error("Error loading product details:", error);

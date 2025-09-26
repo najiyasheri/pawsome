@@ -104,7 +104,7 @@
       <div class="prose max-w-none text-gray">
         <h2 class="font-bold text-lg mb-2">About this item</h2>
         <p>
-          <%= product.description %>
+          <%= product.description %> 
         </p>
       </div>
     </div>
@@ -134,7 +134,7 @@
             <a href="/product/<%= rp._id %>">
               <img class="p-6 rounded-t-lg h-40 w-full object-contain"
                 src="/uploads/<%= (rp.images && rp.images.length > 0 )? rp.images[0] : '/default.jpg' %>"
-                alt="<%= rp.name %>" />
+                alt="<%= rp.name %>" /> 
             </a>
 
             <!-- Content -->
@@ -143,7 +143,7 @@
               <!-- Product Name -->
               <a href="/product/<%= rp._id %>">
                 <h5 class="text-sm font-semibold tracking-tight text-gray-900 line-clamp-2 h-12 leading-relaxed">
-                  <%= rp.name %>
+                  <%= rp.name %> 
                 </h5>
               </a>
 
@@ -495,21 +495,21 @@
 
   function initDrift() {
     const mainImg = document.getElementById('mainImage');
-    const container = document.querySelector('.group'); // wrapper div
+    const container = document.querySelector('.group'); 
     if (!mainImg || !container) return;
 
-    // Destroy previous instance if exists
+   
     if (driftInstance) {
       driftInstance.disable();
       driftInstance = null;
     }
 
     driftInstance = new Drift(mainImg, {
-      paneContainer: container,      // where to show zoom pane
-      inlinePane: false,             // false => separate pane (Amazon style)
+      paneContainer: container,     
+      inlinePane: false,             
       hoverBoundingBox: true,
-      sourceAttribute: 'data-zoom',  // attribute for zoomed image
-      paneOffsetX: 16,               // gap between image and zoom window
+      sourceAttribute: 'data-zoom',  
+      paneOffsetX: 16,              
       zoomFactor: 2.5,
       paneHeight: 400
     });
@@ -518,21 +518,20 @@
   document.addEventListener("DOMContentLoaded", () => {
     const mainImg = document.getElementById('mainImage');
 
-    // Init on first load
+
     if (mainImg.complete) {
       initDrift();
     } else {
       mainImg.addEventListener('load', initDrift, { once: true });
     }
 
-    // Re-init when thumbnail is clicked (your updateMainImage)
+
     window.updateMainImage = function (newSrc) {
       mainImg.src = newSrc;
       mainImg.dataset.zoom = newSrc;
-      // Drift will auto re-init on new load
+
     };
 
-    // Re-init after new image loads
     mainImg.addEventListener('load', () => {
       mainImg.dataset.zoom = mainImg.src;
       initDrift();

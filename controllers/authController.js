@@ -12,7 +12,12 @@ const saltRound = 10;
 const loadLoginPage = async (req, res) => {
   try {
     let msg = req.query.msg;
-    return res.render("user/login", { layout: false, msg });
+    return res.render("user/login", {
+      layout: "layouts/userLayout",
+      msg,
+      user: null,
+      title: "User Login",
+    });
   } catch (error) {
     console.log("login page is loading");
     res.status(500).send("server error loading Login page");
@@ -21,7 +26,11 @@ const loadLoginPage = async (req, res) => {
 
 const loadSignupPage = async (req, res) => {
   try {
-    return res.render("user/signup", { layout: false });
+    return res.render("user/signup", {
+      layout: "layouts/userLayout",
+      user: null,
+      title: "User Signup",
+    });
   } catch (error) {
     console.log("signup page is loading");
     res.status(500).send("server error loading signup page");
@@ -39,7 +48,7 @@ const loadForgotpassword = async (req, res) => {
 
 const loadResetpassword = async (req, res) => {
   try {
-    const email=req.session.resetEmail
+    const email = req.session.resetEmail;
     return res.render("user/resetpassword", { layout: false });
   } catch (error) {
     console.log("forgotpassword page is loading");
@@ -54,7 +63,6 @@ const postSignup = async (req, res) => {
       return res.render("user/signup", { error: "Password is required" });
     }
 
-   
     const verifiedUser = await User.findOne({ email, isVerified: true });
     if (verifiedUser) {
       return res.render("user/signup", { email, error: "User already exists" });
@@ -159,13 +167,13 @@ const postLogin = async (req, res) => {
         error: "Invalid email or password",
       });
     }
-    
-    if(userRecord.isBlocked){
-      console.log('user is blocked')
-      return res.render('user/login',{
+
+    if (userRecord.isBlocked) {
+      console.log("user is blocked");
+      return res.render("user/login", {
         email,
-        error:'user is blocked'
-      })
+        error: "user is blocked",
+      });
     }
 
     const isMatch = await bcrypt.compare(password, userRecord.password);
@@ -176,8 +184,6 @@ const postLogin = async (req, res) => {
         error: "Invalid email or password",
       });
     }
-
-
 
     req.session.user = userRecord;
 
@@ -205,8 +211,7 @@ const postForgotpassword = async (req, res) => {
     await otpRecord.save();
     await sendOtp(email, otp);
 
-    req.session.resetEmail=email
-
+    req.session.resetEmail = email;
 
     return res.redirect("/resetpassword");
   } catch (error) {
@@ -217,8 +222,8 @@ const postForgotpassword = async (req, res) => {
 
 const postResetpassword = async (req, res) => {
   try {
-    const {otp, password } = req.body;
-    const email = req.session.resetEmail
+    const { otp, password } = req.body;
+    const email = req.session.resetEmail;
     const userRecord = await User.findOne({ email });
     if (!userRecord) {
       return res.render("user/resetpassword", {
@@ -256,7 +261,7 @@ const postResetpassword = async (req, res) => {
 };
 
 const resetPasswordResendOtp = async (req, res) => {
-  const  email  = req.session.resetEmail;
+  const email = req.session.resetEmail;
   try {
     await OTP.deleteMany({ email });
     const otp = generateOTP();

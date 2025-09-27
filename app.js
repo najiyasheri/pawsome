@@ -10,6 +10,8 @@ const db = require("./config/db");
 const userRouter = require("./routes/user.routes");
 const adminRouter = require("./routes/admin.routes");
 
+
+
 db();
 
 app.use(
@@ -44,6 +46,7 @@ app.use((req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   next();
 });
+
 
 
 app.use("/admin", adminRouter);

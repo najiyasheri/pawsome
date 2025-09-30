@@ -64,8 +64,20 @@ const adminAuth = async (req, res, next) => {
   }
 };
 
+const isUser = (req, res, next) => {
+  if (!req.session.user) {
+    return res.redirect("/login");
+  }
+  if (req.session.user.isAdmin) {
+    return res.redirect("/admin/dashboard");
+  }
+  next();
+};
+
+
 module.exports = {
   userAuth,
   adminAuth,
   isLogin,
+  isUser,
 };

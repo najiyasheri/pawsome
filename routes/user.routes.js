@@ -2,11 +2,12 @@ const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
 const homeController = require("../controllers/homeController");
-const {isLogin}=require('../middlewares/authMiddleware');
+const {isLogin, isUser}=require('../middlewares/authMiddleware');
 const passport = require("passport");
 const cartController=require('../controllers/cartController')
 const productController=require('../controllers/productController')
 const { loadProductDetails } = require("../controllers/productController")
+const profileController=require('../controllers/profileController')
 
 router.get("/", homeController.loadHomepage);
 router.get("/login",isLogin, authController.loadLoginPage);
@@ -29,6 +30,9 @@ router.get('/products',productController.userProducts)
 
 router.get('/product/:id',productController.loadProductDetails)
 router.get('/cart',cartController.loadCart)
+
+router.get('/profile',isUser,profileController.loadProfile)
+router.post('/profile',isUser,profileController.postProfile)
 
 
 module.exports = router;

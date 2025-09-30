@@ -120,6 +120,7 @@
          <div>
             <label class="block text-sm font-medium text-gray-600">Email</label>
             <input name="email" type="email" value="<%= user.email  %>"
+            disabled
                class="mt-1 w-full border rounded-lg px-4 py-2 focus:ring focus:ring-yellow-300">
          </div>
 
@@ -135,7 +136,7 @@
 
          <!-- Buttons -->
          <div class="flex justify-end space-x-4 pt-4">
-            <button type="button"
+            <button type="reset"
                class="px-6 py-2 border border-gray-400 rounded-lg text-gray-600 hover:bg-gray-100">Cancel</button>
             <button type="submit" class="px-6 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500">Save
                Changes</button>

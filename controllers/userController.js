@@ -23,8 +23,6 @@ const loadUserManagement = async (req, res) => {
     if(req.query.active==='true'){
       filter.isBlocked=false
     }
-   
-    console.log(filter)
     const userData = await User.find(filter)
       .sort({ createdAt: -1 })
       .limit(limit * 1)

@@ -8,6 +8,7 @@ const cartController=require('../controllers/cartController')
 const productController=require('../controllers/productController')
 const { loadProductDetails } = require("../controllers/productController")
 const profileController=require('../controllers/profileController')
+const addressController=require('../controllers/addressController')
 
 router.get("/", homeController.loadHomepage);
 router.get("/login",isLogin, authController.loadLoginPage);
@@ -36,6 +37,9 @@ router.post("/cart/remove", cartController.removeCart);
 
 router.get('/profile',isUser,profileController.loadProfile)
 router.post('/profile',isUser,profileController.postProfile)
+
+router.get('/address',addressController.loadAddress)
+router.post("/address/add", addressController.addAddress);
 
 
 

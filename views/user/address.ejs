@@ -1,0 +1,182 @@
+<section class="max-w-3xl mx-auto p-6">
+
+    <!-- Stepper -->
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center space-x-2 step" data-step="1">
+            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500 text-white font-bold">1
+            </div>
+            <span class="font-medium text-yellow-600">Address</span>
+        </div>
+        <div class="flex items-center space-x-2 step" data-step="2">
+            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 font-bold">2
+            </div>
+            <span class="text-gray-500">Shipping</span>
+        </div>
+        <div class="flex items-center space-x-2 step" data-step="3">
+            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 font-bold">3
+            </div>
+            <span class="text-gray-500">Payment</span>
+        </div>
+    </div>
+
+    <!-- Step Content -->
+    <div id="stepContent">
+
+        <!-- Step 1: Address -->
+        <div class="step-pane" data-step="1">
+            <h2 class="text-xl font-semibold mb-6">Select Address</h2>
+
+            <!-- Address List -->
+            <div class="space-y-4" id="addressList">
+                <% addresses.forEach(addr=> { %>
+                    <label class="block border rounded-lg p-4 cursor-pointer hover:border-yellow-500 transition">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <input type="radio" name="address" class="accent-yellow-500" <%=addr.default ? 'checked'
+                                    : '' %>>
+                                <span class="ml-2 font-semibold">
+                                    <%= addr.name %>
+                                </span>
+                                <span class="ml-2 text-xs bg-yellow-500 text-white px-2 py-0.5 rounded">
+                                    <%= addr.type %>
+                                </span>
+                                <% if(addr.default){ %>
+                                    <span class="ml-1 text-xs bg-black text-white px-2 py-0.5 rounded">DEFAULT</span>
+                                    <% } %>
+                                        <p class="ml-6 text-gray-700 mt-1">
+                                            <%= addr.phone %>
+                                        </p>
+                                        <p class="ml-6 text-gray-700">
+                                            <%= addr.address %>
+                                        </p>
+                            </div>
+                            <div class="flex space-x-3 text-gray-500">
+                                <form action="/address/edit/<%= addr._id %>" method="GET">
+                                    <button type="submit"><i class="fas fa-pen"></i></button>
+                                </form>
+                                <form action="/address/delete/<%= addr._id %>" method="POST">
+                                    <button type="submit"><i class="fas fa-times"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                    </label>
+                    <% }) %>
+            </div>
+
+            <!-- Add New Address Button -->
+            <div class="flex justify-center my-6">
+                <button id="showFormBtn" class="flex items-center text-yellow-600 font-medium hover:underline">
+                    <span
+                        class="w-6 h-6 flex items-center justify-center border border-yellow-500 rounded-full text-yellow-500 mr-2">+</span>
+                    Add New Address
+                </button>
+            </div>
+
+            <!-- Add Address Form -->
+            <div id="addAddressForm" class="hidden bg-white p-4 border rounded-lg mb-4">
+                <h3 class="font-semibold mb-2">Add New Address</h3>
+                <form id="addressForm" action="/address/add" method="POST">
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium">Name</label>
+                        <input type="text" name="name" class="w-full border p-2 rounded" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium">Phone</label>
+                        <input type="text" name="phone" class="w-full border p-2 rounded" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium">Type</label>
+                        <select name="type" class="w-full border p-2 rounded">
+                            <option value="HOME">Home</option>
+                            <option value="OFFICE">Office</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium">Full Address</label>
+                        <textarea name="address" class="w-full border p-2 rounded" required></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label>
+                            <input type="checkbox" name="default"> Set as default
+                        </label>
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Save
+                        Address</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Step 2: Shipping -->
+        <div class="step-pane hidden" data-step="2">
+            <h2 class="text-xl font-semibold mb-6">Shipping Method</h2>
+            <p>Select shipping option here...</p>
+        </div>
+
+        <!-- Step 3: Payment -->
+        <div class="step-pane hidden" data-step="3">
+            <h2 class="text-xl font-semibold mb-6">Payment</h2>
+            <p>Enter payment information here...</p>
+        </div>
+
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="flex justify-between mt-8">
+        <button class="px-6 py-2 border border-gray-400 rounded-lg hover:bg-gray-100">Back</button>
+        <button class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">Next</button>
+    </div>
+
+</section>
+
+<script>
+    // Stepper
+    const steps = document.querySelectorAll('.step');
+    const panes = document.querySelectorAll('.step-pane');
+    const nextBtn = document.querySelector('button.bg-yellow-500');
+    const prevBtn = document.querySelector('button.border-gray-400');
+    let currentStep = 1;
+
+    function updateStepper() {
+        steps.forEach((step, index) => {
+            const circle = step.querySelector('div');
+            const label = step.querySelector('span');
+            if (index + 1 === currentStep) {
+                circle.classList.replace('bg-gray-200', 'bg-yellow-500');
+                circle.classList.replace('text-gray-500', 'text-white');
+                label.classList.replace('text-gray-500', 'text-yellow-600');
+            } else if (index + 1 < currentStep) {
+                circle.classList.add('bg-yellow-500', 'text-white');
+                label.classList.add('text-yellow-600');
+            } else {
+                circle.classList.replace('bg-yellow-500', 'bg-gray-200');
+                circle.classList.replace('text-white', 'text-gray-500');
+                label.classList.replace('text-yellow-600', 'text-gray-500');
+            }
+        });
+
+        panes.forEach(pane => {
+            pane.classList.add('hidden');
+            if (Number(pane.dataset.step) === currentStep) {
+                pane.classList.remove('hidden');
+            }
+        });
+
+        prevBtn.disabled = currentStep === 1;
+        nextBtn.textContent = currentStep === panes.length ? 'Finish' : 'Next';
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (currentStep < panes.length) currentStep++;
+        updateStepper();
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 1) currentStep--;
+        updateStepper();
+    });
+
+    updateStepper();
+    const showFormBtn = document.getElementById('showFormBtn');
+    const addAddressForm = document.getElementById('addAddressForm');
+    showFormBtn.addEventListener('click', () => addAddressForm.classList.toggle('hidden'));
+</script>

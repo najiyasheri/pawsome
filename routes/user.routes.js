@@ -40,6 +40,10 @@ router.post('/profile',isUser,profileController.postProfile)
 
 router.get('/address',addressController.loadAddress)
 router.post("/address/add", addressController.addAddress);
+router.get('/address/edit/:id',addressController.editAddress)
+router.post('/address/edit/:id',addressController.postEdit)
+router.post('/address/delete/:id',addressController.deleteAddress)
+
 
 
 

@@ -49,8 +49,71 @@ const addAddress = async (req, res) => {
   }
 };
 
+const editAddress=async(req,res)=>{
+    try {
+        
+        const id=req.params.id
+        const address=await Address.findById(id)
+         if (!address) return res.status(404).send("Address not found");
+         res.render("user/editAddress", {
+           address,
+           user: "req.session.user",
+           title: "address",
+           layout: "layouts/userLayout",
+         });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Server error");
+    }
+}
+
+const postEdit=async(req,res)=>{
+    try {
+          const { name, phone, type, address, default: isDefault } = req.body;
+  await Address.findByIdAndUpdate(req.params.id, {
+    name,
+    phone,
+    type,
+    address,
+    default: !!isDefault
+  });
+  res.redirect("/address");
+    } catch (error) {
+          console.error(error.message);
+        res.status(500).send("Server error");
+    }
+}
+
+const deleteAddress=async(req,res)=>{
+try {
+     if (!req.session.user) {
+      return res.status(401).send( "You must be logged in" );
+     }
+    const userId = req.session.user._id;
+    const addressId = req.params.id;     
+
+    const deleted = await Address.findOneAndDelete({
+      _id: addressId,
+      userId: userId
+    });
+
+    if (!deleted) {
+      return res.status(404).send("Address not found" );
+    }
+  res.redirect('/address')
+}
+  catch (error) {
+    console.error(error);
+    res.status(500).send("Server error" );
+  }
+};
+
+
 
 module.exports = {
   loadAddress,
   addAddress,
+  editAddress,
+  postEdit,
+  deleteAddress
 };

@@ -1,0 +1,105 @@
+<div class="max-w-6xl mx-auto p-6 flex flex-col md:flex-row gap-6">
+
+    <!-- Shopping Cart -->
+    <div class="flex-1 max-w-3xl bg-white p-6 rounded-lg shadow space-y-6">
+        <h2 class="text-2xl font-semibold mb-4">Shopping Cart</h2>
+
+        <% if (!cart || cart.items.length===0) { %>
+            <div class="text-center py-10">
+                <img src="/images/empty-cart.png" class="mx-auto w-40 mb-4" alt="Empty Cart">
+                <p class="text-lg font-medium mb-4">Your cart is empty</p>
+                <a href="/products"
+                    class="inline-block px-6 py-2 bg-yellow-400 text-black rounded hover:bg-yellow-500 transition">
+                    Go to Shop
+                </a>
+            </div>
+            <% } else { %>
+                <% cart.items.forEach(item=> { %>
+                    <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <img src="<%= item.productId.images[0] %>" alt="<%= item.productId.name %>"
+                                class="w-16 h-16 rounded">
+                            <div>
+                                <p class="font-medium">
+                                    <%= item.productId.name %>
+                                </p>
+                                <p class="text-gray-500">₹<%= item.priceAtAdding %>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <!-- Decrease Quantity -->
+                            <form action="/cart/update" method="POST" class="inline">
+                                <input type="hidden" name="productId" value="<%= item.productId._id %>">
+                                <input type="hidden" name="action" value="decrease">
+                                <button type="submit" class="px-2 py-1 border rounded">−</button>
+                            </form>
+
+                            <span class="px-2">
+                                <%= item.quantity %>
+                            </span>
+
+                            <!-- Increase Quantity -->
+                            <form action="/cart/update" method="POST" class="inline">
+                                <input type="hidden" name="productId" value="<%= item.productId._id %>">
+                                <input type="hidden" name="action" value="increase">
+                                <button type="submit"
+                                    class="px-2 py-1 border rounded bg-yellow-400 text-white">+</button>
+                            </form>
+
+                            <span class="ml-4 font-semibold">₹<%= item.quantity * item.priceAtAdding %></span>
+
+                            <!-- Remove Item -->
+                            <form action="/cart/remove" method="POST" class="inline">
+                                <input type="hidden" name="productId" value="<%= item.productId._id %>">
+                                <button type="submit" class="ml-2 text-gray-400 hover:text-red-500">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <% }) %>
+
+                        <div>
+                            <a href="/products" class="inline-block px-6 py-2 border rounded hover:bg-gray-100">
+                                Back to Shop
+                            </a>
+                        </div>
+                        <% } %>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="md:w-72 bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
+
+        <% if (!cart || cart.items.length===0) { %>
+            <p class="text-gray-500">No items in cart</p>
+            <% } else { %>
+                <% const subtotal=cart.items.reduce((sum, item)=> sum + item.quantity * item.priceAtAdding, 0); %>
+                    <% const delivery=50; %>
+                        <% const total=subtotal + delivery; %>
+
+                            <div class="flex justify-between mb-2">
+                                <span>Subtotal (<%= cart.items.reduce((q, item)=> q + item.quantity, 0) %> items)</span>
+                                <span>₹<%= subtotal %></span>
+                            </div>
+
+                            <div class="flex justify-between mb-4">
+                                <span>Delivery Charge</span>
+                                <span>₹<%= delivery %></span>
+                            </div>
+
+                            <div class="flex justify-between font-bold text-lg mb-4">
+                                <span>Total</span>
+                                <span>₹<%= total %></span>
+                            </div>
+
+                            <button
+                                class="w-full bg-yellow-400 text-black py-2 rounded hover:bg-yellow-500 transition-colors">
+                                Checkout
+                            </button>
+                            <% } %>
+    </div>
+
+</div>

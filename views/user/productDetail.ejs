@@ -66,9 +66,25 @@
       <div class="flex gap-4 mb-6">
         <form action="/cart/add" method="POST">
           <input type="hidden" name="productId" value="<%= product._id %>">
-          <button type="submit"
-            class="px-6 py-3 border-gray-50 rounded-xl w-40 bg-white text-gray-900 hover:bg-gray-100 shadow-md">Add to
-            Cart</button>
+          <!-- Add CSRF token if your app uses CSRF protection -->
+          <% if (typeof csrfToken !=='undefined' ) { %>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <% } %>
+              <div class="flex items-center gap-3 mb-4">
+                <label class="font-medium">Quantity:</label>
+                <div class="flex items-center border border-gray-200 rounded-lg">
+                  <button type="button" id="decrease"
+                    class="px-1.5 py-1 bg-white rounded-l-lg hover:bg-gray-200 text-gray-500 font-bold">−</button>
+                  <input type="number" id="quantity" name="quantity" value="1" min="1" max="5"
+                    class="w-9 py-1 border-0 text-center outline-none hide-arrows" />
+                  <button type="button" id="increase"
+                    class="px-1.5 py-1 rounded-r-lg bg-white hover:bg-gray-200 text-yellow-500 font-bold">+</button>
+                </div>
+              </div>
+              <button type="submit"
+                class="px-6 py-3 border-gray-50 rounded-xl w-40 bg-white text-gray-900 hover:bg-gray-100 shadow-md">Add
+                to
+                Cart</button>
         </form>
         <button
           class="px-6 py-3 border-gray-50 rounded-xl w-40 bg-yellow-400 text-gray-900 hover:bg-gray-100 shadow-md">Buy
@@ -76,27 +92,27 @@
       </div>
 
       <!-- Quantity -->
-      <div class="flex items-center gap-3 mb-8 ">
+      <!-- <div class="flex items-center gap-3 mb-8 ">
         <label class="font-medium">Quantity:</label>
 
         <div class="flex items-center overflow-hidden border border-gray-200 rounded-lg">
           <!-- Minus Button -->
-          <button type="button" id="decrease"
+      <!-- <button type="button" id="decrease"
             class="px-1.5 py-1 bg-white rounded-l-lg   hover:bg-gray-200 text-gray-500 font-bold">
             −
-          </button>
+          </button> --> -->
 
-          <!-- Input Box -->
-          <input type="number" id="quantity" name="qty" value="1" min="1" max="5"
+      <!-- Input Box -->
+      <!-- <input type="number" id="quantity" name="qty" value="1" min="1" max="5"
             class="w-9  py-1 border-0  text-center outline-none hide-arrows" />
 
-          <!-- Plus Button -->
-          <button type="button" id="increase"
+          Plus Button -->
+      <!-- <button type="button" id="increase"
             class="px-1.5 py-1 rounded-r-lg   bg-white hover:bg-gray-200 text-yellow-500 font-bold">
             +
           </button>
         </div>
-      </div>
+      </div> -->
 
 
 
@@ -104,7 +120,7 @@
       <div class="prose max-w-none text-gray">
         <h2 class="font-bold text-lg mb-2">About this item</h2>
         <p>
-          <%= product.description %> 
+          <%= product.description %>
         </p>
       </div>
     </div>
@@ -134,7 +150,7 @@
             <a href="/product/<%= rp._id %>">
               <img class="p-6 rounded-t-lg h-40 w-full object-contain"
                 src="/uploads/<%= (rp.images && rp.images.length > 0 )? rp.images[0] : '/default.jpg' %>"
-                alt="<%= rp.name %>" /> 
+                alt="<%= rp.name %>" />
             </a>
 
             <!-- Content -->
@@ -143,7 +159,7 @@
               <!-- Product Name -->
               <a href="/product/<%= rp._id %>">
                 <h5 class="text-sm font-semibold tracking-tight text-gray-900 line-clamp-2 h-12 leading-relaxed">
-                  <%= rp.name %> 
+                  <%= rp.name %>
                 </h5>
               </a>
 
@@ -155,15 +171,20 @@
 
               <!-- Price & Add to Cart -->
               <div class="mt-auto flex items-center justify-between">
-               <div>
-             <span class="text-xl font-bold text-black-600">₹<%= rp.price %></span>
-            <span class="line-through text-gray-400">₹<%= rp.oldPrice %></span>
-         </div>
-
-                <a href="/cart/add/<%= rp._id %>" class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none 
-                        focus:ring-yellow-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center">
-                  Add to cart
-                </a>
+                <div>
+                  <span class="text-xl font-bold text-black-600">₹<%= rp.price %></span>
+                  <span class="line-through text-gray-400">₹<%= rp.oldPrice %></span>
+                </div>
+                <form action="/cart/add" method="POST">
+                  <input type="hidden" name="productId" value="<%= rp._id %>">
+                  <input type="hidden" name="quantity" value="1">
+                  <% if (typeof csrfToken !=='undefined' ) { %>
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <% } %>
+                      <button type="submit"
+                        class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center">Add
+                        to cart</button>
+                </form>
               </div>
             </div>
           </div>
@@ -495,21 +516,21 @@
 
   function initDrift() {
     const mainImg = document.getElementById('mainImage');
-    const container = document.querySelector('.group'); 
+    const container = document.querySelector('.group');
     if (!mainImg || !container) return;
 
-   
+
     if (driftInstance) {
       driftInstance.disable();
       driftInstance = null;
     }
 
     driftInstance = new Drift(mainImg, {
-      paneContainer: container,     
-      inlinePane: false,             
+      paneContainer: container,
+      inlinePane: false,
       hoverBoundingBox: true,
-      sourceAttribute: 'data-zoom',  
-      paneOffsetX: 16,              
+      sourceAttribute: 'data-zoom',
+      paneOffsetX: 16,
       zoomFactor: 2.5,
       paneHeight: 400
     });

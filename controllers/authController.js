@@ -231,6 +231,8 @@ const postForgotpassword = async (req, res) => {
     if (!user) {
       return res.render("user/forgotpassword", {
         error: "Invalid email ",
+        layout: "layouts/userLayout",
+        title: "Forgot Password",
       });
     }
     await OTP.deleteMany({ email });

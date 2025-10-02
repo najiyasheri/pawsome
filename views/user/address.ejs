@@ -109,59 +109,13 @@
   <!-- Navigation Buttons -->
   <div class="flex justify-between mt-8">
     <a href="/cart" class="px-6 py-2 border border-gray-400 rounded-lg hover:bg-gray-100">Back</a>
-    <button class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">Next</button>
+    <a href="/shipping" class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">Next</a>
   </div>
 
 </section>
 
 <script>
-  // Stepper
-  const steps = document.querySelectorAll('.step');
-  const panes = document.querySelectorAll('.step-pane');
-  const nextBtn = document.querySelector('button.bg-yellow-500');
-  const prevBtn = document.querySelector('button.border-gray-400');
-  let currentStep = 1;
 
-  function updateStepper() {
-    steps.forEach((step, index) => {
-      const circle = step.querySelector('div');
-      const label = step.querySelector('span');
-      if (index + 1 === currentStep) {
-        circle.classList.replace('bg-gray-200', 'bg-yellow-500');
-        circle.classList.replace('text-gray-500', 'text-white');
-        label.classList.replace('text-gray-500', 'text-yellow-600');
-      } else if (index + 1 < currentStep) {
-        circle.classList.add('bg-yellow-500', 'text-white');
-        label.classList.add('text-yellow-600');
-      } else {
-        circle.classList.replace('bg-yellow-500', 'bg-gray-200');
-        circle.classList.replace('text-white', 'text-gray-500');
-        label.classList.replace('text-yellow-600', 'text-gray-500');
-      }
-    });
-
-    panes.forEach(pane => {
-      pane.classList.add('hidden');
-      if (Number(pane.dataset.step) === currentStep) {
-        pane.classList.remove('hidden');
-      }
-    });
-
-    prevBtn.disabled = currentStep === 1;
-    nextBtn.textContent = currentStep === panes.length ? 'Finish' : 'Next';
-  }
-
-  nextBtn.addEventListener('click', () => {
-    if (currentStep < panes.length) currentStep++;
-    updateStepper();
-  });
-
-  prevBtn.addEventListener('click', () => {
-    if (currentStep > 1) currentStep--;
-    updateStepper();
-  });
-
-  updateStepper();
 
   // Show/hide Add Address Form
   const showFormBtn = document.getElementById('showFormBtn');

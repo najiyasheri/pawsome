@@ -30,19 +30,19 @@ router.get('/auth/google/callback',passport.authenticate('google',{failureRedire
 router.get('/products',productController.userProducts)
 router.get('/product/:id',productController.loadProductDetails)
 
-router.get('/cart',cartController.loadCart)
-router.post('/cart/add',cartController.addToCart)
-router.post('/cart/update',cartController.updateCart)
-router.post("/cart/remove", cartController.removeCart);
+router.get("/cart", isUser,cartController.loadCart);
+router.post("/cart/add", isUser,cartController.addToCart);
+router.post("/cart/update", isUser,cartController.updateCart);
+router.post("/cart/remove", isUser,cartController.removeCart);
 
 router.get('/profile',isUser,profileController.loadProfile)
 router.post('/profile',isUser,profileController.postProfile)
 
-router.get('/address',addressController.loadAddress)
-router.post("/address/add", addressController.addAddress);
-router.get('/address/edit/:id',addressController.editAddress)
-router.post('/address/edit/:id',addressController.postEdit)
-router.post('/address/delete/:id',addressController.deleteAddress)
+router.get("/address", isUser,addressController.loadAddress);
+router.post("/address/add",isUser, addressController.addAddress);
+router.get("/address/edit/:id", isUser,addressController.editAddress);
+router.post("/address/edit/:id", isUser,addressController.postEdit);
+router.post("/address/delete/:id", isUser,addressController.deleteAddress);
 
 
 

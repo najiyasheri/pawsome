@@ -15,7 +15,6 @@ const loadLoginPage = async (req, res) => {
     return res.render("user/login", {
       layout: "layouts/userLayout",
       msg,
-      user: null,
       title: "User Login",
     });
   } catch (error) {
@@ -28,7 +27,6 @@ const loadSignupPage = async (req, res) => {
   try {
     return res.render("user/signup", {
       layout: "layouts/userLayout",
-      user: null,
       title: "User Signup",
     });
   } catch (error) {
@@ -39,7 +37,7 @@ const loadSignupPage = async (req, res) => {
 
 const loadForgotpassword = async (req, res) => {
   try {
-    return res.render("user/forgotpassword", { layout: false });
+    return res.render("user/forgotpassword", { layout:"layouts/userLayout",title:'Forgot Password' });
   } catch (error) {
     console.log("forgotpassword page is loading");
     res.status(500).send("server error loading forgotpassword page");
@@ -49,7 +47,7 @@ const loadForgotpassword = async (req, res) => {
 const loadResetpassword = async (req, res) => {
   try {
     const email = req.session.resetEmail;
-    return res.render("user/resetpassword", { layout: false });
+    return res.render("user/resetpassword", { title:'Reset Password',layout:"layouts/userLayout" });
   } catch (error) {
     console.log("forgotpassword page is loading");
     res.status(500).send("server error loading forgotpassword page");
@@ -60,12 +58,21 @@ const postSignup = async (req, res) => {
   const { name, email, password } = req.body;
   try {
     if (!password) {
-      return res.render("user/signup", { error: "Password is required" });
+      return res.render("user/signup", {
+        error: "Password is required",
+        layout: "layouts/userLayout",
+        title: "User Signup",
+      });
     }
 
     const verifiedUser = await User.findOne({ email, isVerified: true });
     if (verifiedUser) {
-      return res.render("user/signup", { email, error: "User already exists" });
+      return res.render("user/signup", {
+        email,
+        error: "User already exists",
+        layout: "layouts/userLayout",
+        title:'User Signup'
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, saltRound);
@@ -94,7 +101,11 @@ const postSignup = async (req, res) => {
 
     await sendOtp(email, otp);
 
-    return res.render("user/otp", { email });
+    return res.render("user/otp", {
+      email,
+      layout: "layouts/userLayout",
+      title: "OTP",
+    });
   } catch (error) {
     console.error("error for save user", error);
     res.status(500).send("internal server error");
@@ -110,7 +121,11 @@ const resendOtp = async (req, res) => {
     const otpRecord = new OTP({ email, otp, expiredAt });
     await otpRecord.save();
     await sendOtp(email, otp);
-    return res.render("user/otp", { email });
+    return res.render("user/otp", {
+      email,
+      layout: "layouts/userLayout",
+      title: "OTP",
+    });
   } catch (error) {
     console.error("Resend otp failed");
     res.status(500).send("Internal server error");
@@ -125,18 +140,24 @@ const postOtp = async (req, res) => {
       return res.render("user/otp", {
         email,
         error: "Invalid or expired OTP",
+        layout: "layouts/userLayout",
+        title: "OTP",
       });
     }
     if (otpRecord.expiredAt < new Date()) {
       return res.render("user/otp", {
         email,
         error: "Invalid or expired OTP",
+        layout: "layouts/userLayout",
+        title: "OTP",
       });
     }
     if (otpRecord.otp !== Number(otp)) {
       return res.render("user/otp", {
         email,
         error: "Invalid or expired OTP",
+        layout: "layouts/userLayout",
+        title: "OTP",
       });
     }
     await User.updateOne({ email }, { $set: { isVerified: true } });
@@ -158,6 +179,8 @@ const postLogin = async (req, res) => {
       return res.render("user/login", {
         email,
         error: "Invalid email or password",
+        layout: "layouts/userLayout",
+        title:'login'
       });
     }
     if (!userRecord.isVerified) {
@@ -165,6 +188,8 @@ const postLogin = async (req, res) => {
       return res.render("user/login", {
         email,
         error: "Invalid email or password",
+        layout: "layouts/userLayout",
+        title: "login",
       });
     }
 
@@ -173,6 +198,8 @@ const postLogin = async (req, res) => {
       return res.render("user/login", {
         email,
         error: "user is blocked",
+        layout: "layouts/userLayout",
+        title: "login",
       });
     }
 
@@ -182,6 +209,8 @@ const postLogin = async (req, res) => {
       return res.render("user/login", {
         email,
         error: "Invalid email or password",
+        layout: "layouts/userLayout",
+        title: "login",
       });
     }
 
@@ -229,6 +258,8 @@ const postResetpassword = async (req, res) => {
       return res.render("user/resetpassword", {
         email,
         error: "Something went wrong",
+        layout: "layouts/userLayout",
+        title: "Reset Password",
       });
     }
 
@@ -237,6 +268,8 @@ const postResetpassword = async (req, res) => {
       return res.render("user/resetpassword", {
         email,
         error: "Invalid or expired OTP",
+        layout: "layouts/userLayout",
+        title: "otp",
       });
     }
 
@@ -244,6 +277,8 @@ const postResetpassword = async (req, res) => {
       return res.render("user/resetpassword", {
         email,
         error: "Invalid or expired OTP",
+        layout: "layouts/userLayout",
+        title: "Reset Password",
       });
     }
 
@@ -269,7 +304,11 @@ const resetPasswordResendOtp = async (req, res) => {
     const otpRecord = new OTP({ email, otp, expiredAt });
     await otpRecord.save();
     await sendOtp(email, otp);
-    return res.render("user/resetpassword", { email });
+    return res.render("user/resetpassword", {
+      email,
+      layout: "layouts/userLayout",
+      title: "resetPasswordOtp",
+    });
   } catch (error) {
     console.error("Resend otp failed");
     res.status(500).send("Internal server error");
@@ -278,7 +317,7 @@ const resetPasswordResendOtp = async (req, res) => {
 
 const loadAdminLogin = async (req, res) => {
   try {
-    return res.render("admin/login", { layout: false });
+    return res.render("admin/login", { layout:false,});
   } catch (error) {
     console.log("login page is loading");
     res.status(500).send("Server error loading login page");

@@ -6,7 +6,7 @@ const userAuth = async (req, res, next) => {
     }
 
     const user = await User.findById(req.session.user._id);
-    console.log(user)
+    console.log(user);
     if (user && !user.isBlocked) {
       return next();
     }
@@ -31,10 +31,10 @@ const adminAuth = async (req, res, next) => {
   try {
     if (!req.session.user) {
       if (req.xhr) {
-        return res.status(401).json({ 
-          success: false, 
-          error: 'Not authenticated. Please log in.', 
-          redirect: '/admin/login' 
+        return res.status(401).json({
+          success: false,
+          error: "Not authenticated. Please log in.",
+          redirect: "/admin/login",
         });
       }
       return res.redirect("/admin/login");
@@ -42,10 +42,10 @@ const adminAuth = async (req, res, next) => {
 
     if (!req.session.user.isAdmin) {
       if (req.xhr) {
-        return res.status(403).json({ 
-          success: false, 
-          error: 'Not authorized. You must be an admin.', 
-          redirect: '/login' 
+        return res.status(403).json({
+          success: false,
+          error: "Not authorized. You must be an admin.",
+          redirect: "/login",
         });
       }
       return res.redirect("/login");
@@ -55,9 +55,9 @@ const adminAuth = async (req, res, next) => {
   } catch (err) {
     console.log("Error in adminAuth:", err);
     if (req.xhr) {
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Internal server error' 
+      return res.status(500).json({
+        success: false,
+        error: "Internal server error",
       });
     }
     res.status(500).send("Internal server error");
@@ -74,10 +74,30 @@ const isUser = (req, res, next) => {
   next();
 };
 
+const sessionCheck = async (req, res, next) => {
+  try {
+    if (!req.session.user) {
+      return next();
+    }
+
+    const user = await User.findById(req.session.user._id);
+
+    if (!user || user.isBlocked) {
+      req.session.destroy(() => {});
+      return res.redirect("/login");
+    }
+
+    next();
+  } catch (err) {
+    console.error("Error in sessionCheck middleware:", err);
+    next(err);
+  }
+};
 
 module.exports = {
   userAuth,
   adminAuth,
   isLogin,
   isUser,
+  sessionCheck,
 };

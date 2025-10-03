@@ -1,7 +1,9 @@
 const User = require("../models/User");
 const userAuth = async (req, res, next) => {
   try {
+    console.log("userAuth middleware - Session user:", req.session.user);
     if (!req.session.user) {
+      console.log("No user session, redirecting to /login");
       return res.redirect("/login");
     }
 
@@ -65,7 +67,9 @@ const adminAuth = async (req, res, next) => {
 };
 
 const isUser = (req, res, next) => {
+  console.log("isUser middleware - Session user:", req.session.user);
   if (!req.session.user) {
+    console.log("No user session, redirecting to /login");
     return res.redirect("/login");
   }
   if (req.session.user.isAdmin) {

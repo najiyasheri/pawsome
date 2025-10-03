@@ -10,6 +10,7 @@ const { loadProductDetails } = require("../controllers/productController")
 const profileController=require('../controllers/profileController')
 const addressController=require('../controllers/addressController')
 const shippingController=require('../controllers/shippingController')
+const paymentController=require('../controllers/paymentContoller')
 
 router.get("/", homeController.loadHomepage);
 router.get("/login",isLogin, authController.loadLoginPage);
@@ -46,6 +47,8 @@ router.post("/address/edit/:id", isUser,addressController.postEdit);
 router.post("/address/delete/:id", isUser,addressController.deleteAddress);
 
 router.get("/shipping", isUser,shippingController.loadShipping);
+
+router.get('/payment',paymentController.loadPayment)
 
 
 

@@ -7,6 +7,7 @@ const userController = require("../controllers/userController");
 const categoryController = require("../controllers/categoryController");
 const productController = require("../controllers/productController");
 const uploadProductImages = require("../middlewares/multer");
+const orderController=require('../controllers/orderController')
 
 
 router.get("/login", isLogin, authController.loadAdminLogin);
@@ -15,7 +16,6 @@ router.get("/dashboard", adminAuth, homeController.loadAdminDashboard);
 router.get("/users", adminAuth, userController.loadUserManagement);
 router.get("/logout", authController.logoutAdmin);
 router.get("/user/toggleBlock", adminAuth, userController.toggleBlock);
-
 
 router
   .route("/category")
@@ -35,5 +35,7 @@ router.get('/product/block',adminAuth,productController.toggleBlock)
 router.get('/product/edit/:id', adminAuth,productController.loadEditProduct);
 router.post('/product/edit/:id', adminAuth , uploadProductImages, productController.postEditProduct);
 
+router.get('/order',orderController.loadOrder)
+router.get('/order/:id',orderController.loadOrderDetail)
 
 module.exports = router;

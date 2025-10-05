@@ -1,0 +1,76 @@
+<div class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+
+    <!-- Order Summary -->
+    <div class="mb-6">
+        <p><strong>Order Date:</strong>
+            <%= order.createdAt.toLocaleDateString("en-IN") %>
+        </p>
+        <p><strong>Order Id:</strong>
+            <%= order.orderId %>
+        </p>
+        <p><strong>Order Status:</strong>
+            <%= order.status %>
+        </p>
+        <p><strong>Payment:</strong>
+            <%= order.paymentMethod %>
+        </p>
+        <p><strong>Total:</strong> ₹<%= order.totalAmount %>
+        </p>
+        <p><strong>User:</strong>
+            <%= order.userId.name %>
+        </p>
+    </div>
+
+    <!-- Order Items -->
+    <div class="mb-6">
+        <% order.items.forEach(item=> { %>
+            <div class="flex items-center justify-between border-b py-4">
+                <div class="flex items-center gap-4">
+                    <% if(item.productId.images && item.productId.images.length > 0) { %>
+                        <img src="/uploads/<%=item.productId.images[0] %>" class="w-16 h-16 object-cover rounded" />
+                        <% } %>
+                            <div>
+                                <p class="font-semibold">
+                                    <%= item.productId.name %>
+                                </p>
+                                <p>Quantity: <%= item.quantity %>
+                                </p>
+                                <p>Price: ₹<%= item.price %>
+                                </p>
+                            </div>
+                </div>
+                <div>
+                    <p>Subtotal: ₹<%= item.quantity * item.price %>
+                    </p>
+                </div>
+            </div>
+            <% }) %>
+    </div>
+
+    <!-- Billing / Shipping Details -->
+    <div>
+        <h2 class="font-bold text-lg mb-2">Billing Details</h2>
+        <p><strong>Name:</strong>
+            <%= order.userId.name %>
+        </p>
+        <p><strong>Email:</strong>
+            <%= order.userId.email || "N/A" %>
+        </p>
+        <p><strong>Phone:</strong>
+            <%= order.userId.phone || "N/A" %>
+        </p>
+        <!-- Add address info if saved in order -->
+    </div>
+    <h2 class="font-bold text-lg mb-2">Billing / Shipping Details</h2>
+    
+    <p><strong>Name:</strong>
+        <%= order.addressId?.name || order.userId.name %>
+    </p>
+    <p><strong>Phone:</strong>
+        <%= order.addressId?.phone || order.userId.phone || "N/A" %>
+    </p>
+    <p><strong>Address:</strong>
+        <%= order.addressId?.address || "N/A" %>
+    </p>
+
+</div>

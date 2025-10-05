@@ -1,14 +1,11 @@
 const User = require("../models/User");
 const userAuth = async (req, res, next) => {
   try {
-    console.log("userAuth middleware - Session user:", req.session.user);
     if (!req.session.user) {
-      console.log("No user session, redirecting to /login");
       return res.redirect("/login");
     }
 
     const user = await User.findById(req.session.user._id);
-    console.log(user);
     if (user && !user.isBlocked) {
       return next();
     }
@@ -67,7 +64,6 @@ const adminAuth = async (req, res, next) => {
 };
 
 const isUser = (req, res, next) => {
-  console.log("isUser middleware - Session user:", req.session.user);
   if (!req.session.user) {
     console.log("No user session, redirecting to /login");
     return res.redirect("/login");
@@ -83,14 +79,11 @@ const sessionCheck = async (req, res, next) => {
     if (!req.session.user) {
       return next();
     }
-
     const user = await User.findById(req.session.user._id);
-
     if (!user || user.isBlocked) {
       req.session.destroy(() => {});
       return res.redirect("/login");
     }
-
     next();
   } catch (err) {
     console.error("Error in sessionCheck middleware:", err);

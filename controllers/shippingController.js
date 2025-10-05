@@ -1,4 +1,5 @@
-const Address=require('../models/address')
+
+const Address = require("../models/address");
 const loadShipping = async (req, res) => {
   try {
     const getFutureDate = (daysAhead) => {
@@ -12,14 +13,17 @@ const loadShipping = async (req, res) => {
       { type: "Express", price: 120, daysAhead: 4, value: "express" },
     ];
     shippingOptions.forEach((opt) => (opt.date = getFutureDate(opt.daysAhead)));
-    const addresses = await Address.find({ userId: req.session.user._id});
-  
-
+    const address = await Address.findById(req.query.addressId);
+    console.log('addrss',address)
+    if (!address) {
+         res.render('user/address',{error:'please enter address'})
+    }
+    req.session.addressId=address._id
     res.render("user/shipping", {
       layout: "layouts/userLayout",
       title: "shipping",
       shippingOptions,
-      addresses,
+      selectedShipping: req.session.shipping || "regular",
     });
   } catch (error) {
     console.log(error);
@@ -27,4 +31,15 @@ const loadShipping = async (req, res) => {
   }
 };
 
-module.exports = { loadShipping };
+const saveShipping = (req, res) => {
+  try {
+    const { shipping } = req.body;
+    req.session.shipping = shipping;
+    res.redirect("/payment");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+};
+
+module.exports = { loadShipping, saveShipping };

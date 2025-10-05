@@ -15,41 +15,52 @@
       <span class="text-gray-500">Payment</span>
     </div>
   </div>
+  <h2 class="text-xl font-semibold mb-6">Select Address</h2>
 
-  <!-- Step Content -->
-  <div id="stepContent">
-
-    <!-- Step 1: Address -->
-    <div class="step-pane" data-step="1">
-      <h2 class="text-xl font-semibold mb-6">Select Address</h2>
-
-      <!-- Address List -->
-      <div class="space-y-4" id="addressList">
-        <% addresses.forEach(addr => { %>
-          <label class="block border rounded-lg p-4 cursor-pointer hover:border-yellow-500 transition">
-            <div class="flex items-start justify-between">
-              <div>
-                <input type="radio" name="address" class="accent-yellow-500" <%= addr.default ? 'checked' : '' %>>
-                <span class="ml-2 font-semibold"><%= addr.name %></span>
-                <span class="ml-2 text-xs bg-yellow-500 text-white px-2 py-0.5 rounded"><%= addr.type %></span>
-                <% if(addr.default){ %>
-                  <span class="ml-1 text-xs bg-black text-white px-2 py-0.5 rounded">DEFAULT</span>
-                <% } %>
-                <p class="ml-6 text-gray-700 mt-1"><%= addr.phone %></p>
-                <p class="ml-6 text-gray-700"><%= addr.address %></p>
+  <!-- Address List -->
+  <div class="space-y-4" id="addressList">
+    
+    <!-- Step Content -->
+    <div id="stepContent">
+      <!-- Step 1: Address -->
+      <div class="step-pane" data-step="1">
+      <% if(addresses){%>
+          <% addresses.forEach(addr=> { %>
+            <label class="block border rounded-lg p-4 mb-4 cursor-pointer hover:border-yellow-500 transition">
+              <div class="flex items-start justify-between">
+                <div>
+                  <input type="radio" name="address" class="accent-yellow-500" data-id=<%=addr._id %>
+                  <%= addr.default ? 'checked' : '' %>>
+                    <span class="ml-2 font-semibold">
+                      <%= addr.name %>
+                    </span>
+                    <span class="ml-2 text-xs bg-yellow-500 text-white px-2 py-0.5 rounded">
+                      <%= addr.type %>
+                    </span>
+                    <% if(addr.default){ %>
+                      <span class="ml-1 text-xs bg-black text-white px-2 py-0.5 rounded">DEFAULT</span>
+                      <% } %>
+                        <p class="ml-6 text-gray-700 mt-1">
+                          <%= addr.phone %>
+                        </p>
+                        <p class="ml-6 text-gray-700">
+                          <%= addr.address %>
+                        </p>
+                </div>
+                <div class="flex space-x-3 text-gray-500">
+                  <form action="/address/edit/<%= addr._id %>" method="GET">
+                    <button type="submit"><i class="fas fa-pen"></i></button>
+                  </form>
+                  <form action="/address/delete/<%= addr._id %>" method="POST">
+                    <button type="submit"><i class="fas fa-times"></i></button>
+                  </form>
+                </div>
               </div>
-              <div class="flex space-x-3 text-gray-500">
-                <form action="/address/edit/<%= addr._id %>" method="GET">
-                  <button type="submit"><i class="fas fa-pen"></i></button>
-                </form>
-                <form action="/address/delete/<%= addr._id %>" method="POST">
-                  <button type="submit"><i class="fas fa-times"></i></button>
-                </form>
-              </div>
-            </div>
-          </label>
-        <% }) %>
+            </label>
+            <% }) %>
+      <%}%>
       </div>
+  
 
       <!-- Add New Address Button -->
       <div class="flex justify-center my-6">
@@ -109,7 +120,7 @@
   <!-- Navigation Buttons -->
   <div class="flex justify-between mt-8">
     <a href="/cart" class="px-6 py-2 border border-gray-400 rounded-lg hover:bg-gray-100">Back</a>
-    <a href="/shipping" class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">Next</a>
+    <a href="#" id="nextBtn" class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">Next</a>
   </div>
 
 </section>
@@ -121,4 +132,21 @@
   const showFormBtn = document.getElementById('showFormBtn');
   const addAddressForm = document.getElementById('addAddressForm');
   showFormBtn.addEventListener('click', () => addAddressForm.classList.toggle('hidden'));
+
+ 
+      const nextBtn = document.getElementById('nextBtn');
+  nextBtn.addEventListener('click', (e) => {
+        e.preventDefault(); 
+
+
+      const selectedAddress = document.querySelector('input[name="address"]:checked');
+      if (!selectedAddress) {
+        alert("Please select an address before proceeding.");
+      return;
+    }
+      const addressId = selectedAddress.getAttribute('data-id')
+      window.location.href = `/shipping?addressId=${addressId}`;
+  });
+
+
 </script>

@@ -18,13 +18,13 @@
     </div>
 
     <!-- Shipping Form -->
-    <form action="/payment" method="POST" class="space-y-4">
+    <form action="/shipping/save" method="POST" class="space-y-4">
         <% shippingOptions.forEach(option=> { %>
             <label
                 class="flex items-center justify-between border rounded-lg p-4 cursor-pointer hover:border-yellow-500 transition">
                 <div class="flex items-center">
                     <input type="radio" name="shipping" value="<%= option.value %>" class="accent-yellow-500"
-                        <%=option.value==='regular' ? 'checked' : '' %>>
+                        <%=option.value===selectedShipping ? 'checked' : '' %>>
                     <div class="ml-3">
                         <p class="font-medium">₹<%= option.price %>.00
                                 <span class="ml-2 text-gray-600">

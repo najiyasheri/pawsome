@@ -47,8 +47,10 @@ router.post("/address/edit/:id", isUser,addressController.postEdit);
 router.post("/address/delete/:id", isUser,addressController.deleteAddress);
 
 router.get("/shipping", isUser,shippingController.loadShipping);
+router.post("/shipping/save",isUser, shippingController.saveShipping);
 
-router.get('/payment',paymentController.loadPayment)
+router.get('/payment',isUser,paymentController.loadPayment)
+router.post("/success", isUser,paymentController.processPayment);
 
 
 

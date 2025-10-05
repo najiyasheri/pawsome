@@ -9,6 +9,7 @@ const loadAddress = async (req, res) => {
     const userId = req.session.user._id;
 
     const addresses = await Address.find({ userId });
+    console.log('address:',addresses)
     res.render("user/address", {
       title: "address",
       layout: "layouts/userLayout",
@@ -70,6 +71,13 @@ const editAddress=async(req,res)=>{
 const postEdit=async(req,res)=>{
     try {
           const { name, phone, type, address, default: isDefault } = req.body;
+          const userId = req.session.user._id;
+            if (isDefault) {
+              await Address.updateMany(
+                { userId, _id: { $ne: req.params.id } },
+                { $set: { default: false } }
+              );
+            }
   await Address.findByIdAndUpdate(req.params.id, {
     name,
     phone,

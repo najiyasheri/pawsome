@@ -75,7 +75,6 @@ const processPayment = async (req, res) => {
     const orderId = "ORD" + Date.now();
     const addressId=req.session.addressId
     const address=await Address.findById(addressId)
-    console.log(address,addressId)
     if(!address){
       return res.render('user/address',{error:'address is not found'})
     }

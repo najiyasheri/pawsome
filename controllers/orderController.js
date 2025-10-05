@@ -6,8 +6,8 @@ const loadOrder = async (req, res) => {
   try {
     const orders = await Order.find()
       .populate("userId", "name")
-      .populate("items.productId", "name price image");
-    console.log(orders).sort({ createdAt: -1 });
+      .populate("items.productId", "name price image")
+      .sort({ createdAt: -1 });
     res.render("admin/orderManagement", {
       title: "Order-Management",
       layout: "layouts/adminLayout",
@@ -38,4 +38,85 @@ const loadOrderDetail = async (req, res) => {
   }
 };
 
-module.exports = { loadOrder, loadOrderDetail };
+
+const cancelSingleItem = async (req, res) => {
+  try {
+    const { orderId, itemId } = req.params;
+
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).send("Order not found");
+
+
+    order.items = order.items.filter((item) => item._id.toString() !== itemId);
+
+    if (order.items.length === 0) order.status = "Cancelled";
+
+    await order.save();
+    res.redirect(`/admin/order/${orderId}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error cancelling item");
+  }
+};
+
+
+const cancelEntireOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).send("Order not found");
+
+    order.status = "Cancelled";
+    await order.save();
+
+    res.redirect(`/admin/order/${orderId}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error cancelling order");
+  }
+};
+
+
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    const order = await Order.findById(orderId);
+    if (!order) return res.status(404).send("Order not found");
+
+    order.status = status;
+    await order.save();
+
+    res.redirect(`/admin/order/${orderId}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error updating status");
+  }
+};
+const loadUserOrders = async (req, res) => {
+  try {
+    const userId = req.session.user._id;
+    const orders = await Order.find({ userId })
+      .populate("items.productId", "name price images")
+      .sort({ createdAt: -1 });
+
+    res.render("user/myOrder", {
+      title: "MyOrders",
+      layout:'layouts/userLayout',
+      orders,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+};
+
+module.exports = { 
+  loadOrder,
+  loadOrderDetail,
+  cancelSingleItem,
+  cancelEntireOrder,
+  updateOrderStatus,
+  loadUserOrders
+};

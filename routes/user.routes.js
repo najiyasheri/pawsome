@@ -11,6 +11,7 @@ const profileController=require('../controllers/profileController')
 const addressController=require('../controllers/addressController')
 const shippingController=require('../controllers/shippingController')
 const paymentController=require('../controllers/paymentContoller')
+const orderController=require('../controllers/orderController')
 
 router.get("/", homeController.loadHomepage);
 router.get("/login",isLogin, authController.loadLoginPage);
@@ -51,6 +52,8 @@ router.post("/shipping/save",isUser, shippingController.saveShipping);
 
 router.get('/payment',isUser,paymentController.loadPayment)
 router.post("/success", isUser,paymentController.processPayment);
+
+router.get("/myOrders", orderController.loadUserOrders);
 
 
 

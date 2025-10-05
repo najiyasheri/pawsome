@@ -37,5 +37,10 @@ router.post('/product/edit/:id', adminAuth , uploadProductImages, productControl
 
 router.get('/order',orderController.loadOrder)
 router.get('/order/:id',orderController.loadOrderDetail)
+router.post("/order/:orderId/cancel-item/:itemId",orderController.cancelSingleItem);
+
+router.post("/order/:orderId/cancel-all",orderController.cancelEntireOrder);
+
+router.post("/order/:orderId/update-status",orderController.updateOrderStatus);
 
 module.exports = router;

@@ -64,7 +64,7 @@
                             <%= order.orderId %>
                         </td>
                         <td class="py-3 px-4">
-                            <%= order.userId.name %>
+                            <%= order.user.name %>
                         </td>
                         <td class="py-3 px-4">
                             <%= order.items.reduce((acc, item)=> acc + item.quantity, 0) %>

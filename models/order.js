@@ -21,18 +21,7 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    status: {
-      type: String,
-      enum: [
-        "Pending",
-        "Confirmed",
-        "Shipped",
-        "Delivered",
-        "Cancelled",
-        "Returned",
-      ],
-      default: "Pending",
-    },
+
     address: {
       name: { type: String, required: true },
       phone: { type: String, required: true },

@@ -98,7 +98,7 @@ const processPayment = async (req, res) => {
 
     const orderItems = cart.items.map((item) => ({
       orderId: newOrder._id,
-      productId: item._id,
+      productId: item.productId,
       quantity: item.quantity,
       price: item.priceAtAdding,
     }));

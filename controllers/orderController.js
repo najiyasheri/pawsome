@@ -2,15 +2,60 @@ const { default: mongoose } = require("mongoose");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 const User = require("../models/User");
+const OrderItem = require("../models/OrderItem");
 
 const loadOrder = async (req, res) => {
   try {
-    const orders = await Order.find()
-      .populate("userId", "name")
-      .populate("items.productId", "name price image")
-      .sort({ createdAt: -1 });
+    const orders = await Order.aggregate([
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+          pipeline: [{ $project: { name: 1, email: 1, phone: 1 } }],
+        },
+      },
+      { $unwind: "$user" },
+      {
+        $lookup: {
+          from: "orderitems",
+          localField: "_id",
+          foreignField: "orderId",
+          as: "items",
+          pipeline: [
+            {
+              $lookup: {
+                from: "products",
+                localField: "productId",
+                foreignField: "_id",
+                as: "product",
+                pipeline: [{ $project: { name: 1, price: 1, images: 1 } }],
+              },
+            },
+            { $unwind: { path: "$product", preserveNullAndEmptyArrays: true } },
+            {
+              $project: {
+                _id: 1,
+                quantity: 1,
+                price: 1,
+                "product.name": 1,
+                "product.price": 1,
+                "product.images": 1,
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    console.log('orders' , orders)
+
     res.render("admin/orderManagement", {
-      title: "Order-Management",
+      title: "Order Management",
       layout: "layouts/adminLayout",
       orders,
     });
@@ -23,18 +68,32 @@ const loadOrder = async (req, res) => {
 const loadOrderDetail = async (req, res) => {
   try {
     const orderId = req.params.id;
-    const order = await Order.findById(orderId)
-      .populate("userId", "name email phone")
-      .populate("items.productId", "name price images");
+
+    const order = await Order.findById(orderId).populate(
+      "userId",
+      "name email phone"
+    );
 
     if (!order) return res.status(404).send("Order not found");
+    const items = await OrderItem.find({ orderId: order._id }).populate(
+      "productId",
+      "name price images"
+    );
+
+    const fullOrder = {
+      ...order.toObject(),
+      items,
+    };
+
+
+
     res.render("admin/orderDetail", {
       title: "Order Details",
       layout: "layouts/adminLayout",
-      order,
+      order: fullOrder,
     });
   } catch (error) {
-    console.error(err);
+    console.error(error);
     res.status(500).send("Server error");
   }
 };
@@ -46,9 +105,10 @@ const cancelSingleItem = async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
 
-    if (order.items.length === 0) order.status = "Cancelled";
-
-    await order.save();
+    const item = await OrderItem.findOne({ orderId, _id:itemId});
+    
+    item.status='Cancelled'
+    await item.save();
     res.redirect(`/admin/order/${orderId}`);
   } catch (err) {
     console.error(err);
@@ -62,8 +122,7 @@ const cancelEntireOrder = async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
 
-    order.status = "Cancelled";
-    await order.save();
+   await OrderItem.updateMany({orderId},{$set:{status:'Cancelled'}})
 
     res.redirect(`/admin/order/${orderId}`);
   } catch (err) {
@@ -116,8 +175,7 @@ const loadUserOrders = async (req, res) => {
       },
     ]);
 
-
-    console.log('orders',orders)
+ console.log(orders)
 
     res.render("user/myOrder", {
       title: "MyOrders",

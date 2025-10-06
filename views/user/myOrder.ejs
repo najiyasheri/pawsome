@@ -19,20 +19,16 @@
         </div>
       </div>
 
-      <!-- Order Items -->
       <div class="space-y-2">
         <% order.items.forEach(item => { %>
           <div class="flex items-center gap-4 border border-gray-200 p-2 rounded-lg bg-gray-50">
-            <!-- Product Image -->
             <img 
-              src="<%= (item.productId.images && item.productId.images.length > 0) ? '/uploads/' + item.productId.images[0] : '/img/cat&dogToy .jpg' %>" 
+              src="/uploads/<%= item.product[0].images[0] %>" 
               alt="<%= item.productId.name %>" 
               class="w-16 h-16 object-cover rounded border"
             />
-
-            <!-- Product Info -->
             <div>
-              <p class="font-semibold text-gray-800"><%= item.productId.name %></p>
+              <p class="font-semibold text-gray-800">Name:<%= item.product[0].name %></p>
               <p class="text-sm text-green-600">Status: ₹<%= item.status %>
               </p>
               <p class="text-sm text-gray-600">Quantity: <%= item.quantity %></p>

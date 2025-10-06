@@ -12,7 +12,7 @@
     <li><a href="/admin/product"
         class="font-medium <%=title=== 'Products-Management' ?' text-yellow-500' :'text-gray-700 hover:text-yellow-500' %>">Products
         Management</a></li>
-    <li><a href="#"
+    <li><a href="/admin/order"
         class="font-medium <%=title=== 'Order-Management' ?' text-yellow-500' :'text-gray-700 hover:text-yellow-500' %>">Order
         Management</a></li>
     <li><a href="/admin/category"
@@ -23,8 +23,12 @@
         Management</a></li>
     <li>
       <a href="/admin/logout"
-        class="bg-yellow-400 text-black px-4 py-2 rounded-md block text-center font-semibold hover:bg-yellow-300">
-        Logout
+       class="flex items-center text-yellow-600 hover:text-red-600 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7" />
+            </svg>
+            Logout
       </a>
     </li>
   </ul>

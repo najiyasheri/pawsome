@@ -6,90 +6,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login Page</title>
   <link rel="stylesheet" href="/styles/auth.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
-  <div class="main-container">
-    <div class="auth-container">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
 
-      <h1 class="admin-title">ADMIN LOGIN</h1>
+  <div class="auth-container w-full max-w-md">
 
-      <div class="pawsome-container"> <img src="/img/Remove background project.png" alt="pawsome"
-          class="pawsome-icon" /></div>
+    <h1 class="admin-title text-2xl font-bold text-center mb-4">ADMIN LOGIN</h1>
 
-      <form id="loginform" action="/admin/login" method="POST" class="auth-form">
-        <div></div>
-        <% if(typeof error !=='undefined' ) { %>
-          <div class="error-message">
-            <%=error%>
-          </div>
-          <% } %>
-
-            <input type="email" id="email" class="admininput-field " name="email" placeholder="Email" />
-            <div id="error1" class="error-message"></div>
-            <input type="password" id="password" class="admininput-field " name="password" placeholder="Password" />
-            <div id="error2" class="error-message"></div>
-
-            <button type="submit" class="primary-btn">LOGIN</button>
+    <div class="pawsome-container flex justify-center mb-4">
+      <img src="/img/Remove background project.png" alt="pawsome" class="pawsome-icon ">
     </div>
+
+    <form id="loginform" action="/admin/login" method="POST" class="space-y-4 w-full">
+
+      <% if(typeof error !=='undefined' ) { %>
+        <div class="text-red-500 text-sm text-center">
+          <%=error%>
+        </div>
+        <% } %>
+
+          <div>
+            <input type="email" id="email" name="email" placeholder="Email"
+              class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500" />
+            <div id="error1" class="text-red-500 text-sm mt-1"></div>
+          </div>
+
+          <div>
+            <input type="password" id="password" name="password" placeholder="Password"
+              class="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-yellow-500" />
+            <div id="error2" class="text-red-500 text-sm mt-1"></div>
+          </div>
+
+          <button type="submit"
+            class="w-full bg-yellow-500 text-white py-3 rounded font-semibold hover:bg-yellow-600 transition">
+            LOGIN
+          </button>
     </form>
   </div>
-  </div>
-  <script>
-    const email = document.getElementById('email')
-    const password = document.getElementById('password')
 
-    const error1 = document.getElementById('error1')
-    const error2 = document.getElementById('error2')
-    const loginform = document.getElementById('loginform')
-
-
-    function emailValidateChecking() {
-      const emailval = email.value
-      const emailpattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-
-      if (!emailpattern.test(emailval)) {
-        error1.style.display = 'block'
-        error1.innerHTML = 'Invalid Format'
-      } else {
-        error2.style.display = 'none'
-        error2.innerHTML = ""
-      }
-    }
-    function passwordValidateChecking() {
-      const passval = password.value
-      const alpha = /[A-Za-z]/
-      const digit = /\d/
-
-      if (passval.length < 8) {
-        error2.style.display = 'block'
-        error2.innerHTML = "Should contain at least 8 characters"
-      }
-      else if (!alpha.test(passval) || !digit.test(passval)) {
-        error2.style.display = 'block'
-        error2.innerHTML = "Should contain numbers and alphabets"
-      } else {
-        error2.style.display = 'none'
-        error2.innerHTML = ""
-      }
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-      loginform.addEventListener('submit', function (e) {
-        emailValidateChecking()
-        passwordValidateChecking()
-
-        if (
-          error1.innerHTML ||
-          error2.innerHTML
-        ) {
-          e.preventDefault()
-        }
-      })
-    })
-
-
-
-  </script>
 </body>
+
 
 </html>

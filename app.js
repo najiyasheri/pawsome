@@ -9,7 +9,7 @@ const path = require("path");
 const db = require("./config/db");
 const userRouter = require("./routes/user.routes");
 const adminRouter = require("./routes/admin.routes");
-
+const sessionCheck = require('./middlewares/authMiddleware').sessionCheck
 db();
 
 app.use(
@@ -45,7 +45,11 @@ app.use((req, res, next) => {
   next();
 });
 
-
+app.use((req, res, next) => {
+  res.locals.user = req.session.user || null;
+  next();
+});
+app.use(sessionCheck);
 app.use("/admin", adminRouter);
 app.use("/", userRouter);
 

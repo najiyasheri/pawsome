@@ -1,0 +1,122 @@
+<h2 class="text-2xl font-bold text-gray-800 mb-4 mx-21">Order Summary</h2>
+<div class="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-lg border border-gray-200">
+
+    <!-- Order Summary -->
+  
+  
+      
+    <div class="mb-8 border-b border-gray-300  pb-4">
+      
+        <div class="gap-y-4 text-gray-700 space-y-3.5">
+            <p><strong>Order Date:</strong>
+                <%= order.createdAt.toLocaleDateString("en-IN") %>
+            </p>
+            <p><strong>Order Id:</strong>
+                <%= order.orderId %>
+            </p>
+       
+              
+            <p><strong>Payment Method:</strong>
+                <%= order.paymentMethod %>
+            </p>
+            <p><strong>Total:</strong> ₹<%= order.totalAmount %>
+            </p>
+            <p><strong>User:</strong>
+                <%= order.userId.name %>
+            </p>
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Order Items</h2>
+        <div class="space-y-4">
+            <% order.items.forEach(item=> { %>
+                <div
+                    class="flex flex-col sm:flex-row items-center justify-between border border-gray-100 rounded-lg p-4 bg-white hover:bg-gray-100 transition">
+                    <div class="flex items-center gap-4 w-full sm:w-auto">
+                        <% if(item.productId.images && item.productId.images.length> 0) { %>
+                            <img src="/uploads/<%= item.productId.images[0] %>"
+                                class="w-16 h-16 object-cover rounded-md border" />
+                            <% } %>
+                                <div>
+                                    <p class="font-semibold text-gray-800">
+                                        <%= item.productId.name %>
+                                    </p>
+                                    <p class="text-sm text-gray-600">Quantity: <%= item.quantity %>
+                                    </p>
+                                    <p class="text-sm text-gray-600">Price: ₹<%= item.price %>
+                                    </p>
+                                </div><div class="mt-4 mx-10">
+                                    <form action="/admin/order/<%= order._id %>/<%= item._id %>/update-status" method="POST" class="flex items-center gap-3">
+                                        <label for="status" class="font-medium text-gray-700">Update Status:</label>
+                                        <select name="status" id="status"
+                                            class="border border-gray-300 rounded-md px-6 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                            <option value="Pending" <%=item.status==="Pending" ? "selected" : "" %>>Pending</option>
+                                            <option value="Confirmed" <%=item.status==="Confirmed" ? "selected" : "" %>>Confirmed</option>
+                                            <option value="Shipped" <%=item.status==="Shipped" ? "selected" : "" %>>Shipped</option>
+                                            <option value="Delivered" <%=item.status==="Delivered" ? "selected" : "" %>>Delivered</option>
+                                            <option value="Cancelled" <%=item.status==="Cancelled" ? "selected" : "" %>>Cancelled</option>
+                                            <option value="Returned" <%=item.status==="Returned" ? "selected" : "" %>>Returned</option>
+                                        </select>
+                                        <button type="submit"
+                                            class="bg-yellow-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-yellow-600 transition">
+                                            Update
+                                        </button>
+                                    </form>
+                                </div>
+
+                    </div>
+
+                    <div class="mt-3 sm:mt-0 text-right">
+                        <p class="font-medium text-gray-700">Subtotal: ₹<%= item.quantity * item.price %>
+                        </p>
+                        <form action="/admin/order/<%= order._id %>/cancel-item/<%= item._id %>" method="POST"
+                            class="mt-2">
+                            <button type="submit"
+                                class="bg-red-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-600 transition">
+                                Cancel This Item
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <% }) %>
+        </div>
+    </div>
+
+    <!-- Billing Details -->
+    <div class="border-t pt-6  border-gray-300  pb-4">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Billing Details</h2>
+        <div class=" gap-y-2 text-gray-700 space-x-2.5">
+            <p><strong>Name:</strong>
+                <%= order.userId.name %>
+            </p>
+            <p><strong>Email:</strong>
+                <%= order.userId.email || "N/A" %>
+            </p>
+        </div>
+    </div>
+
+    <!-- Billing Address -->
+    <div class="mt-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Billing Address</h2>
+        <div class="text-gray-700 space-y-1">
+            <p><strong>Name:</strong>
+                <%= order.address?.name || order.userId.name %>
+            </p>
+            <p><strong>Address:</strong>
+                <%= order.address?.address || "N/A" %>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Entire Order -->
+<div class="mt-8 text-center">
+    <form action="/admin/order/<%= order._id %>/cancel-all" method="POST">
+        <button type="submit"
+            class="bg-red-600 text-white px-8 py-2.5 rounded-lg text-base font-medium shadow-md hover:bg-red-700 transition">
+            Cancel Entire Order
+        </button>
+    </form>
+</div>

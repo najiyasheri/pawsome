@@ -41,9 +41,13 @@
           </a>
         <% } else { %>
           <!-- Login -->
-          <a href="/login" class="bg-[#F9C22A] text-black py-2 px-4 rounded-full hover:bg-[#d4a81f] transition-colors duration-300 no-underline">
-            Login
-          </a>
+           <% if(title!='User Signup' && title!='User Login') {%>
+            <a href="/login"
+              class="bg-[#F9C22A] text-black py-2 px-4 rounded-full hover:bg-[#d4a81f] transition-colors duration-300 no-underline">
+              Login
+            </a>
+            <% } %>
+         
         <% } %>
       </div>
 

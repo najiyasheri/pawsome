@@ -3,7 +3,7 @@
 
     <div class="bg-white p-4 mb-4 rounded-lg shadow-sm w-full">
       <form id="filterForm" class="flex items-center justify-between gap-2 overflow-x-auto whitespace-nowrap w-full">
-      
+
         <div class="flex items-center gap-2">
           <input type="text" id="searchInput" name="search" placeholder="Search products..." class="px-4 py-2 border border-gray-300 rounded-l-lg 
                    focus:outline-none focus:ring-2 focus:ring-gray-50 focus:border-[#F9C22A] w-80" />
@@ -13,7 +13,7 @@
           </button>
         </div>
 
-       
+
         <div class="flex items-center gap-4">
           <!-- Sort -->
           <div class="flex items-center gap-2 whitespace-nowrap">
@@ -108,10 +108,11 @@
             <span class="text-xl font-bold text-black-600 product-price">₹0</span>
             <span class="line-through text-gray-400 old-price">₹0</span>
           </div>
-          <a class="add-cart text-gray-900 bg-yellow-400 hover:bg-gray-600 focus:ring-4 
-           focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+          <button class="add-cart text-gray-900 bg-yellow-400 hover:bg-gray-600 focus:ring-4 
+                   focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+            data-product-id="">
             Add to cart
-          </a>
+          </button>
         </div>
       </div>
     </div>
@@ -148,8 +149,37 @@
         clone.querySelector(".product-name").textContent = p.name;
         clone.querySelector(".product-price").textContent = `₹${p.price}`;
         clone.querySelector(".old-price").textContent = `₹${p.oldPrice}`;
-        clone.querySelector(".add-cart").href = `/cart/add/${p._id}`;
+        clone.querySelector(".add-cart").setAttribute("data-product-id", p._id);
         container.appendChild(clone);
+      });
+      document.querySelectorAll(".add-cart").forEach(button => {
+        button.addEventListener("click", async (e) => {
+          e.preventDefault();
+          const productId = button.getAttribute("data-product-id");
+          try {
+            const response = await fetch("/cart/add", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+              },
+              body: JSON.stringify({
+                productId,
+                quantity: 1 // Default quantity, adjust as needed
+              })
+            });
+
+            if (response.ok) {
+              window.location.href = "/cart"; // Redirect to cart page on success
+            } else {
+              const errorData = await response.json();
+              alert(errorData.message || "Failed to add item to cart");
+            }
+          } catch (error) {
+            console.error("Error adding to cart:", error);
+            alert("An error occurred while adding to cart");
+          }
+        });
       });
 
       const paginationList = document.querySelector(".pagination ul");
@@ -237,19 +267,19 @@
     fetchProducts(getCurrentFilters());
   });
 
- document.getElementById("clearFiltersContainer").addEventListener("click", e => {
-  if (e.target.id === "clearFiltersBtn") {
-   
-    document.getElementById("searchInput").value = "";
-    document.getElementById("sortSelect").value = "";
-    document.getElementById("categoryFilter").value = "";
-    document.getElementById("priceRangeFilter").value = "";
+  document.getElementById("clearFiltersContainer").addEventListener("click", e => {
+    if (e.target.id === "clearFiltersBtn") {
 
-    const baseUrl = window.location.pathname; 
-    window.history.replaceState({}, "", baseUrl);
-    fetchProducts({ limit: 12 });
-  }
-});
+      document.getElementById("searchInput").value = "";
+      document.getElementById("sortSelect").value = "";
+      document.getElementById("categoryFilter").value = "";
+      document.getElementById("priceRangeFilter").value = "";
+
+      const baseUrl = window.location.pathname;
+      window.history.replaceState({}, "", baseUrl);
+      fetchProducts({ limit: 12 });
+    }
+  });
 
   fetchProducts(getCurrentFilters());
 </script>

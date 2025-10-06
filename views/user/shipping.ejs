@@ -1,0 +1,49 @@
+<section class="max-w-3xl mx-auto p-6">
+
+    
+    <!-- Stepper -->
+    <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center space-x-2 step" data-step="1">
+            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 font-bold">1</div>
+            <span class="font-medium text-gray-500">Address</span>
+        </div>
+        <div class="flex items-center space-x-2 step" data-step="2">
+            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500 text-white font-bold">2</div>
+            <span class="text-yellow-600">Shipping</span>
+        </div>
+        <div class="flex items-center space-x-2 step" data-step="3">
+            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 font-bold">3</div>
+            <span class="text-gray-500">Payment</span>
+        </div>
+    </div>
+
+    <!-- Shipping Form -->
+    <form action="/shipping/save" method="POST" class="space-y-4">
+        <% shippingOptions.forEach(option=> { %>
+            <label
+                class="flex items-center justify-between border rounded-lg p-4 cursor-pointer hover:border-yellow-500 transition">
+                <div class="flex items-center">
+                    <input type="radio" name="shipping" value="<%= option.value %>" class="accent-yellow-500"
+                        <%=option.value===selectedShipping ? 'checked' : '' %>>
+                    <div class="ml-3">
+                        <p class="font-medium">₹<%= option.price %>.00
+                                <span class="ml-2 text-gray-600">
+                                    <%= option.type %> shipment
+                                </span>
+                        </p>
+                    </div>
+                </div>
+                <span class="text-gray-500 text-sm">
+                    <%= option.date %>
+                </span>
+            </label>
+            <% }) %>
+     
+
+        <div class="flex justify-between mt-6">
+            <a href="/address" class="px-6 py-2 border border-gray-400 rounded-lg hover:bg-gray-100">Back</a>
+            <button type="submit" class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">Continue to
+                Payment</button>
+        </div>
+    </form>
+</section>

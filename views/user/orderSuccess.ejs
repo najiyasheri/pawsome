@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Successful | Pawsome</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <style>
+        .checkmark {
+            width: 100px;
+            height: 100px;
+            display: block;
+            margin: 0 auto;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .checkmark__circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 3;
+            stroke: #22c55e;
+            fill: none;
+            animation: stroke 0.6s ease-in-out forwards;
+        }
+
+        .checkmark__fill {
+            fill: #22c55e;
+            opacity: 0;
+            animation: fillCircle 0.5s ease-in-out 0.6s forwards;
+        }
+
+        .checkmark__check {
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            stroke-width: 3;
+            stroke: #fff;
+            fill: none;
+            animation: drawCheck 0.3s ease-in-out 1.1s forwards;
+        }
+
+        @keyframes stroke {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes fillCircle {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes drawCheck {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease forwards;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white rounded-2xl shadow-lg p-8 max-w-md text-center">
+        <!-- Animated Success Icon -->
+        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+            <!-- Green fill circle -->
+            <circle class="checkmark__fill" cx="26" cy="26" r="25" />
+            <!-- Outer circle stroke -->
+            <circle class="checkmark__circle" cx="26" cy="26" r="25" />
+            <!-- Checkmark -->
+            <path class="checkmark__check" d="M14 27l7 7 16-16" />
+        </svg>
+
+        <h1 class="text-2xl font-bold text-gray-800 mt-6 mb-2 animate-fade-in">Order Placed Successfully!</h1>
+        <p class="text-gray-600 mb-6 animate-fade-in">Thank you for shopping with Pawsome 🐾<br>Your order has been confirmed.</p>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in">
+            <a href="/products"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-lg transition">
+             Back to Shop
+            </a>
+            <a href="/myOrders"
+                class="bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2 px-6 rounded-lg transition">
+                My Orders
+            </a>
+        </div>
+    </div>
+
+</body>
+
+</html>

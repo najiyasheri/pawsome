@@ -69,7 +69,6 @@ const addProduct = async (req, res) => {
       images = req.files["images[]"].map((file) => file.filename);
     }
 
-
     const product = new Product({
       name: req.body.name,
       description: req.body.description,
@@ -84,7 +83,7 @@ const addProduct = async (req, res) => {
       discountPercentage: parseFloat(req.body.discount) || 0,
       images,
     });
-     console.log(req.body)
+    console.log(req.body);
     const savedProduct = await product.save();
     const variants = req.body.size.map((size, index) => ({
       productId: savedProduct._id,
@@ -113,10 +112,12 @@ const toggleBlock = async (req, res) => {
     }
     product.isBlocked = !product.isBlocked;
     await product.save();
-        res.json({ success: true, _id: product._id, isBlocked: product.isBlocked });
+    res.json({ success: true, _id: product._id, isBlocked: product.isBlocked });
   } catch (error) {
     console.error("error for fetching product", error);
-      res.status(500).json({ success: false, error: 'Failed to toggle block status' });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to toggle block status" });
   }
 };
 
@@ -133,8 +134,6 @@ const loadEditProduct = async (req, res) => {
 
     const categories = await Category.find({ isBlocked: false });
 
-   
-
     res.render("admin/editProduct", {
       title: "Edit Product",
       layout: "layouts/adminLayout",
@@ -142,7 +141,6 @@ const loadEditProduct = async (req, res) => {
       categories,
       variants,
     });
-
   } catch (error) {
     console.error("Error loading product for edit:", error);
     res.status(500).send("Error loading product for edit");
@@ -173,7 +171,6 @@ const postEditProduct = async (req, res) => {
       ? [images]
       : [];
     product.images = existingImages;
-
 
     if (req.files) {
       const replaceImages = {};
@@ -259,32 +256,29 @@ const userProducts = async (req, res) => {
       if (sort === "name-za") sortOption = { name: -1 };
     }
 
-    
-    const products = await Product.find(filter).lean()
+    const products = await Product.find(filter)
+      .lean()
       .collation({ locale: "en", strength: 1 })
       .sort(sortOption)
       .limit(limit)
       .skip((page - 1) * limit)
       .exec();
 
-  
-      
     const count = await Product.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
     const categories = await Category.find({ isBlocked: false });
-     const updatedProducts = products.map((p) => {
+    const updatedProducts = products.map((p) => {
       return {
         ...p,
-        oldPrice:parseFloat( p.basePrice),
+        oldPrice: parseFloat(p.basePrice),
         discount: p.discountPercentage,
         price: Math.round(p.basePrice * (1 - p.discountPercentage / 100)),
       };
     });
 
-
-     if (req.xhr || req.headers.accept.includes("application/json")) {
+    if (req.xhr || req.headers.accept.includes("application/json")) {
       return res.json({
-        products:updatedProducts,
+        products: updatedProducts,
         totalPages,
         currentPage: page,
         search,
@@ -298,7 +292,7 @@ const userProducts = async (req, res) => {
       title: "User-Product",
       layout: "layouts/userLayout",
       user: req.session.user,
-      products:updatedProducts,
+      products: updatedProducts,
       categories,
       totalPages,
       limit,
@@ -318,10 +312,9 @@ const loadProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
     const product = await Product.findById(productId).lean();
-   
-
-  
-
+    if (!product) {
+      return res.status(404).send("product not found");
+    }
     const relatedProducts = await Product.find({
       categoryId: product.categoryId,
       _id: { $ne: productId },
@@ -341,7 +334,7 @@ const loadProductDetails = async (req, res) => {
       product.basePrice * (1 - product.discountPercentage / 100)
     );
 
-     const updatedProducts = relatedProducts.map((p) => {
+    const updatedProducts = relatedProducts.map((p) => {
       return {
         ...p,
         oldPrice: p.basePrice,
@@ -355,8 +348,48 @@ const loadProductDetails = async (req, res) => {
       layout: "layouts/userLayout",
       user: req.session.user,
       product,
-      relatedProducts:updatedProducts,
+      relatedProducts: updatedProducts,
+    });
+  } catch (error) {
+    console.error("Error loading product details:", error);
+    res.status(500).send("Error loading product details");
+  }
+};
 
+const loadProductDetailAdmin = async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const [product] = await Product.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(productId),
+        },
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $lookup: {
+          from: "variants",
+          localField: "_id",
+          foreignField: "productId",
+          as: "variants",
+        },
+      },
+    ]);
+    if (!product) {
+      return res.status(404).send("product not found");
+    }
+
+    return res.render("admin/productDetail", {
+      title: "productDetail",
+      layout: "layouts/adminLayout",
+      product,
     });
   } catch (error) {
     console.error("Error loading product details:", error);
@@ -373,4 +406,5 @@ module.exports = {
   loadEditProduct,
   userProducts,
   loadProductDetails,
+  loadProductDetailAdmin,
 };

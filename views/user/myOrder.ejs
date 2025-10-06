@@ -1,0 +1,42 @@
+<h1 class="text-2xl font-bold mb-6">My Orders</h1>
+
+<div class="space-y-4">
+  <% orders.forEach(order => { %>
+    <div class="p-4 bg-white rounded-xl shadow border border-gray-200 mb-4">
+      <!-- Order Info -->
+      <div class="flex justify-between items-center mb-4">
+        <div class="space-y-1">
+          <p><strong>Order ID:</strong> <%= order.orderId %></p>
+          <p><strong>Date:</strong> <%= order.createdAt.toLocaleDateString("en-IN") %></p>
+          <p><strong>Total:</strong> ₹<%= order.totalAmount %></p>
+        </div>
+        <div>
+          <a href="/order/<%= order._id %>" 
+             class="bg-yellow-500 text-white px-4 py-1 rounded hover:bg-yellow-600">
+             View Details
+          </a>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <% order.items.forEach(item => { %>
+          <div class="flex items-center gap-4 border border-gray-200 p-2 rounded-lg bg-gray-50">
+            <img 
+              src="/uploads/<%= item.product[0].images[0] %>" 
+              alt="<%= item.productId.name %>" 
+              class="w-16 h-16 object-cover rounded border"
+            />
+            <div>
+              <p class="font-semibold text-gray-800">Name:<%= item.product[0].name %></p>
+              <p class="text-sm text-green-600">Status: ₹<%= item.status %>
+              </p>
+              <p class="text-sm text-gray-600">Quantity: <%= item.quantity %></p>
+              <p class="text-sm text-gray-600">Price: ₹<%= item.price %></p>
+              <p class="text-sm font-medium text-gray-700">Subtotal: ₹<%= item.quantity * item.price %></p>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  <% }) %>
+</div>

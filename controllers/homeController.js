@@ -25,7 +25,6 @@ const loadHomepage = async (req, res) => {
       },
     ]);
 
-    console.log(count);
 
     const updatedProducts = products.map((p) => {
       return {

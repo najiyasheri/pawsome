@@ -1,0 +1,215 @@
+<div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Left Column - Summary -->
+    <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="text-xl font-semibold mb-6">Summary</h2>
+
+        <!-- Product Items -->
+        <div class="space-y-4 mb-6">
+            <% cart.items.forEach(item=> { %>
+                <div class="flex items-center justify-between border-b pb-4">
+                    <div class="flex items-center gap-4">
+                        <img src="/uploads/<%= item.productId.images[0] %>" alt="Product"
+                            class="w-16 h-16 rounded object-cover">
+                        <div>
+                            <h3 class="font-medium text-sm">
+                                <%= item.productId.name %>
+                            </h3>
+                            <p class="text-gray-500 text-sm">Grooming Comb</p>
+                            <p class="text-gray-600 text-sm mt-1">x<%= item.quantity %>
+                            </p>
+                        </div>
+                    </div>
+                    <p class="font-semibold text-yellow-500">₹<%= (parseFloat(item.productId.basePrice.toString()) *
+                            item.quantity).toFixed(2) %>
+                    </p>
+                </div>
+                <% }) %>
+        </div>
+
+        <!-- Coupon Code -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium mb-2">Coupon code / Promo code</label>
+            <div class="flex gap-2">
+                <input type="text" placeholder="HAPPYDAY10"
+                    class="flex-1 border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                <button class="bg-white border border-gray-300 px-6 py-2 rounded text-sm font-medium hover:bg-gray-50">
+                    Applied
+                </button>
+            </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium mb-2">Shipping Address</label>
+            <p class="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                <%= address ? address.name + ', ' + address.address : 'No default address set' %>
+
+            </p>
+        </div>
+
+        <!-- Business Address -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium mb-2">Business Address</label>
+            <p class="text-sm text-gray-600">Same as Shipping</p>
+        </div>
+
+        <!-- Price Summary -->
+        <div class="border-t pt-4 space-y-3">
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Subtotal (<%= cart.items.reduce((sum, item)=> sum + item.quantity, 0) %>
+                        items)</span>
+                <span class="font-medium">₹<%= subtotal.toFixed(2) %></span>
+            </div>
+            
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Delivery Charge</span>
+                <span class="font-medium">₹<%= deliveryCharge.toFixed(2) %></span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Coupon Applied</span>
+                <span class="font-medium text-green-600">-₹10.00</span>
+            </div>
+            <div class="flex justify-between text-lg font-semibold border-t pt-3">
+                <span>Total</span>
+                <span>₹<%= total.toFixed(2) %></span>
+            </div>
+        </div>
+    </div>
+    <form action="/success" method="POST" id="paymentForm" class="bg-white rounded-lg shadow-sm p-6">
+
+        <input type="hidden" name="paymentMethod" id="paymentMethod" />
+        <input type="hidden" name="totalAmount" value="<%= total %>" />
+        <!-- Right Column - Payment Method Selection -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-xl font-semibold mb-6">Payment Method</h2>
+            <p class="text-sm text-gray-600 mb-6">Please select your preferred payment method</p>
+
+            <!-- Payment Method Options -->
+            <div class="space-y-4">
+                <!-- Online Payment -->
+                <button type="button" id="onlinePayment" onclick="selectPayment('online')"
+                    class="payment-option w-full border-2 border-gray-300 rounded-lg p-6 text-left hover:border-yellow-400 hover:bg-yellow-50 transition-all duration-200">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 mt-1">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full bg-yellow-400 hidden radio-dot"></div>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                </svg>
+                                <h3 class="font-semibold text-lg">Online Payment</h3>
+                            </div>
+                            <p class="text-sm text-gray-600">Pay securely using Credit/Debit Card, Net Banking, or UPI
+                            </p>
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Cash on Delivery -->
+                <button type="button" id="codPayment" onclick="selectPayment('cod')"
+                    class="payment-option w-full border-2 border-gray-300 rounded-lg p-6 text-left hover:border-yellow-400 hover:bg-yellow-50 transition-all duration-200">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 mt-1">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full bg-yellow-400 hidden radio-dot"></div>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                <h3 class="font-semibold text-lg">Cash on Delivery</h3>
+                            </div>
+                            <p class="text-sm text-gray-600">Pay with cash when your order is delivered</p>
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Wallet -->
+                <button type="button" id="walletPayment" onclick="selectPayment('wallet')"
+                    class="payment-option w-full border-2 border-gray-300 rounded-lg p-6 text-left hover:border-yellow-400 hover:bg-yellow-50 transition-all duration-200">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0 mt-1">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full bg-yellow-400 hidden radio-dot"></div>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                                </svg>
+                                <h3 class="font-semibold text-lg"> Wallet</h3>
+                            </div>
+                            <p class="text-sm text-gray-600">Pay using Paytm, PhonePe, Google Pay, or other wallets</p>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Order Total Display -->
+            <div class="mt-8 bg-gray-50 rounded-lg p-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Total Amount</span>
+                    <span class="text-2xl font-bold">₹<%= total.toFixed(2) %></span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 mt-8">
+                <button type="button"
+                    class="flex-1 border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                    BACK
+                </button>
+                <button id="proceedBtn" type="button"
+                    class="flex-1 bg-yellow-400 py-3 rounded-lg font-medium hover:bg-yellow-500 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    disabled>
+                    PROCEED TO PAY
+                </button>
+            </div>
+        </div>
+</div>
+</form>
+<script>
+    let selectedMethod = null;
+
+    function selectPayment(method) {
+        selectedMethod = method;
+        document.querySelectorAll('.payment-option').forEach(option => {
+            option.classList.remove('border-yellow-400', 'bg-yellow-50');
+            option.classList.add('border-gray-300');
+            option.querySelector('.radio-dot').classList.add('hidden');
+        });
+
+
+        const selectedOption = document.getElementById(method + 'Payment');
+        selectedOption.classList.remove('border-gray-300');
+        selectedOption.classList.add('border-yellow-400', 'bg-yellow-50');
+        selectedOption.querySelector('.radio-dot').classList.remove('hidden');
+
+
+        document.getElementById('proceedBtn').disabled = false;
+    }
+
+    document.getElementById('proceedBtn').addEventListener('click', function () {
+        if (!selectedMethod) {
+            alert("Please select a payment method");
+            return;
+        }
+
+        document.getElementById('paymentMethod').value = selectedMethod.toLowerCase()
+        console.log("Submitting paymentMethod:", document.getElementById('paymentMethod').value);
+
+        document.getElementById('paymentForm').submit();
+    });
+</script>

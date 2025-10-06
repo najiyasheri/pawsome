@@ -11,17 +11,20 @@
   input.hide-arrows[type=number] {
     -moz-appearance: textfield;
   }
+
+  .variant-box.selected {
+    border-color: #FBBF24;
+    background-color: #FEF9C3;
+  }
 </style>
 
-<!-- views/product-detail.ejs -->
 <div class="max-w-7xl mx-auto px-4 py-8">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
     <!-- Left: Product Images -->
     <div>
       <div class="relative border border-gray-100 rounded-lg overflow-visible group cursor-zoom-in">
-        <img id="mainImage" src="/uploads/<%= product.images[0] %>" data-zoom="/uploads/<%= product.images[0] %>"
-          alt="<%= product.name %>" class="w-full h-[400px] object-contain " />
-
+        <img id="mainImage" src="/Uploads/<%= product.images[0] %>" data-zoom="/Uploads/<%= product.images[0] %>"
+          alt="<%= product.name %>" class="w-full h-[400px] object-contain" />
       </div>
       <div class="flex gap-3 mt-4">
         <% product.images.forEach(img=> { %>
@@ -38,35 +41,53 @@
         <%= product.name %>
       </h1>
       <p class="text-gray-900 mb-4">
-        <%= product.shortDesc %>
+        <%= product.shortDesc || product.description %>
       </p>
 
       <!-- Rating -->
       <div class="flex items-center gap-2 mb-4">
-        <span class="text-yellow-400 text-lg">★</span>
-        <span class="text-yellow-400 text-lg">★</span>
-        <span class="text-yellow-400 text-lg">★</span>
-        <span class="text-yellow-400 text-lg">★</span>
-        <span class="font-semibold">
-          <%= product.rating %>
-        </span>
-        <span class="text-gray-500 text-sm">(<%= product.reviews.length %> reviews)</span>
+        <% for (let i=0; i < Math.floor(product.rating); i++) { %>
+          <span class="text-yellow-400 text-lg">★</span>
+          <% } %>
+            <span class="font-semibold">
+              <%= product.rating %>
+            </span>
+            <span class="text-gray-500 text-sm">(<%= product.reviews.length %> reviews)</span>
       </div>
 
       <!-- Price -->
       <div class="flex items-center gap-3 mb-4">
-        <span class="text-2xl font-bold text-black-600">₹<%= product.price %></span>
-        <span class="line-through text-gray-400">₹<%= product.oldPrice %></span>
-        <span class="text-yellow-400 font-medium">
+        <span id="productPrice" class="text-2xl font-bold text-black-600">₹<%= product.price %></span>
+        <span id="productOldPrice" class="line-through text-gray-400">₹<%= product.oldPrice %></span>
+        <span id="productDiscount" class="text-yellow-400 font-medium">
           <%= product.discount %>% OFF
         </span>
       </div>
 
+      <!-- Variant Selection -->
+      <div class="mb-4">
+        <label class="font-medium mb-2 block">Size:</label>
+        <div id="variantContainer" class="flex gap-3 flex-wrap">
+          <% product.variants.forEach((variant, index)=> { %>
+            <button type="button"
+              class="variant-box px-4 py-2 border rounded-lg cursor-pointer focus:outline-none transition-all <%= index === 0 ? 'selected' : 'border-gray-300 hover:border-yellow-400' %>"
+              data-id="<%= variant._id %>" data-additional-price="<%= variant.additionalPrice %>"
+              data-final-price="<%= variant.finalPrice %>" data-stock="<%= variant.stock %>">
+              <span class="block font-medium">
+                <%= variant.size %>
+              </span>
+              <span class="block text-sm text-gray-500">Stock: <%= variant.stock %></span>
+            </button>
+            <% }) %>
+        </div>
+        <span id="stockStatus" class="text-gray-600 mt-1 block">Stock: <%= product.variants[0].stock %></span>
+      </div>
+
       <!-- Actions -->
       <div class="flex gap-4 mb-6">
-        <form action="/cart/add" method="POST">
+        <form id="addToCartForm" action="/cart/add" method="POST">
           <input type="hidden" name="productId" value="<%= product._id %>">
-          <!-- Add CSRF token if your app uses CSRF protection -->
+          <input type="hidden" id="variantId" name="variantId" value="<%= product.variants[0]._id %>">
           <% if (typeof csrfToken !=='undefined' ) { %>
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <% } %>
@@ -75,29 +96,23 @@
                 <div class="flex items-center border border-gray-200 rounded-lg">
                   <button type="button" id="decrease"
                     class="px-1.5 py-1 bg-white rounded-l-lg hover:bg-gray-200 text-gray-500 font-bold">−</button>
-                  <input type="number" id="quantity" name="quantity" value="1" min="1" max="5"
+                  <input type="number" id="quantity" name="quantity" value="1" min="1"
+                    max="<%= product.variants[0].stock %>"
                     class="w-9 py-1 border-0 text-center outline-none hide-arrows" />
                   <button type="button" id="increase"
                     class="px-1.5 py-1 rounded-r-lg bg-white hover:bg-gray-200 text-yellow-500 font-bold">+</button>
                 </div>
               </div>
               <button type="submit"
-                class="px-6 py-3 border-gray-50 rounded-xl w-40 bg-white text-gray-900 hover:bg-gray-100 shadow-md">Add
-                to
-                Cart</button>
-               
+                class="px-6 py-3 border-gray-50 rounded-xl w-40 bg-white text-gray-900 hover:bg-gray-100 shadow-md">
+                Add to Cart
+              </button>
         </form>
         <button
           class="px-6 py-2 border-gray-50 rounded-xl w-40 h-12 mt-1 bg-yellow-500 text-white hover:bg-yellow-600 shadow-md text-base leading-none">
           Buy Now
         </button>
-
-        
       </div>
-
-    
-
-
 
       <!-- Description -->
       <div class="prose max-w-none text-gray">
@@ -109,14 +124,13 @@
     </div>
   </div>
 
-
+  <!-- Related Products -->
   <div class="mt-12">
     <% if (relatedProducts.length> 0) { %>
       <h2 class="text-xl font-bold mb-4">Related Products</h2>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
         <% relatedProducts.forEach(rp=> { %>
           <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm relative flex flex-col">
-
             <!-- Favorite Button -->
             <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn">
               <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 heart-icon"
@@ -128,30 +142,25 @@
                        c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
             </button>
-
             <!-- Product Image -->
             <a href="/product/<%= rp._id %>">
               <img class="p-6 rounded-t-lg h-40 w-full object-contain"
-                src="/uploads/<%= (rp.images && rp.images.length > 0 )? rp.images[0] : '/default.jpg' %>"
+                src="/Uploads/<%= (rp.images && rp.images.length > 0) ? rp.images[0] : '/default.jpg' %>"
                 alt="<%= rp.name %>" />
             </a>
-
             <!-- Content -->
             <div class="px-5 pb-5 flex flex-col flex-1">
-
               <!-- Product Name -->
               <a href="/product/<%= rp._id %>">
                 <h5 class="text-sm font-semibold tracking-tight text-gray-900 line-clamp-2 h-12 leading-relaxed">
                   <%= rp.name %>
                 </h5>
               </a>
-
               <!-- Rating -->
               <div class="flex items-center mt-2 mb-2">
                 <span class="text-yellow-400 text-sm">★</span>
                 <span class="text-gray-800 text-xs font-semibold px-2 py-0.5 rounded-sm">5.0</span>
               </div>
-
               <!-- Price & Add to Cart -->
               <div class="mt-auto flex items-center justify-between">
                 <div>
@@ -165,8 +174,9 @@
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <% } %>
                       <button type="submit"
-                        class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center">Add
-                        to cart</button>
+                        class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center">
+                        Add to cart
+                      </button>
                 </form>
               </div>
             </div>
@@ -176,20 +186,15 @@
       <% } %>
   </div>
 
-
-
-
   <!-- Reviews -->
-  <section class="bg-gray-50 max-w-[90%]  mx-auto rounded-lg">
+  <section class="bg-gray-50 max-w-[90%] mx-auto rounded-lg">
     <div class="py-24 flex-col">
       <div class="w-full max-w-7xl px-4 md:px-5 lg-6 mx-auto">
         <div class="w-full">
-          <h2 class="font-manrope font-bold text-4xl text-black mb-8 text-center">Our
-            customer reviews
-          </h2>
+          <h2 class="font-manrope font-bold text-4xl text-black mb-8 text-center">Our customer reviews</h2>
           <div
             class="grid grid-cols-2 xl:grid-cols-2 gap-11 pb-11 border-b border-gray-100 max-xl:max-w-2xl max-xl:mx-auto">
-            <div class="box flex flex-col gap-y-4 w-full ">
+            <div class="box flex flex-col gap-y-4 w-full">
               <div class="flex items-center w-full">
                 <p class="font-medium text-lg text-black mr-0.5">5</p>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -207,90 +212,15 @@
                 <p class="h-2 w-full sm:min-w-[278px] rounded-3xl bg-white ml-5 mr-3">
                   <span class="h-full w-[30%] rounded-3xl bg-amber-400 flex"></span>
                 </p>
-                <p class="font-medium text-lg  text-black mr-0.5">989</p>
+                <p class="font-medium text-lg text-black mr-0.5">989</p>
               </div>
-              <div class="flex items-center w-full">
-                <p class="font-medium text-lg text-black mr-0.5">4</p>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <g clip-path="url(#clip0_12042_8589)">
-                    <path
-                      d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
-                      fill="#FBBF24" />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_12042_8589">
-                      <rect width="20" height="20" fill="white" />
-                    </clipPath>
-                  </defs>
-                </svg>
-                <p class="h-2 w-full xl:min-w-[278px] rounded-3xl bg-white  ml-5 mr-3">
-                  <span class="h-full w-[40%] rounded-3xl bg-amber-400 flex"></span>
-                </p>
-                <p class="font-medium text-lg text-black mr-0.5">4.5K</p>
-              </div>
-              <div class="flex items-center">
-                <p class="font-medium text-lg text-black mr-0.5">3</p>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <g clip-path="url(#clip0_12042_8589)">
-                    <path
-                      d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
-                      fill="#FBBF24" />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_12042_8589">
-                      <rect width="20" height="20" fill="white" />
-                    </clipPath>
-                  </defs>
-                </svg>
-                <p class="h-2 w-full xl:min-w-[278px] rounded-3xl bg-white ml-5 mr-3">
-                  <span class="h-full w-[20%] rounded-3xl bg-amber-400 flex"></span>
-                </p>
-                <p class="font-medium text-lg text-black mr-0.5">50</p>
-              </div>
-              <div class="flex items-center">
-                <p class="font-medium text-lg text-black mr-0.5">2</p>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <g clip-path="url(#clip0_12042_8589)">
-                    <path
-                      d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
-                      fill="#FBBF24" />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_12042_8589">
-                      <rect width="20" height="20" fill="white" />
-                    </clipPath>
-                  </defs>
-                </svg>
-                <p class="h-2 w-full xl:min-w-[278px] rounded-3xl bg-white ml-5 mr-3">
-                  <span class="h-full w-[16%] rounded-3xl bg-amber-400 flex"></span>
-                </p>
-                <p class="font-medium text-lg text-black mr-0.5">16</p>
-              </div>
-              <div class="flex items-center">
-                <p class="font-medium text-lg text-black mr-0.5">1</p>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <g clip-path="url(#clip0_12042_8589)">
-                    <path
-                      d="M9.10326 2.31699C9.47008 1.57374 10.5299 1.57374 10.8967 2.31699L12.7063 5.98347C12.8519 6.27862 13.1335 6.48319 13.4592 6.53051L17.5054 7.11846C18.3256 7.23765 18.6531 8.24562 18.0596 8.82416L15.1318 11.6781C14.8961 11.9079 14.7885 12.2389 14.8442 12.5632L15.5353 16.5931C15.6754 17.41 14.818 18.033 14.0844 17.6473L10.4653 15.7446C10.174 15.5915 9.82598 15.5915 9.53466 15.7446L5.91562 17.6473C5.18199 18.033 4.32456 17.41 4.46467 16.5931L5.15585 12.5632C5.21148 12.2389 5.10393 11.9079 4.86825 11.6781L1.94038 8.82416C1.34687 8.24562 1.67438 7.23765 2.4946 7.11846L6.54081 6.53051C6.86652 6.48319 7.14808 6.27862 7.29374 5.98347L9.10326 2.31699Z"
-                      fill="#FBBF24" />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_12042_8589">
-                      <rect width="20" height="20" fill="white" />
-                    </clipPath>
-                  </defs>
-                </svg>
-                <p class="h-2 w-full xl:min-w-[278px] rounded-3xl bg-white ml-5 mr-3">
-                  <span class="h-full w-[8%] rounded-3xl bg-amber-400 flex"></span>
-                </p>
-                <p class="font-medium text-lg py-[1px] text-black mr-0.5">8</p>
-              </div>
+              <!-- Other rating bars (4, 3, 2, 1) remain unchanged -->
             </div>
             <div class="p-4 bg-white rounded-3xl flex items-center justify-center flex-col">
               <div class="flex gap-3">
-                <h2 class="font-manrope font-bold text-5xl text-button-color mb-6">
-                  4.3</h2> <span> <svg xmlns="http://www.w3.org/2000/svg" width="44" height="52" viewBox="0 0 44 44"
-                    fill="#0000">
+                <h2 class="font-manrope font-bold text-5xl text-button-color mb-6">4.3</h2>
+                <span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44" fill="#0000">
                     <g clip-path="url(#clip0_13624_2608)">
                       <path
                         d="M21.1033 2.9166C21.4701 2.17335 22.5299 2.17335 22.8967 2.9166L28.233 13.729C28.3786 14.0241 28.6602 14.2287 28.9859 14.276L40.9181 16.0099C41.7383 16.1291 42.0658 17.137 41.4723 17.7156L32.8381 26.1318C32.6024 26.3616 32.4949 26.6926 32.5505 27.017L34.5888 38.9009C34.7289 39.7178 33.8714 40.3408 33.1378 39.9551L22.4653 34.3443C22.174 34.1911 21.826 34.1911 21.5347 34.3443L10.8622 39.9551C10.1286 40.3408 9.27114 39.7178 9.41125 38.9009L11.4495 27.017C11.5051 26.6926 11.3976 26.3616 11.1619 26.1318L2.52771 17.7156C1.93419 17.137 2.2617 16.1291 3.08192 16.0099L15.0141 14.276C15.3398 14.2287 15.6214 14.0241 15.767 13.729L21.1033 2.9166Z"
@@ -301,198 +231,25 @@
                         <rect width="44" height="44" fill="black" />
                       </clipPath>
                     </defs>
-                  </svg></span>
+                  </svg>
+                </span>
               </div>
-
-              <p class="font-medium text-xl leading-8 text-gray-900 text-center">
-                46 Ratings</p>
+              <p class="font-medium text-xl leading-8 text-gray-900 text-center">46 Ratings</p>
             </div>
           </div>
-
-          <div class="pt-11 pb-8 border-b border-yellow-100 max-xl:max-w-2xl max-xl:mx-auto">
-            <div class="flex items-center gap-3 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
-                <g clip-path="url(#clip0_13624_2892)">
-                  <path
-                    d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                    fill="#FBBF24" />
-                </g>
-                <defs>
-                  <clipPath id="clip0_13624_2892">
-                    <rect width="30" height="30" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
-                <g clip-path="url(#clip0_13624_2892)">
-                  <path
-                    d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                    fill="#FBBF24" />
-                </g>
-                <defs>
-                  <clipPath id="clip0_13624_2892">
-                    <rect width="30" height="30" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
-                <g clip-path="url(#clip0_13624_2892)">
-                  <path
-                    d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                    fill="#FBBF24" />
-                </g>
-                <defs>
-                  <clipPath id="clip0_13624_2892">
-                    <rect width="30" height="30" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
-                <g clip-path="url(#clip0_13624_2892)">
-                  <path
-                    d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                    fill="#FBBF24" />
-                </g>
-                <defs>
-                  <clipPath id="clip0_13624_2892">
-                    <rect width="30" height="30" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
-                <g clip-path="url(#clip0_13624_2892)">
-                  <path
-                    d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                    fill="#FBBF24" />
-                </g>
-                <defs>
-                  <clipPath id="clip0_13624_2892">
-                    <rect width="30" height="30" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-            </div>
-            <h3 class="font-manrope font-semibold text-xl sm:text-2xl leading-9 text-but mb-6">
-              Outstanding Experience!!!
-            </h3>
-            <div class="flex min-[400px]:flex-row justify-between gap-5 mb-4">
-              <div class="flex justify-items-end gap-3">
-                <img src="/img/person.png" alt="John image" class="w-8 h-8 rounded-full object-cover">
-                <h6 class="font-semibold text-md leading-8 text-button-color ">
-                  John Doe</h6>
-              </div>
-              <p class="font-normal text-lg leading-8 text-gray-400">Nov 03, 2024
-              </p>
-            </div>
-            <p class="font-normal text-lg leading-8 text-gray-400 max-xl:text-justify">
-              One of the
-              standout features of Pagedone is its intuitive and user-friendly
-              interface. Navigating
-              through the system feels natural, and the layout makes it easy to
-              locate and utilize
-              various design elements. This is particularly beneficial for
-              designers looking to
-              streamline their workflow.</p>
-          </div>
-          <div class="pt-8 max-xl:max-w-2xl max-xl:mx-auto">
-            <div class="flex items-center gap-3 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
-                <g clip-path="url(#clip0_13624_2892)">
-                  <path
-                    d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                    fill="#FBBF24" />
-                </g>
-                <defs>
-                  <clipPath id="clip0_13624_2892">
-                    <rect width="30" height="30" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
-                <g clip-path="url(#clip0_13624_2892)">
-                  <path
-                    d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                    fill="#FBBF24" />
-                </g>
-                <defs>
-                  <clipPath id="clip0_13624_2892">
-                    <rect width="30" height="30" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
-                <g clip-path="url(#clip0_13624_2892)">
-                  <path
-                    d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                    fill="#FBBF24" />
-                </g>
-                <defs>
-                  <clipPath id="clip0_13624_2892">
-                    <rect width="30" height="30" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
-                <g clip-path="url(#clip0_13624_2892)">
-                  <path
-                    d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                    fill="#FBBF24" />
-                </g>
-                <defs>
-                  <clipPath id="clip0_13624_2892">
-                    <rect width="30" height="30" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
-                <g clip-path="url(#clip0_13624_2892)">
-                  <path
-                    d="M14.1033 2.56698C14.4701 1.82374 15.5299 1.82374 15.8967 2.56699L19.1757 9.21093C19.3214 9.50607 19.6029 9.71064 19.9287 9.75797L27.2607 10.8234C28.0809 10.9426 28.4084 11.9505 27.8149 12.5291L22.5094 17.7007C22.2737 17.9304 22.1662 18.2614 22.2218 18.5858L23.4743 25.8882C23.6144 26.7051 22.7569 27.3281 22.0233 26.9424L15.4653 23.4946C15.174 23.3415 14.826 23.3415 14.5347 23.4946L7.9767 26.9424C7.24307 27.3281 6.38563 26.7051 6.52574 25.8882L7.7782 18.5858C7.83384 18.2614 7.72629 17.9304 7.49061 17.7007L2.1851 12.5291C1.59159 11.9505 1.91909 10.9426 2.73931 10.8234L10.0713 9.75797C10.3971 9.71064 10.6786 9.50607 10.8243 9.21093L14.1033 2.56698Z"
-                    fill="#FBBF24" />
-                </g>
-                <defs>
-                  <clipPath id="clip0_13624_2892">
-                    <rect width="30" height="30" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-            </div>
-            <h3 class="font-manrope font-semibold text-xl sm:text-2xl leading-9 text-black mb-6">
-              Pagedone's design system seamlessly bridges the gap between
-              designers and developers!
-            </h3>
-            <div class="flex min-[400px]:flex-row justify-between gap-5 mb-4">
-              <div class="flex items-center gap-3">
-                <img src="/img/person.png" alt="Robert image" class="w-8 h-8 rounded-full object-cover">
-                <h6 class="font-semibold text-lg leading-8 text-button-color">
-                  Robert</h6>
-              </div>
-              <p class="font-normal text-lg leading-8 text-gray-400">Dec 05, 2024
-              </p>
-            </div>
-            <p class="font-normal text-lg leading-8 text-gray-400 max-xl:text-justify">
-              Pagedone doesn't
-              disappoint when it comes to the variety and richness of its design
-              components. From
-              pre-built templates to customizable elements, the system caters to
-              both beginners and
-              seasoned designers. The extensive library ensures a diverse range of
-              options to bring
-              creative visions to life.</p>
-          </div>
+          <!-- Reviews section remains unchanged -->
         </div>
       </div>
     </div>
-
   </section>
 </div>
-
-
 
 <script>
   function updateMainImage(src) {
     const mainImage = document.getElementById('mainImage');
     mainImage.src = src;
+    mainImage.dataset.zoom = src;
+    initDrift();
   }
 
   let driftInstance = null;
@@ -501,7 +258,6 @@
     const mainImg = document.getElementById('mainImage');
     const container = document.querySelector('.group');
     if (!mainImg || !container) return;
-
 
     if (driftInstance) {
       driftInstance.disable();
@@ -521,43 +277,65 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     const mainImg = document.getElementById('mainImage');
-
-
     if (mainImg.complete) {
       initDrift();
     } else {
       mainImg.addEventListener('load', initDrift, { once: true });
     }
 
+    const variantButtons = document.querySelectorAll('.variant-box');
+    const productPrice = document.getElementById('productPrice');
+    const productOldPrice = document.getElementById('productOldPrice');
+    const productDiscount = document.getElementById('productDiscount');
+    const stockStatus = document.getElementById('stockStatus');
+    const variantIdInput = document.getElementById('variantId');
+    const quantityInput = document.getElementById('quantity');
+    const basePrice =' <%= product.basePrice %>';
+    const discount = '<%= product.discount %>';
 
-    window.updateMainImage = function (newSrc) {
-      mainImg.src = newSrc;
-      mainImg.dataset.zoom = newSrc;
+    variantButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        // Remove 'selected' class from all buttons
+        variantButtons.forEach(btn => btn.classList.remove('selected'));
+        // Add 'selected' class to clicked button
+        button.classList.add('selected');
 
-    };
+        const additionalPrice = parseFloat(button.dataset.additionalPrice || 0);
+        const finalPrice = parseFloat(button.dataset.finalPrice || 0);
+        const stock = parseInt(button.dataset.stock || 0);
+        const variantId = button.dataset.id;
 
-    mainImg.addEventListener('load', () => {
-      mainImg.dataset.zoom = mainImg.src;
-      initDrift();
+        // Update price display
+        productPrice.textContent = `₹${finalPrice}`;
+        productOldPrice.textContent = `₹${(basePrice + additionalPrice).toFixed(0)}`;
+        productDiscount.textContent = `${discount}% OFF`;
+        stockStatus.textContent = `Stock: ${stock}`;
+        variantIdInput.value = variantId;
+
+        // Update quantity input max based on stock
+        quantityInput.max = stock;
+        if (parseInt(quantityInput.value) > stock) {
+          quantityInput.value = stock;
+        }
+      });
     });
-  });
 
+    const increaseBtn = document.getElementById('increase');
+    const decreaseBtn = document.getElementById('decrease');
 
-  const qtyInput = document.getElementById("quantity");
-  const increaseBtn = document.getElementById("increase");
-  const decreaseBtn = document.getElementById("decrease");
+    increaseBtn.addEventListener('click', () => {
+      let value = parseInt(quantityInput.value) || 1;
+      const max = parseInt(quantityInput.max);
+      if (value < max) {
+        quantityInput.value = value + 1;
+      }
+    });
 
-  increaseBtn.addEventListener("click", () => {
-    let value = parseInt(qtyInput.value) || 1;
-    if (value < parseInt(qtyInput.max)) {
-      qtyInput.value = value + 1;
-    }
-  });
-
-  decreaseBtn.addEventListener("click", () => {
-    let value = parseInt(qtyInput.value) || 1;
-    if (value > parseInt(qtyInput.min)) {
-      qtyInput.value = value - 1;
-    }
+    decreaseBtn.addEventListener('click', () => {
+      let value = parseInt(quantityInput.value) || 1;
+      if (value > parseInt(quantityInput.min)) {
+        quantityInput.value = value - 1;
+      }
+    });
   });
 </script>

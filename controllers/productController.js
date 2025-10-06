@@ -152,6 +152,7 @@ const postEditProduct = async (req, res) => {
     const { id } = req.params;
     const { name, description, price, category, brand, discount, images } =
       req.body;
+      console.log(req.body)
 
     const product = await Product.findById(id);
     if (!product) {
@@ -227,6 +228,7 @@ const userProducts = async (req, res) => {
       isBlocked: false,
     };
 
+    // Search filter
     if (search) {
       filter.$or = [
         { name: { $regex: ".*" + search + ".*", $options: "i" } },
@@ -234,6 +236,7 @@ const userProducts = async (req, res) => {
       ];
     }
 
+    // Category filter
     if (category) {
       try {
         filter.categoryId = new mongoose.Types.ObjectId(category);
@@ -243,11 +246,13 @@ const userProducts = async (req, res) => {
       }
     }
 
+    // Price range filter (applied to basePrice for now)
     if (priceRange) {
       const [minPrice, maxPrice] = priceRange.split("-").map(Number);
       filter.basePrice = { $gte: minPrice, $lte: maxPrice };
     }
 
+    // Sort options
     let sortOption = { createdAt: -1 };
     if (sort) {
       if (sort === "price-low") sortOption = { basePrice: 1 };
@@ -256,26 +261,79 @@ const userProducts = async (req, res) => {
       if (sort === "name-za") sortOption = { name: -1 };
     }
 
-    const products = await Product.find(filter)
-      .lean()
-      .collation({ locale: "en", strength: 1 })
-      .sort(sortOption)
-      .limit(limit)
-      .skip((page - 1) * limit)
-      .exec();
+    const products = await Product.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: "variants",
+          localField: "_id",
+          foreignField: "productId",
+          as: "variants",
+        },
+      },
+      {
+        $addFields: {
+          variants: {
+            $filter: {
+              input: "$variants",
+              as: "variant",
+              cond: {
+                $and: [
+                  { $eq: ["$$variant.status", true] },
+                  { $gt: ["$$variant.stock", 0] },
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          firstVariant: { $arrayElemAt: ["$variants", 0] },
+        },
+      },
+      { $match: { firstVariant: { $exists: true } } },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: {
+          path: "$category",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      { $sort: sortOption },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+    ]).exec();
 
     const count = await Product.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
-    const categories = await Category.find({ isBlocked: false });
-    const updatedProducts = products.map((p) => {
+    const categories = await Category.find({ isBlocked: false }).lean();
+
+    const updatedProducts = products.map((product) => {
+      const additionalPrice = product.firstVariant?.additionalPrice || 0;
+      const basePrice = parseFloat(product.basePrice || 0);
+      const discountPercentage = parseFloat(product.discountPercentage || 0);
+      const oldPrice = basePrice + additionalPrice;
       return {
-        ...p,
-        oldPrice: parseFloat(p.basePrice),
-        discount: p.discountPercentage,
-        price: Math.round(p.basePrice * (1 - p.discountPercentage / 100)),
+        ...product,
+        categoryName: product.category?.name || "Unknown",
+        oldPrice: oldPrice,
+        discount: discountPercentage,
+        price: Math.round(oldPrice * (1 - discountPercentage / 100)),
+        variants: undefined,
+        firstVariant: undefined,
+        category: undefined,
       };
     });
 
+    // Handle JSON response for AJAX requests
     if (req.xhr || req.headers.accept.includes("application/json")) {
       return res.json({
         products: updatedProducts,
@@ -288,6 +346,7 @@ const userProducts = async (req, res) => {
       });
     }
 
+    // Render view for non-AJAX requests
     return res.render("user/products", {
       title: "User-Product",
       layout: "layouts/userLayout",
@@ -311,35 +370,143 @@ const userProducts = async (req, res) => {
 const loadProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
-    const product = await Product.findById(productId).lean();
-    if (!product) {
-      return res.status(404).send("product not found");
+
+    const products = await Product.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(productId),
+          isBlocked: false,
+        },
+      },
+      {
+        $lookup: {
+          from: "variants",
+          localField: "_id",
+          foreignField: "productId",
+          as: "variants",
+        },
+      },
+      {
+        $addFields: {
+          variants: {
+            $filter: {
+              input: "$variants",
+              as: "variant",
+              cond: {
+                $and: [
+                  { $eq: ["$$variant.status", true] },
+                  { $gt: ["$$variant.stock", 0] },
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: { path: "$category", preserveNullAndEmptyArrays: true },
+      },
+      { $match: { "variants.0": { $exists: true } } },
+    ]).exec();
+
+    if (!products || products.length === 0) {
+      return res
+        .status(404)
+        .send("Product not found or no active variants available");
     }
-    const relatedProducts = await Product.find({
-      categoryId: product.categoryId,
-      _id: { $ne: productId },
-      isBlocked: false,
-    })
-      .limit(4)
-      .lean();
-    product.rating = 4.8;
-    product.reviews = [
-      { user: "Alice", rating: 5, comment: "Excellent product!" },
-      { user: "John", rating: 4, comment: "Good but delivery was late." },
-    ];
 
-    product.oldPrice = product.basePrice;
-    product.discount = product.discountPercentage;
-    product.price = Math.round(
-      product.basePrice * (1 - product.discountPercentage / 100)
-    );
+    const product = products[0];
 
-    const updatedProducts = relatedProducts.map((p) => {
+    const firstVariant = product.variants[0];
+    const basePrice = parseFloat(product.basePrice || 0);
+    const discountPercentage = parseFloat(product.discountPercentage || 0);
+    const additionalPrice = parseFloat(firstVariant?.additionalPrice || 0);
+    const oldPrice = basePrice + additionalPrice;
+    const price = Math.round(oldPrice * (1 - discountPercentage / 100));
+
+    const productData = {
+      ...product,
+      categoryName: product.category?.name || "Unknown",
+      oldPrice,
+      price,
+      discount: discountPercentage,
+      rating: 4.8, // Hardcoded as per original
+      reviews: [
+        { user: "Alice", rating: 5, comment: "Excellent product!" },
+        { user: "John", rating: 4, comment: "Good but delivery was late." },
+      ],
+      variants: product.variants.map((v) => ({
+        _id: v._id,
+        size: v.size,
+        additionalPrice: parseFloat(v.additionalPrice || 0),
+        stock: v.stock,
+        finalPrice: Math.round(
+          (basePrice + parseFloat(v.additionalPrice || 0)) *
+            (1 - discountPercentage / 100)
+        ),
+      })),
+      category: undefined,
+    };
+    const relatedProducts = await Product.aggregate([
+      {
+        $match: {
+          categoryId: product.categoryId,
+          _id: { $ne: new mongoose.Types.ObjectId(productId) },
+          isBlocked: false,
+        },
+      },
+      {
+        $lookup: {
+          from: "variants",
+          localField: "_id",
+          foreignField: "productId",
+          as: "variants",
+        },
+      },
+      {
+        $addFields: {
+          variants: {
+            $filter: {
+              input: "$variants",
+              as: "variant",
+              cond: {
+                $and: [
+                  { $eq: ["$$variant.status", true] },
+                  { $gt: ["$$variant.stock", 0] },
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          firstVariant: { $arrayElemAt: ["$variants", 0] },
+        },
+      },
+      { $match: { firstVariant: { $exists: true } } },
+      { $limit: 4 },
+    ]).exec();
+
+    const updatedRelatedProducts = relatedProducts.map((p) => {
+      const additionalPrice = parseFloat(p.firstVariant?.additionalPrice || 0);
+      const basePrice = parseFloat(p.basePrice || 0);
+      const discountPercentage = parseFloat(p.discountPercentage || 0);
+      const oldPrice = basePrice + additionalPrice;
       return {
         ...p,
-        oldPrice: p.basePrice,
-        discount: p.discountPercentage,
-        price: Math.round(p.basePrice * (1 - p.discountPercentage / 100)),
+        oldPrice,
+        discount: discountPercentage,
+        price: Math.round(oldPrice * (1 - discountPercentage / 100)),
+        variants: undefined,
+        firstVariant: undefined,
       };
     });
 
@@ -347,8 +514,8 @@ const loadProductDetails = async (req, res) => {
       title: "Product Details",
       layout: "layouts/userLayout",
       user: req.session.user,
-      product,
-      relatedProducts: updatedProducts,
+      product: productData,
+      relatedProducts: updatedRelatedProducts,
     });
   } catch (error) {
     console.error("Error loading product details:", error);

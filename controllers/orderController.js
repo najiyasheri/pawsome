@@ -1,4 +1,5 @@
-const Order = require("../models/order");
+const { default: mongoose } = require("mongoose");
+const Order = require("../models/Order");
 const Product = require("../models/Product");
 const User = require("../models/User");
 
@@ -38,16 +39,12 @@ const loadOrderDetail = async (req, res) => {
   }
 };
 
-
 const cancelSingleItem = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
 
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
-
-
-    order.items = order.items.filter((item) => item._id.toString() !== itemId);
 
     if (order.items.length === 0) order.status = "Cancelled";
 
@@ -58,7 +55,6 @@ const cancelSingleItem = async (req, res) => {
     res.status(500).send("Error cancelling item");
   }
 };
-
 
 const cancelEntireOrder = async (req, res) => {
   try {
@@ -75,7 +71,6 @@ const cancelEntireOrder = async (req, res) => {
     res.status(500).send("Error cancelling order");
   }
 };
-
 
 const updateOrderStatus = async (req, res) => {
   try {
@@ -97,13 +92,36 @@ const updateOrderStatus = async (req, res) => {
 const loadUserOrders = async (req, res) => {
   try {
     const userId = req.session.user._id;
-    const orders = await Order.find({ userId })
-      .populate("items.productId", "name price images")
-      .sort({ createdAt: -1 });
+    const orders = await Order.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: "orderitems",
+          localField: "_id",
+          foreignField: "orderId",
+          as: "items",
+          pipeline: [
+            {
+              $lookup: {
+                from: "products",
+                localField: "productId",
+                foreignField: "_id",
+                as: "product",
+              },
+            },
+           
+          ],
+        },
+      },
+    ]);
+
+
+    console.log('orders',orders)
 
     res.render("user/myOrder", {
       title: "MyOrders",
-      layout:'layouts/userLayout',
+      layout: "layouts/userLayout",
       orders,
     });
   } catch (err) {
@@ -112,11 +130,11 @@ const loadUserOrders = async (req, res) => {
   }
 };
 
-module.exports = { 
+module.exports = {
   loadOrder,
   loadOrderDetail,
   cancelSingleItem,
   cancelEntireOrder,
   updateOrderStatus,
-  loadUserOrders
+  loadUserOrders,
 };

@@ -1,6 +1,7 @@
-const Order = require("../models/order");
-const Cart = require("../models/cart");
-const Address = require("../models/address");
+const Order = require("../models/Order");
+const Cart = require("../models/Cart");
+const Address = require("../models/Address");
+const OrderItem=require('../models/OrderItem')
 
 const loadPayment = async (req, res) => {
   try {
@@ -73,31 +74,36 @@ const processPayment = async (req, res) => {
 
     const total = subtotal + deliveryCharge;
     const orderId = "ORD" + Date.now();
-    const addressId=req.session.addressId
-    const address=await Address.findById(addressId)
-    if(!address){
-      return res.render('user/address',{error:'address is not found'})
+    const addressId = req.session.addressId;
+    const address = await Address.findById(addressId);
+    if (!address) {
+      return res.render("user/address", { error: "address is not found" });
     }
     const newOrder = new Order({
       orderId,
       userId,
-      items: cart.items.map((item) => ({
-        productId: item.productId._id,
-        quantity: item.quantity,
-        price: item.priceAtAdding,
-      })),
-      shippingType, 
-      address:{
-        name:address.name,
-        phone:address.phone,
-        address:address.address
+      shippingType,
+      address: {
+        name: address.name,
+        phone: address.phone,
+        address: address.address,
       },
       paymentMethod: paymentMethod.toUpperCase(),
       totalAmount: total,
       status: "Pending",
     });
 
+
     await newOrder.save();
+
+    const orderItems = cart.items.map((item) => ({
+      orderId: newOrder._id,
+      productId: item._id,
+      quantity: item.quantity,
+      price: item.priceAtAdding,
+    }));
+
+    await OrderItem.insertMany(orderItems);
 
     cart.items = [];
     await cart.save();

@@ -1,4 +1,4 @@
-const Cart = require("../models/cart");
+const Cart = require("../models/Cart");
 const Product = require("../models/Product");
 
 const loadCart = async (req, res) => {
@@ -55,7 +55,6 @@ const addToCart = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
-
 
 const updateCart = async (req, res) => {
   try {
@@ -135,5 +134,5 @@ module.exports = {
   loadCart,
   addToCart,
   updateCart,
-  removeCart
+  removeCart,
 };

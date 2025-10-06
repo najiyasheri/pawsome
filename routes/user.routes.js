@@ -53,7 +53,7 @@ router.post("/shipping/save",isUser, shippingController.saveShipping);
 router.get('/payment',isUser,paymentController.loadPayment)
 router.post("/success", isUser,paymentController.processPayment);
 
-router.get("/myOrders", orderController.loadUserOrders);
+router.get("/myOrders",isUser, orderController.loadUserOrders);
 
 
 

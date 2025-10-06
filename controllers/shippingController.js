@@ -1,5 +1,4 @@
-
-const Address = require("../models/address");
+const Address = require("../models/Address");
 const loadShipping = async (req, res) => {
   try {
     const getFutureDate = (daysAhead) => {
@@ -14,11 +13,11 @@ const loadShipping = async (req, res) => {
     ];
     shippingOptions.forEach((opt) => (opt.date = getFutureDate(opt.daysAhead)));
     const address = await Address.findById(req.query.addressId);
-    console.log('addrss',address)
+    console.log("addrss", address);
     if (!address) {
-         res.render('user/address',{error:'please enter address'})
+      res.render("user/address", { error: "please enter address" });
     }
-    req.session.addressId=address._id
+    req.session.addressId = address._id;
     res.render("user/shipping", {
       layout: "layouts/userLayout",
       title: "shipping",

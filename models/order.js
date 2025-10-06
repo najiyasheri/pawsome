@@ -7,43 +7,20 @@ const orderSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-
-    items: [
-      {
-        productId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Product",
-          required: true,
-        },
-        quantity: {
-          type: Number,
-          required: true,
-          min: 1,
-        },
-        price: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
-
     paymentMethod: {
       type: String,
       enum: ["COD", "Card", "Wallet", "UPI"],
       required: true,
     },
-
     totalAmount: {
       type: Number,
       required: true,
     },
-
     status: {
       type: String,
       enum: [
@@ -57,22 +34,13 @@ const orderSchema = new mongoose.Schema(
       default: "Pending",
     },
     address: {
-
       name: { type: String, required: true },
       phone: { type: String, required: true },
       address: { type: String, required: true },
     },
-
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
     shippingType: {
       type: String,
-      enum: [
-        "Express",
-        "Regular",
-      ],
+      enum: ["Express", "Regular"],
       default: "Regular",
     },
   },

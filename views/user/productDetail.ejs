@@ -266,7 +266,6 @@
               <p class="font-medium text-xl leading-8 text-gray-900 text-center">46 Ratings</p>
             </div>
           </div>
-          <!-- Reviews section remains unchanged -->
         </div>
       </div>
     </div>
@@ -370,15 +369,12 @@
     const basePrice = '<%= product.basePrice %>';
     const discount = '<%= product.discount %>';
 
-    // Initialize stock status for first variant
     updateStockStatus(parseInt(variantButtons[0].dataset.stock || 0));
     updateButtonState(parseInt(variantButtons[0].dataset.stock || 0));
 
     variantButtons.forEach(button => {
       button.addEventListener('click', () => {
-        // Remove 'selected' class from all buttons
         variantButtons.forEach(btn => btn.classList.remove('selected'));
-        // Add 'selected' class to clicked button
         button.classList.add('selected');
 
         const additionalPrice = parseFloat(button.dataset.additionalPrice || 0);
@@ -386,17 +382,14 @@
         const stock = parseInt(button.dataset.stock || 0);
         const variantId = button.dataset.id;
 
-        // Update price display
         productPrice.textContent = `₹${finalPrice}`;
         productOldPrice.textContent = `₹${(basePrice + additionalPrice).toFixed(0)}`;
         productDiscount.textContent = `${discount}% OFF`;
         variantIdInput.value = variantId;
 
-        // Update stock status and buttons
         updateStockStatus(stock);
         updateButtonState(stock);
 
-        // Update quantity input max based on stock
         quantityInput.max = stock;
         if (parseInt(quantityInput.value) > stock) {
           quantityInput.value = stock || 1;

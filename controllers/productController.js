@@ -350,12 +350,7 @@ const userProducts = async (req, res) => {
             $filter: {
               input: "$variants",
               as: "variant",
-              cond: {
-                $and: [
-                  { $eq: ["$$variant.status", true] },
-                  { $gt: ["$$variant.stock", 0] },
-                ],
-              },
+              cond: { $eq: ["$$variant.status", true] }, // Include all active variants, regardless of stock
             },
           },
         },
@@ -365,7 +360,7 @@ const userProducts = async (req, res) => {
           firstVariant: { $arrayElemAt: ["$variants", 0] },
         },
       },
-      { $match: { firstVariant: { $exists: true } } },
+      // Removed $match to allow products with no valid variants
       {
         $lookup: {
           from: "categories",
@@ -400,6 +395,7 @@ const userProducts = async (req, res) => {
         oldPrice: oldPrice,
         discount: discountPercentage,
         price: Math.round(oldPrice * (1 - discountPercentage / 100)),
+        stock: product.firstVariant?.stock || 0, // Use stock from firstVariant, default to 0
         variants: undefined,
         firstVariant: undefined,
         category: undefined,

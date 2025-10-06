@@ -150,9 +150,19 @@ const loadEditProduct = async (req, res) => {
 const postEditProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, price, category, brand, discount, images } =
-      req.body;
-      console.log(req.body)
+    const {
+      name,
+      description,
+      price,
+      category,
+      brand,
+      discount,
+      images,
+      size,
+      additionalPrice,
+      stock,
+      variantId,
+    } = req.body;
 
     const product = await Product.findById(id);
     if (!product) {
@@ -187,6 +197,7 @@ const postEditProduct = async (req, res) => {
           newImages.push(...req.files[fieldName].map((file) => file.filename));
         }
       });
+
       for (const [index, newImage] of Object.entries(replaceImages)) {
         const idx = parseInt(index, 10);
         if (idx >= 0 && idx < product.images.length) {
@@ -208,6 +219,68 @@ const postEditProduct = async (req, res) => {
         return res.status(400).send("Cannot add more than 4 images");
       }
     }
+
+    const sizes = Array.isArray(size) ? size : size ? [size] : [];
+    const additionalPrices = Array.isArray(additionalPrice)
+      ? additionalPrice
+      : additionalPrice
+      ? [additionalPrice]
+      : [];
+    const stocks = Array.isArray(stock) ? stock : stock ? [stock] : [];
+    const variantIds = Array.isArray(variantId)
+      ? variantId
+      : variantId
+      ? [variantId]
+      : [];
+
+    if (
+      sizes.length !== additionalPrices.length ||
+      sizes.length !== stocks.length
+    ) {
+      return res
+        .status(400)
+        .send("Invalid variant data: mismatched array lengths");
+    }
+
+    const existingVariants = await ProductVariant.find({ productId: id });
+
+    const updatedVariantIds = variantIds.filter((id) =>
+      mongoose.Types.ObjectId.isValid(id)
+    );
+
+    for (const existingVariant of existingVariants) {
+      if (!updatedVariantIds.includes(existingVariant._id.toString())) {
+        await ProductVariant.findByIdAndDelete(existingVariant._id);
+      }
+    }
+
+    for (let i = 0; i < sizes.length; i++) {
+      if (!sizes[i] || stocks[i] < 0) {
+        return res
+          .status(400)
+          .send(
+            "Invalid variant data: size is required and stock must be non-negative"
+          );
+      }
+
+      const variantData = {
+        size: sizes[i],
+        additionalPrice: parseFloat(additionalPrices[i]) || 0,
+        stock: parseInt(stocks[i], 10) || 0,
+        productId: id,
+        status: true, 
+      };
+
+      if (variantIds[i] && mongoose.Types.ObjectId.isValid(variantIds[i])) {
+
+        await ProductVariant.findByIdAndUpdate(variantIds[i], variantData, {
+          new: true,
+        });
+      } else {
+        await ProductVariant.create(variantData);
+      }
+    }
+
     await product.save();
     res.redirect("/admin/product");
   } catch (err) {
@@ -395,7 +468,7 @@ const loadProductDetails = async (req, res) => {
               cond: {
                 $and: [
                   { $eq: ["$$variant.status", true] },
-                  { $gt: ["$$variant.stock", 0] },
+                  { $gte: ["$$variant.stock", 0] },
                 ],
               },
             },
@@ -415,6 +488,7 @@ const loadProductDetails = async (req, res) => {
       },
       { $match: { "variants.0": { $exists: true } } },
     ]).exec();
+
 
     if (!products || products.length === 0) {
       return res

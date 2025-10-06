@@ -16,6 +16,35 @@
     border-color: #FBBF24;
     background-color: #FEF9C3;
   }
+
+  .stock-status {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    display: inline-block;
+  }
+
+  .stock-good {
+    background-color: #DCFCE7;
+    color: #166534;
+  }
+
+  .stock-low {
+    background-color: #FEF3C7;
+    color: #92400E;
+  }
+
+  .stock-none {
+    background-color: #FEE2E2;
+    color: #991B1B;
+  }
+
+  .btn-disabled {
+    background-color: #E5E7EB !important;
+    color: #6B7280 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+  }
 </style>
 
 <div class="max-w-7xl mx-auto px-4 py-8">
@@ -80,7 +109,7 @@
             </button>
             <% }) %>
         </div>
-        <span id="stockStatus" class="text-gray-600 mt-1 block">Stock: <%= product.variants[0].stock %></span>
+        <span id="stockStatus" class="stock-status mt-1"></span>
       </div>
 
       <!-- Actions -->
@@ -103,12 +132,12 @@
                     class="px-1.5 py-1 rounded-r-lg bg-white hover:bg-gray-200 text-yellow-500 font-bold">+</button>
                 </div>
               </div>
-              <button type="submit"
+              <button type="submit" id="addToCartBtn"
                 class="px-6 py-3 border-gray-50 rounded-xl w-40 bg-white text-gray-900 hover:bg-gray-100 shadow-md">
                 Add to Cart
               </button>
         </form>
-        <button
+        <button id="buyNowBtn"
           class="px-6 py-2 border-gray-50 rounded-xl w-40 h-12 mt-1 bg-yellow-500 text-white hover:bg-yellow-600 shadow-md text-base leading-none">
           Buy Now
         </button>
@@ -275,6 +304,54 @@
     });
   }
 
+  function updateStockStatus(stock) {
+    const stockStatus = document.getElementById('stockStatus');
+    stockStatus.className = 'stock-status mt-1';
+
+    if (stock === 0) {
+      stockStatus.textContent = 'Not Available';
+      stockStatus.classList.add('stock-none');
+    } else if (stock <= 5) {
+      stockStatus.textContent = 'Low Stock';
+      stockStatus.classList.add('stock-low');
+    } else {
+      stockStatus.textContent = `In Stock (${stock})`;
+      stockStatus.classList.add('stock-good');
+    }
+  }
+
+  function updateButtonState(stock) {
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    const buyNowBtn = document.getElementById('buyNowBtn');
+    const increaseBtn = document.getElementById('increase');
+    const decreaseBtn = document.getElementById('decrease');
+    const quantityInput = document.getElementById('quantity');
+
+    if (stock === 0) {
+      addToCartBtn.disabled = true;
+      buyNowBtn.disabled = true;
+      increaseBtn.disabled = true;
+      decreaseBtn.disabled = true;
+      quantityInput.disabled = true;
+      addToCartBtn.classList.add('btn-disabled');
+      buyNowBtn.classList.add('btn-disabled');
+      increaseBtn.classList.add('btn-disabled');
+      decreaseBtn.classList.add('btn-disabled');
+      quantityInput.classList.add('btn-disabled');
+    } else {
+      addToCartBtn.disabled = false;
+      buyNowBtn.disabled = false;
+      increaseBtn.disabled = false;
+      decreaseBtn.disabled = false;
+      quantityInput.disabled = false;
+      addToCartBtn.classList.remove('btn-disabled');
+      buyNowBtn.classList.remove('btn-disabled');
+      increaseBtn.classList.remove('btn-disabled');
+      decreaseBtn.classList.remove('btn-disabled');
+      quantityInput.classList.remove('btn-disabled');
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     const mainImg = document.getElementById('mainImage');
     if (mainImg.complete) {
@@ -290,8 +367,12 @@
     const stockStatus = document.getElementById('stockStatus');
     const variantIdInput = document.getElementById('variantId');
     const quantityInput = document.getElementById('quantity');
-    const basePrice =' <%= product.basePrice %>';
+    const basePrice = '<%= product.basePrice %>';
     const discount = '<%= product.discount %>';
+
+    // Initialize stock status for first variant
+    updateStockStatus(parseInt(variantButtons[0].dataset.stock || 0));
+    updateButtonState(parseInt(variantButtons[0].dataset.stock || 0));
 
     variantButtons.forEach(button => {
       button.addEventListener('click', () => {
@@ -309,13 +390,16 @@
         productPrice.textContent = `₹${finalPrice}`;
         productOldPrice.textContent = `₹${(basePrice + additionalPrice).toFixed(0)}`;
         productDiscount.textContent = `${discount}% OFF`;
-        stockStatus.textContent = `Stock: ${stock}`;
         variantIdInput.value = variantId;
+
+        // Update stock status and buttons
+        updateStockStatus(stock);
+        updateButtonState(stock);
 
         // Update quantity input max based on stock
         quantityInput.max = stock;
         if (parseInt(quantityInput.value) > stock) {
-          quantityInput.value = stock;
+          quantityInput.value = stock || 1;
         }
       });
     });

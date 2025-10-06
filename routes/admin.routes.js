@@ -34,6 +34,7 @@ router.get('/product/block',adminAuth,productController.toggleBlock)
 
 router.get('/product/edit/:id', adminAuth,productController.loadEditProduct);
 router.post('/product/edit/:id', adminAuth , uploadProductImages, productController.postEditProduct);
+router.get('/product/view/:id',productController.loadProductDetailAdmin)
 
 router.get('/order',orderController.loadOrder)
 router.get('/order/:id',orderController.loadOrderDetail)

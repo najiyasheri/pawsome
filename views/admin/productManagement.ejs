@@ -81,6 +81,13 @@
                       Edit
                     </button></a>
                 </div>
+                  <div>
+                    <a href="/admin/product/view/<%= product._id %>"> <button type="button"
+                        class="text-blue-600 hover:text-yellow-600 view-btn" data-id="<%= product._id %>" data-name="<%= product.name %>"
+                        data-description="<%= product.description %>">
+                        View
+                      </button></a>
+                  </div>
                 <div>
                   <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
                     class="text-yellow-600 hover:text-<%= product.is_Blocked ? 'green-500' : 'red-500' %> confirm-action cursor-pointer"

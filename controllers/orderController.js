@@ -133,14 +133,16 @@ const cancelEntireOrder = async (req, res) => {
 
 const updateOrderStatus = async (req, res) => {
   try {
-    const { orderId } = req.params;
+    const { orderId,itemId } = req.params;
     const { status } = req.body;
 
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
 
-    order.status = status;
-    await order.save();
+    const item=await OrderItem.findById(itemId)
+
+    item.status = status;
+    await item.save();
 
     res.redirect(`/admin/order/${orderId}`);
   } catch (err) {

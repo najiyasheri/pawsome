@@ -41,6 +41,6 @@ router.post("/order/:orderId/cancel-item/:itemId",orderController.cancelSingleIt
 
 router.post("/order/:orderId/cancel-all",orderController.cancelEntireOrder);
 
-router.post("/order/:orderId/update-status",orderController.updateOrderStatus);
+router.post("/order/:orderId/:itemId/update-status",orderController.updateOrderStatus);
 
 module.exports = router;

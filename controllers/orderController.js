@@ -6,10 +6,30 @@ const OrderItem = require("../models/OrderItem");
 
 const loadOrder = async (req, res) => {
   try {
+    const search = req.query.search ? req.query.search.trim() : "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = 2; 
+
+    const matchStage = {};
+
+    if (search) {
+      matchStage.orderId = { $regex: search, $options: "i" };
+    }
+
+    const totalOrdersAgg = await Order.aggregate([
+      { $match: matchStage },
+      { $count: "total" },
+    ]);
+
+    const totalOrders = totalOrdersAgg[0]?.total || 0;
+    const totalPages = Math.ceil(totalOrders / limit);
+
+   
     const orders = await Order.aggregate([
-      {
-        $sort: { createdAt: -1 },
-      },
+      { $match: matchStage },
+      { $sort: { createdAt: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
       {
         $lookup: {
           from: "users",
@@ -52,18 +72,20 @@ const loadOrder = async (req, res) => {
       },
     ]);
 
-    console.log('orders' , orders)
-
     res.render("admin/orderManagement", {
-      title: "Order Management",
+      title: "Order-Management",
       layout: "layouts/adminLayout",
       orders,
+      search,
+      currentPage: page,
+      totalPages,
     });
   } catch (error) {
     console.error(error);
     res.status(500).send("Server Error");
   }
 };
+
 
 const loadOrderDetail = async (req, res) => {
   try {

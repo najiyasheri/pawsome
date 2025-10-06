@@ -301,7 +301,6 @@ const userProducts = async (req, res) => {
       isBlocked: false,
     };
 
-    // Search filter
     if (search) {
       filter.$or = [
         { name: { $regex: ".*" + search + ".*", $options: "i" } },
@@ -309,7 +308,6 @@ const userProducts = async (req, res) => {
       ];
     }
 
-    // Category filter
     if (category) {
       try {
         filter.categoryId = new mongoose.Types.ObjectId(category);
@@ -319,13 +317,12 @@ const userProducts = async (req, res) => {
       }
     }
 
-    // Price range filter (applied to basePrice for now)
     if (priceRange) {
       const [minPrice, maxPrice] = priceRange.split("-").map(Number);
       filter.basePrice = { $gte: minPrice, $lte: maxPrice };
     }
 
-    // Sort options
+
     let sortOption = { createdAt: -1 };
     if (sort) {
       if (sort === "price-low") sortOption = { basePrice: 1 };
@@ -350,7 +347,7 @@ const userProducts = async (req, res) => {
             $filter: {
               input: "$variants",
               as: "variant",
-              cond: { $eq: ["$$variant.status", true] }, // Include all active variants, regardless of stock
+              cond: { $eq: ["$$variant.status", true] }, 
             },
           },
         },
@@ -360,7 +357,7 @@ const userProducts = async (req, res) => {
           firstVariant: { $arrayElemAt: ["$variants", 0] },
         },
       },
-      // Removed $match to allow products with no valid variants
+    
       {
         $lookup: {
           from: "categories",
@@ -395,14 +392,13 @@ const userProducts = async (req, res) => {
         oldPrice: oldPrice,
         discount: discountPercentage,
         price: Math.round(oldPrice * (1 - discountPercentage / 100)),
-        stock: product.firstVariant?.stock || 0, // Use stock from firstVariant, default to 0
+        stock: product.firstVariant?.stock || 0, 
         variants: undefined,
         firstVariant: undefined,
         category: undefined,
       };
     });
 
-    // Handle JSON response for AJAX requests
     if (req.xhr || req.headers.accept.includes("application/json")) {
       return res.json({
         products: updatedProducts,
@@ -415,7 +411,6 @@ const userProducts = async (req, res) => {
       });
     }
 
-    // Render view for non-AJAX requests
     return res.render("user/products", {
       title: "User-Product",
       layout: "layouts/userLayout",
@@ -507,7 +502,7 @@ const loadProductDetails = async (req, res) => {
       oldPrice,
       price,
       discount: discountPercentage,
-      rating: 4.8, // Hardcoded as per original
+      rating: 4.8, 
       reviews: [
         { user: "Alice", rating: 5, comment: "Excellent product!" },
         { user: "John", rating: 4, comment: "Good but delivery was late." },

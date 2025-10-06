@@ -69,9 +69,7 @@
       <h1 class="text-2xl font-bold mb-2">
         <%= product.name %>
       </h1>
-      <p class="text-gray-900 mb-4">
-        <%= product.shortDesc || product.description %>
-      </p>
+    
 
       <!-- Rating -->
       <div class="flex items-center gap-2 mb-4">
@@ -133,14 +131,11 @@
                 </div>
               </div>
               <button type="submit" id="addToCartBtn"
-                class="px-6 py-3 border-gray-50 rounded-xl w-40 bg-white text-gray-900 hover:bg-gray-100 shadow-md">
+                class="px-6 py-3 border-gray-50 rounded-xl w-40 bg-yellow-500 text-gray-900 hover:bg-yellow-600 shadow-md">
                 Add to Cart
               </button>
         </form>
-        <button id="buyNowBtn"
-          class="px-6 py-2 border-gray-50 rounded-xl w-40 h-12 mt-1 bg-yellow-500 text-white hover:bg-yellow-600 shadow-md text-base leading-none">
-          Buy Now
-        </button>
+        
       </div>
 
       <!-- Description -->

@@ -36,12 +36,21 @@ router.get('/product/edit/:id', adminAuth,productController.loadEditProduct);
 router.post('/product/edit/:id', adminAuth , uploadProductImages, productController.postEditProduct);
 router.get('/product/view/:id',productController.loadProductDetailAdmin)
 
-router.get('/order',orderController.loadOrder)
-router.get('/order/:id',orderController.loadOrderDetail)
-router.post("/order/:orderId/cancel-item/:itemId",orderController.cancelSingleItem);
+router.get("/order", adminAuth,orderController.loadOrder);
+router.get('/order/:id',adminAuth,orderController.loadOrderDetail)
+router.post(
+  "/order/:orderId/cancel-item/:itemId",
+  adminAuth,orderController.cancelSingleItem
+);
 
-router.post("/order/:orderId/cancel-all",orderController.cancelEntireOrder);
+router.post(
+  "/order/:orderId/cancel-all",
+  adminAuth,orderController.cancelEntireOrder
+);
 
-router.post("/order/:orderId/:itemId/update-status",orderController.updateOrderStatus);
+router.post(
+  "/order/:orderId/:itemId/update-status",
+  adminAuth,orderController.updateOrderStatus
+);
 
 module.exports = router;

@@ -15,6 +15,7 @@ const orderController=require('../controllers/orderController')
 const profileOtpController=require('../controllers/profileOtpController')
 
 
+
 router.get("/", homeController.loadHomepage);
 router.get("/login",isLogin, authController.loadLoginPage);
 router.get("/signup",isLogin, authController.loadSignupPage);
@@ -45,9 +46,9 @@ router.post('/profile',isUser,profileController.postProfile)
 
 router.get("/address", isUser,addressController.loadAddress);
 router.post("/address/add",isUser, addressController.addAddress);
-router.get("/address/edit/:id", isUser,addressController.editAddress);
-router.post("/address/edit/:id", isUser,addressController.postEdit);
-router.post("/address/delete/:id", isUser,addressController.deleteAddress);
+router.get("/myAddress/edit/:id", isUser,addressController.editAddress);
+router.post("/myAddress/edit/:id", isUser,addressController.postEdit);
+router.post("/myAddress/delete/:id", isUser,addressController.deleteAddress);
 
 router.get("/shipping", isUser,shippingController.loadShipping);
 router.post("/shipping/save",isUser, shippingController.saveShipping);
@@ -62,6 +63,10 @@ router.post('/profileOtp',profileOtpController.postProfileOtp)
 router.post("/profileOtp-verify", profileOtpController.verifyProfileOtp);
 
 router.post("/profileOtp-resend",profileOtpController.postResendOtp)
+
+router.get("/myAddress",isUser,addressController.loadMyAddress);
+
+router.post("/myAddress/add", isUser, addressController.addMyAddress);
 
 
 module.exports = router;

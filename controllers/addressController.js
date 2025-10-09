@@ -10,7 +10,7 @@ const loadAddress = async (req, res) => {
 
     const addresses = await Address.find({ userId });
   
-    res.render("user/address", {
+    res.render("user/checkoutAddress", {
       title: "address",
       layout: "layouts/userLayout",
       user: req.session.user,
@@ -26,8 +26,9 @@ const addAddress = async (req, res) => {
   try {
     const userId = req.session.user._id;
 
-    const { name, phone, type, address } = req.body;
+    const { name, phone, type, address ,pinCode} = req.body;
     const isDefault = req.body.default === "on";
+  
     if (isDefault) {
       await Address.updateMany({ userId }, { $set: { default: false } });
     }
@@ -38,6 +39,7 @@ const addAddress = async (req, res) => {
       phone,
       type,
       address,
+      pinCode,
       default: isDefault || false,
     });
 
@@ -69,7 +71,7 @@ const editAddress = async (req, res) => {
 
 const postEdit = async (req, res) => {
   try {
-    const { name, phone, type, address, default: isDefault } = req.body;
+    const { name, phone, type, address,pinCode,default: isDefault } = req.body;
     const userId = req.session.user._id;
     if (isDefault) {
       await Address.updateMany(
@@ -82,9 +84,10 @@ const postEdit = async (req, res) => {
       phone,
       type,
       address,
+      pinCode,
       default: !!isDefault,
     });
-    res.redirect("/address");
+    res.redirect("/myAddress");
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Server error");
@@ -107,9 +110,56 @@ const deleteAddress = async (req, res) => {
     if (!deleted) {
       return res.status(404).send("Address not found");
     }
-    res.redirect("/address");
+    res.redirect("/myAddress");
   } catch (error) {
     console.error(error);
+    res.status(500).send("Server error");
+  }
+};
+
+const loadMyAddress = async (req, res) => {
+  try {
+    const userId = req.session.user._id;
+
+    const addresses = await Address.find({ userId });
+
+    res.render("user/myAddress", {
+      title: "address",
+      layout: "layouts/userLayout",
+      user: req.session.user,
+      addresses,
+    });
+  } catch (error) {
+    console.error("error while loading address page", error.message);
+    res.status(500).send("Server Error");
+  }
+};
+
+const addMyAddress = async (req, res) => {
+  try {
+    const userId = req.session.user._id;
+
+    const { name, phone, type, address ,pinCode } = req.body;
+    const isDefault = req.body.default === "on";
+    if (isDefault) {
+      await Address.updateMany({ userId }, { $set: { default: false } });
+    }
+
+    const newAddress = new Address({
+      userId,
+      name,
+      phone,
+      type,
+      address,
+      pinCode,
+      default: isDefault || false,
+    });
+
+    await newAddress.save();
+
+    res.redirect("/myAddress");
+  } catch (err) {
+    console.error(err.message);
     res.status(500).send("Server error");
   }
 };
@@ -120,4 +170,6 @@ module.exports = {
   editAddress,
   postEdit,
   deleteAddress,
+  loadMyAddress,
+  addMyAddress,
 };

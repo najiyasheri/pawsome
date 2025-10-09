@@ -9,7 +9,7 @@ const loadAddress = async (req, res) => {
     const userId = req.session.user._id;
 
     const addresses = await Address.find({ userId });
-    console.log("address:", addresses);
+  
     res.render("user/address", {
       title: "address",
       layout: "layouts/userLayout",

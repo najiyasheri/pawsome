@@ -18,7 +18,7 @@
 
 
          <li>
-            <a href="#"
+            <a href="/myOrders"
                class="flex items-center p-2 text-gray-900 rounded-lg dark:text-gray-800 hover:bg-gray-100 dark:hover:bg-yellow-400 group">
                <svg
                   class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -36,7 +36,7 @@
             </a>
          </li>
          <li>
-            <a href="#"
+            <a href="/profile"
                class="flex items-center p-2 text-gray-900 rounded-lg dark:text-gray-800 hover:bg-gray-100 dark:hover:bg-yellow-400 group">
                <svg
                   class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -98,30 +98,84 @@
 </aside>
 
 
-<main class="flex-1 p-8">
-   <div class="bg-white shadow rounded-lg p-6 max-w-3xl mx-auto">
-      <h3 class="text-xl font-semibold text-gray-700 mb-6">Edit Your Profile</h3>
-      <div class="flex items-center space-x-6 mb-6">
+<div class="bg-white p-6 max-w-3xl mx-auto relative">
+   <div class="flex space-x-1 mb-6">
+      <h3 class="text-xl font-semibold text-gray-700">Your Profile</h3>
+      <button id="editProfileBtn" class="text-gray-500 hover:text-yellow-500 text-md">
+         <i class="fa-solid fa-pen"></i>
+      </button>
+   </div>
+
+   <!-- Display mode -->
+   <div id="profileView">
+      <div class="flex items-center space-x-6 mb-5">
          <img src="/img/male.png" alt="Profile" class="w-24 h-24 rounded-full border">
-         <div>
-            <h2 class="text-2xl font-bold"><%= user.name %></h2>
-           
+         <div class="mt-1 mx-4">
+            <h2 class="text-2xl font-semibold">
+               <%= user.name %>
+            </h2>
+            <p class="text-gray-600 mt-2.5">
+               <%= user.email %>
+            </p>
          </div>
       </div>
 
-      <!-- Profile Form -->
+      <!-- Added details -->
+      <div class="mt-6 space-y-3 text-gray-700">
+         <p><span class="font-semibold">Joined Date:</span>
+            <%= new Date(user.createdAt).toLocaleDateString('en-IN', { day: '2-digit' , month: 'short' , year: 'numeric'
+               }) %>
+         </p>
+
+         <p><span class="font-semibold">Default Address:</span>
+            <% if (defaultAddress) { %>
+               <%= defaultAddress.name %>,
+                  <%= defaultAddress.address %>
+                     <% } else { %>
+                        <span class="text-gray-500 italic">No default address set</span>
+                        <% } %>
+         </p>
+      </div>
+   </div>
+
+   <!-- Edit mode -->
+   <div id="profileEdit" class="hidden">
       <form class="space-y-4" action="/profile" method="POST">
          <div>
-            <label class="block text-sm font-medium text-gray-600"></label>
+            <label class="block text-sm font-medium text-gray-600">Name</label>
             <input name="name" type="text" value="<%= user.name %>"
                class="mt-1 w-full border rounded-lg px-4 py-2 focus:ring focus:ring-yellow-300">
          </div>
 
-         <div>
+         <div class="relative mt-1 w-full">
             <label class="block text-sm font-medium text-gray-600">Email</label>
-            <input name="email" type="email" value="<%= user.email  %>"
-            disabled
-               class="mt-1 w-full border rounded-lg px-4 py-2 focus:ring focus:ring-yellow-300">
+            <input id="emailInput" name="email" type="email" value="<%= user.email %>" disabled
+               class="w-full border rounded-lg px-4 py-2 pr-20 bg-gray-100 text-gray-600 cursor-not-allowed">
+            <button id="editEmailBtn" type="button"
+               class="absolute mt-2.5 top-1/2 right-2 transform -translate-y-1/2 bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 text-sm">
+               Change
+            </button>
+         </div>
+
+
+         <!-- Joined date (read-only) -->
+         <div>
+            <label class="block text-sm font-medium text-gray-600">Joined Date</label>
+            <input type="text"
+               value="<%= new Date(user.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %>"
+               disabled class="mt-1 w-full border rounded-lg px-4 py-2 bg-gray-100 text-gray-600 cursor-not-allowed">
+         </div>
+
+         <!-- Default Address (read-only display) -->
+         <div>
+            <label class="block text-sm font-medium text-gray-600">Default Address</label>
+            <% if (defaultAddress) { %>
+               <textarea disabled rows="2"
+                  class="mt-1 w-full border rounded-lg px-4 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"><%= defaultAddress.name %>, <%= defaultAddress.address %></textarea>
+               <% } else { %>
+                  <input type="text" value="No default address set" disabled
+                     class="mt-1 w-full border rounded-lg px-4 py-2 bg-gray-100 text-gray-500 cursor-not-allowed">
+                  <% } %>
          </div>
 
          <div>
@@ -134,13 +188,259 @@
                class="mt-1 w-full border rounded-lg px-4 py-2 focus:ring focus:ring-yellow-300">
          </div>
 
-         <!-- Buttons -->
          <div class="flex justify-end space-x-4 pt-4">
-            <button type="reset"
-               class="px-6 py-2 border border-gray-400 rounded-lg text-gray-600 hover:bg-gray-100">Cancel</button>
-            <button type="submit" class="px-6 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500">Save
-               Changes</button>
+            <button type="button" id="cancelEditBtn"
+               class="px-6 py-2 border border-gray-400 rounded-lg text-gray-600 hover:bg-gray-100">
+               Cancel
+            </button>
+            <button type="submit" class="px-6 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500">
+               Save Changes
+            </button>
          </div>
       </form>
    </div>
-</main>
+</div>
+
+<!-- modal -->
+
+<div id="emailModal" class="fixed inset-0 hidden flex items-center justify-center z-50 backdrop-blur-sm bg-black/40 ">
+   <div class="bg-white rounded-lg shadow-lg w-96 p-6">
+      <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">&times;</button>
+
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">Change Email</h2>
+      <form id="emailChangeForm">
+         <div class="mb-3">
+            <!-- message -->
+            <p class="text-center" id="mssg"></p>
+            <label class="block text-sm font-medium text-gray-600">New Email</label>
+            <input id="newEmail" type="email" placeholder="Enter new email"
+               class="mt-1 w-full border rounded-lg px-4 py-2 focus:ring focus:ring-yellow-300" required>
+         </div>
+         <div class="mb-3">
+            <button type="button" id="sendOtpBtn"
+               class="w-full bg-yellow-400 text-white py-2 rounded-lg hover:bg-yellow-500">Send OTP</button>
+         </div>
+         <div id="otpSection" class="hidden">
+            <label class="block text-sm font-medium text-gray-600">Enter OTP</label>
+            <input id="otpInput" type="text" maxlength="6"
+               class="mt-1 w-full border rounded-lg px-4 py-2 focus:ring focus:ring-yellow-300" placeholder="Enter OTP">
+            <button type="submit" id="verifyOtpBtn"
+               class="mt-3 w-full bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600">Verify & Save</button>
+
+         </div>
+         <div class="flex justify-between items-center mt-2">
+            <button type="button" id="resendOtpBtn" disabled>Resend OTP</button>
+            <span id="timer">00:30</span>
+         </div>
+
+         <input type="hidden" id="resendEmail" value="<%= user.email %>">
+      </form>
+
+   </div>
+</div>
+</div>
+
+
+<script>
+   const editBtn = document.getElementById('editProfileBtn');
+   const cancelBtn = document.getElementById('cancelEditBtn');
+   const profileView = document.getElementById('profileView');
+   const profileEdit = document.getElementById('profileEdit');
+   const mssg = document.getElementById('mssg')
+   const newEmailInput = document.getElementById('newEmail');
+   const emailInput = document.getElementById('emailInput');
+
+   let interval;
+
+
+
+   editBtn.addEventListener('click', () => {
+      profileView.classList.add('hidden');
+      profileEdit.classList.remove('hidden');
+   });
+
+   cancelBtn.addEventListener('click', () => {
+      profileEdit.classList.add('hidden');
+      profileView.classList.remove('hidden');
+   });
+   const emailModal = document.getElementById('emailModal');
+   const editEmailBtn = document.getElementById('editEmailBtn');
+   const closeModal = document.getElementById('closeModal');
+   const sendOtpBtn = document.getElementById('sendOtpBtn');
+   const otpSection = document.getElementById('otpSection');
+   const verifyOtpBtn = document.getElementById('verifyOtpBtn')
+   editEmailBtn.addEventListener('click', () => emailModal.classList.remove('hidden'));
+   closeModal.addEventListener('click', () => emailModal.classList.add('hidden'));
+   const resendOtpBtn = document.getElementById('resendOtpBtn');
+   const timerEl = document.getElementById('timer');
+
+   newEmailInput.addEventListener('input', () => {
+      sendOtpBtn.disabled = false;
+      sendOtpBtn.style.cursor = 'pointer';
+      sendOtpBtn.style.backgroundColor = '#facc15';
+      sendOtpBtn.textContent = 'Send OTP';
+      mssg.textContent = '';
+
+   });
+
+
+
+   sendOtpBtn.addEventListener('click', async () => {
+      const newEmail = document.getElementById('newEmail').value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+      if (!newEmail) {
+         mssg.textContent = 'Please enter an email';
+         mssg.style.color = 'red';
+         return;
+      }
+      if (!emailRegex.test(newEmail)) {
+         mssg.textContent = 'Invalid email format';
+         mssg.style.color = 'red';
+         return;
+      }
+
+      otpSection.classList.remove('hidden');
+      sendOtpBtn.disabled = true;
+      sendOtpBtn.style.cursor = 'not-allowed';
+      sendOtpBtn.style.backgroundColor = 'grey';
+      sendOtpBtn.textContent = 'Sending...';
+ 
+      try {
+         const response = await fetch('/profileOtp', {
+            method: "POST",
+            headers: {
+               'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+               email: newEmail
+            })
+         });
+         const data = await response.json();
+
+
+
+         if (response.ok && data.success) {
+            otpSection.classList.remove('hidden');
+            mssg.textContent = data.message || 'OTP sent. Check your email.';
+            mssg.style.color = 'green';
+            sendOtpBtn.textContent = 'OTP sent';
+            startResendTimer();
+            
+         } else {
+            throw new Error(data.message || 'Failed to send OTP');
+         }
+      } catch (error) {
+         console.error('OTP Error:', error);
+         mssg.textContent = error.message || 'Failed to send OTP. Try again!';
+         mssg.style.color = 'red';
+         sendOtpBtn.disabled = false;
+         sendOtpBtn.textContent = 'Send OTP';
+      }
+   });
+
+   verifyOtpBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const otp = document.getElementById('otpInput').value.trim();
+      const email = document.getElementById('newEmail').value.trim();
+      const emailChageForm = document.getElementById('emailChangeForm')
+      try {
+         const response = await fetch('/profileOtp-verify', {
+            method: "POST",
+            headers: {
+               'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+               otp,
+               email
+            })
+         })
+         const data = await response.json();
+         if (response.ok && data.success) {
+            emailModal.classList.add("hidden");
+            emailInput.value = data.newEmail
+           
+            mssg.textContent = ''
+            
+            emailChangeForm.reset()
+            resendOtpBtn.disabled = true;
+            clearInterval(resendTimerInterval);
+         } else {
+            mssg.textContent = data.message || "Invalid OTP!";
+            mssg.style.color = "red";
+         }
+
+      } catch (error) {
+         console.error(error);
+         mssg.textContent = "Something went wrong. Try again!";
+         mssg.style.color = "red";
+      }
+   })
+
+   resendOtpBtn.addEventListener('click', async () => {
+      const email = newEmailInput.value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      // Validate email format
+      if (!email) {
+         mssg.textContent = 'Please enter an email';
+         mssg.style.color = 'red';
+         return;
+      }
+      if (!emailRegex.test(email)) {
+         mssg.textContent = 'Invalid email format';
+         mssg.style.color = 'red';
+         return;
+      }
+
+      resendOtpBtn.disabled = true;
+      resendOtpBtn.textContent = 'Resending...';
+      
+
+      try {
+         const res = await fetch('/profileOtp-resend', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+         });
+         const data = await res.json();
+
+     
+         if (data.success) {
+            mssg.textContent = data.message || 'OTP resent successfully';
+            mssg.style.color = 'green';
+            otpInput.value = '';
+            otpSection.classList.remove('hidden');
+            startResendTimer();
+         } else {
+            throw new Error(data.message || 'Failed to resend OTP');
+         }
+      } catch (err) {
+         console.error('Resend OTP error:', err);
+         mssg.textContent = err.message || 'Failed to resend OTP';
+         mssg.style.color = 'red';
+         resendOtpBtn.disabled = false;
+         resendOtpBtn.textContent = 'Resend OTP';
+      }
+   });
+
+   // Timer for resend
+   function startResendTimer() {
+      let time = 30;
+      resendOtpBtn.disabled = true;
+      timerEl.textContent = `00:${time < 10 ? '0' + time : time}`;
+
+      interval = setInterval(() => {
+         time--;
+         timerEl.textContent = `00:${time < 10 ? '0' + time : time}`;
+         if (time <= 0) {
+            clearInterval(interval);
+            resendOtpBtn.disabled = false;
+            resendOtpBtn.textContent = 'Resend OTP';
+            timerEl.textContent = '';
+
+         }
+      }, 1000);
+   }
+</script>

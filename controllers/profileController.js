@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Address= require('../models/Address')
 const bcrypt = require("bcrypt");
 
 
@@ -10,17 +11,24 @@ const loadProfile=async(req,res)=>{
    if(!user){
       res.status(404).send('user not found')
    }
+
+   const defaultAddress = await Address.findOne({userId:id,default:true})
+ 
+   
    return res.render("user/profile", {
-      title: "profile",
-      layout: "layouts/userLayout",
-      user:user
-    });
+     title: "profile",
+     layout: "layouts/userLayout",
+     user,
+     defaultAddress,
+   });
 
  } catch (error) {
     console.error('error while loading profile page',error.message)
     res.status(500).send("Server Error");
  }
 }
+
+
 const postProfile = async (req, res) => {
   try {
     const { name, email, currentPassword, newPassword, confirmPassword } =

@@ -12,6 +12,8 @@ const addressController=require('../controllers/addressController')
 const shippingController=require('../controllers/shippingController')
 const paymentController=require('../controllers/paymentContoller')
 const orderController=require('../controllers/orderController')
+const profileOtpController=require('../controllers/profileOtpController')
+
 
 router.get("/", homeController.loadHomepage);
 router.get("/login",isLogin, authController.loadLoginPage);
@@ -55,7 +57,11 @@ router.post("/success", isUser,paymentController.processPayment);
 
 router.get("/myOrders",isUser, orderController.loadUserOrders);
 
+router.post('/profileOtp',profileOtpController.postProfileOtp)
 
+router.post("/profileOtp-verify", profileOtpController.verifyProfileOtp);
+
+router.post("/profileOtp-resend",profileOtpController.postResendOtp)
 
 
 module.exports = router;

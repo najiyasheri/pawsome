@@ -118,17 +118,17 @@
           <% if (typeof csrfToken !=='undefined' ) { %>
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <% } %>
-              <div class="flex items-center gap-3 mb-4">
-                <label class="font-medium">Quantity:</label>
+              <!-- <div class="flex items-center gap-3 mb-4"> -->
+                <!-- <label class="font-medium">Quantity:</label>
                 <div class="flex items-center border border-gray-200 rounded-lg">
                   <button type="button" id="decrease"
-                    class="px-1.5 py-1 bg-white rounded-l-lg hover:bg-gray-200 text-gray-500 font-bold">−</button>
-                  <input type="number" id="quantity" name="quantity" value="1" min="1"
+                    class="px-1.5 py-1 bg-white rounded-l-lg hover:bg-gray-200 text-gray-500 font-bold">−</button> -->
+                  <!-- <input type="number" id="quantity" name="quantity" value="1" min="1"
                     max="<%= product.variants[0].stock %>"
                     class="w-9 py-1 border-0 text-center outline-none hide-arrows" />
                   <button type="button" id="increase"
-                    class="px-1.5 py-1 rounded-r-lg bg-white hover:bg-gray-200 text-yellow-500 font-bold">+</button>
-                </div>
+                    class="px-1.5 py-1 rounded-r-lg bg-white hover:bg-gray-200 text-yellow-500 font-bold">+</button> -->
+                <!-- </div> -->
               </div>
               <button type="submit" id="addToCartBtn"
                 class="px-6 py-3 border-gray-50 rounded-xl w-40 bg-yellow-500 text-gray-900 hover:bg-yellow-600 shadow-md">
@@ -305,13 +305,13 @@
     if (stock === 0) {
       stockStatus.textContent = 'Not Available';
       stockStatus.classList.add('stock-none');
-    } else if (stock <= 5) {
-      stockStatus.textContent = 'Low Stock';
-      stockStatus.classList.add('stock-low');
-    } else {
-      stockStatus.textContent = `In Stock (${stock})`;
-      stockStatus.classList.add('stock-good');
-    }
+    // } else if (stock <= 5) {
+    //   stockStatus.textContent = 'Low Stock';
+    //   stockStatus.classList.add('stock-low');
+    // } else {
+    //   stockStatus.textContent = `In Stock (${stock})`;
+    //   stockStatus.classList.add('stock-good');
+     }
   }
 
   function updateButtonState(stock) {

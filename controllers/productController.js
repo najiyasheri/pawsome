@@ -4,6 +4,8 @@ const Product = require("../models/Product");
 const ProductVariant = require("../models/ProductVarient");
 const fs = require("fs");
 const path = require("path");
+const User = require("../models/User");
+const Cart = require("../models/Cart");
 
 const loadProductManagement = async (req, res) => {
   try {
@@ -435,7 +437,7 @@ const loadProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
 
-    const products = await Product.aggregate([
+    let product = await Product.aggregate([
       {
         $match: {
           _id: new mongoose.Types.ObjectId(productId),
@@ -481,13 +483,13 @@ const loadProductDetails = async (req, res) => {
     ]).exec();
 
 
-    if (!products || products.length === 0) {
+    if (!product || product.length === 0) {
       return res
         .status(404)
         .send("Product not found or no active variants available");
     }
 
-    const product = products[0];
+    product = product[0];
 
     const firstVariant = product.variants[0];
     const basePrice = parseFloat(product.basePrice || 0);
@@ -496,6 +498,15 @@ const loadProductDetails = async (req, res) => {
     const oldPrice = basePrice + additionalPrice;
     const price = Math.round(oldPrice * (1 - discountPercentage / 100));
 
+    const userId = req.session?.user?._id;
+       let isExistingInCart= false
+        if (userId) {
+          let cart=await Cart.findOne({ userId });
+          isExistingInCart = cart.items.some((item) => item.productId.toString()===product._id.toString());
+          console.log(userId,isExistingInCart , cart.items , product._id)
+        }
+
+    
     const productData = {
       ...product,
       categoryName: product.category?.name || "Unknown",
@@ -503,6 +514,7 @@ const loadProductDetails = async (req, res) => {
       price,
       discount: discountPercentage,
       rating: 4.8, 
+      isExistingInCart,
       reviews: [
         { user: "Alice", rating: 5, comment: "Excellent product!" },
         { user: "John", rating: 4, comment: "Good but delivery was late." },
@@ -519,6 +531,9 @@ const loadProductDetails = async (req, res) => {
       })),
       category: undefined,
     };
+
+
+  
     const relatedProducts = await Product.aggregate([
       {
         $match: {

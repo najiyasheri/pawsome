@@ -26,7 +26,7 @@ const addToCart = async (req, res) => {
         .send("You must be logged in to add items to the cart");
     }
     const { productId } = req.body;
-    let quantity = parseInt(req.body.quantity);
+    let quantity = 1
     const userId = req.session.user._id;
     const product = await Product.findById(productId);
     if (!product) return res.status(404).send("server error");

@@ -76,22 +76,31 @@
           </div>
 
           <!-- Price & Add to Cart -->
-          <div class="mt-auto flex items-center justify-between">
-            <div>
-              <span class="text-xl font-bold text-black-600">₹<%= product.price %></span>
-              <span class="line-through text-gray-400">₹<%= product.oldPrice %></span>
-            </div>
-            <form action="/cart/add" method="POST">
-              <input type="hidden" name="productId" value="<%= product._id %>">
-              <input type="hidden" name="quantity" value="1">
-              <% if (typeof csrfToken !=='undefined' ) { %>
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <% } %>
-                  <button type="submit"
-                    class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Add
-                    to cart</button>
-            </form>
+        <div class="mt-auto flex items-center justify-between">
+          <div>
+            <span class="text-xl font-bold text-black-600">₹<%= product.price %></span>
+            <span class="line-through text-gray-400">₹<%= product.oldPrice %></span>
           </div>
+        
+          <% if (product.existingInCart) { %>
+            <a href="/cart"
+              class="text-black bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+              Go to cart
+            </a>
+            <% } else { %>
+              <!-- 🟡 Add to Cart -->
+              <form action="/cart/add" method="POST">
+                <input type="hidden" name="productId" value="<%= product._id %>">
+                <input type="hidden" name="quantity" value="1">
+    
+                    <button type="submit"
+                      class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                      Add to Cart
+                    </button>
+              </form>
+              <% } %>
+        </div>
+
         </div>
       </div>
       <% }) %>

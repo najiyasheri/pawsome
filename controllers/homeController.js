@@ -1,50 +1,55 @@
 const Product = require("../models/Product");
 const Category = require("../models/Category");
+const Cart = require("../models/Cart");
+
+
+
 const loadHomepage = async (req, res) => {
   try {
+    const userId = req.session?.user?._id;
+
     const products = await Product.aggregate([
-        
-          {
-            $lookup: {
-              from: "variants",
-              localField: "_id",
-              foreignField: "productId",
-              as: "variants",
+      {
+        $lookup: {
+          from: "variants",
+          localField: "_id",
+          foreignField: "productId",
+          as: "variants",
+        },
+      },
+      {
+        $addFields: {
+          variants: {
+            $filter: {
+              input: "$variants",
+              as: "variant",
+              cond: { $eq: ["$$variant.status", true] },
             },
           },
-          {
-            $addFields: {
-              variants: {
-                $filter: {
-                  input: "$variants",
-                  as: "variant",
-                  cond: { $eq: ["$$variant.status", true] }, 
-                },
-              },
-            },
-          },
-          {
-            $addFields: {
-              firstVariant: { $arrayElemAt: ["$variants", 0] },
-            },
-          },
-        
-          {
-            $lookup: {
-              from: "categories",
-              localField: "categoryId",
-              foreignField: "_id",
-              as: "category",
-            },
-          },
-          {
-            $unwind: {
-              path: "$category",
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-          { $limit: 8 },
-        ]).exec();
+        },
+      },
+      {
+        $addFields: {
+          firstVariant: { $arrayElemAt: ["$variants", 0] },
+        },
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: {
+          path: "$category",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      { $limit: 8 },
+    ]).exec();
+
     const count = await Category.aggregate([
       {
         $match: { isBlocked: false },
@@ -59,7 +64,7 @@ const loadHomepage = async (req, res) => {
       },
       {
         $addFields: {
-          productCount: { $size: ["$products"] },
+          productCount: { $size: "$products" },
         },
       },
       {
@@ -67,26 +72,37 @@ const loadHomepage = async (req, res) => {
       },
     ]);
 
+    let cartProductIds = [];
+    if (userId) {
+      const cart = await Cart.findOne({ userId });
+      cartProductIds = cart
+        ? cart.items.map((item) => item.productId.toString())
+        : [];
+    }
 
     const updatedProducts = products.map((product) => {
       const additionalPrice = product.firstVariant?.additionalPrice || 0;
       const basePrice = parseFloat(product.basePrice || 0);
       const discountPercentage = parseFloat(product.discountPercentage || 0);
       const oldPrice = basePrice + additionalPrice;
+
+      const existingInCart = userId
+        ? cartProductIds.includes(product._id.toString())
+        : undefined;
+
       return {
         ...product,
         categoryName: product.category?.name || "Unknown",
-        oldPrice: oldPrice,
+        oldPrice,
         discount: discountPercentage,
         price: Math.round(oldPrice * (1 - discountPercentage / 100)),
-        stock: product.firstVariant?.stock || 0, 
-        variants: undefined,
-        firstVariant: undefined,
-        category: undefined,
+        stock: product.firstVariant?.stock || 0,
+        existingInCart,
       };
     });
 
-    console.log(updatedProducts)
+
+
     return res.render("user/home", {
       title: "HomePage",
       layout: "layouts/userLayout",
@@ -95,10 +111,11 @@ const loadHomepage = async (req, res) => {
       categories: count,
     });
   } catch (error) {
-    console.error("home page error", error);
-    res.status(500).send("server error while loading Home page");
+    console.error("Home page error:", error);
+    res.status(500).send("Server error while loading Home page");
   }
 };
+
 
 const loadAdminDashboard = async (req, res) => {
   try {

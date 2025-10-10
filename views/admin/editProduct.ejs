@@ -132,7 +132,7 @@
               <% variants.forEach(variant=> { %>
                 <tr class="border-b border-gray-100">
                   <td class="py-4 px-4">
-                    <input name="size[]" type="text" value="<%= variant.size %>"
+                    <input name="size[]" placeholder="Nil" type="text" value="<%= variant.size %>"
                       class="w-full px-3 py-2 border rounded-md">
                     <div class="error"></div>
                   </td>
@@ -305,8 +305,8 @@ if (imageCount < 4) {
         const priceError = row.querySelector('td:nth-child(2) .error');
         const stockError = row.querySelector('td:nth-child(3) .error');
 
-        if (!size.value.trim() || /^\s+$/.test(size.value)) {
-          sizeError.textContent = 'Size is required and cannot be only whitespace';
+        if (value !== '' && !/^(?=.*[A-Za-z])[A-Za-z0-9]+(?: [A-Za-z0-9]+)*$/.test(value)) {
+          sizeError.textContent = 'Only letters/numbers allowed';
           size.classList.add('border-error');
           isValid = false;
         }

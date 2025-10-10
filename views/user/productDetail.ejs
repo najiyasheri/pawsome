@@ -92,6 +92,7 @@
       </div>
 
       <!-- Variant Selection -->
+       <% if(product.variants[0].size !=='Nil' )  {%>
       <div class="mb-4">
         <label class="font-medium mb-2 block">Size:</label>
         <div id="variantContainer" class="flex gap-3 flex-wrap">
@@ -109,7 +110,7 @@
         </div>
         <span id="stockStatus" class="stock-status mt-1"></span>
       </div>
-
+      <% } %>
       <!-- Actions -->
       
   <div class="flex gap-4 mb-6">

@@ -6,6 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const User = require("../models/User");
 const Cart = require("../models/Cart");
+const { log } = require("console");
 
 const loadProductManagement = async (req, res) => {
   try {
@@ -388,27 +389,28 @@ const userProducts = async (req, res) => {
     const totalPages = Math.ceil(count / limit);
     const categories = await Category.find({ isBlocked: false }).lean();
 
-   const updatedProducts = products.map((product) => {
-     const variant = product.selectedVariant;
-     const additionalPrice = variant?.additionalPrice || 0;
-     const basePrice = parseFloat(product.basePrice || 0);
-     const discountPercentage = parseFloat(product.discountPercentage || 0);
-     const oldPrice = basePrice + additionalPrice;
+    const updatedProducts = products.map((product) => {
+      const variant = product.selectedVariant;
+      const additionalPrice = variant?.additionalPrice || 0;
+      const basePrice = parseFloat(product.basePrice || 0);
+      const discountPercentage = parseFloat(product.discountPercentage || 0);
+      const oldPrice = basePrice + additionalPrice;
 
-     return {
-       ...product,
-       categoryName: product.category?.name || "Unknown",
-       oldPrice: oldPrice,
-       discount: discountPercentage,
-       price: Math.round(oldPrice * (1 - discountPercentage / 100)),
-       stock: variant?.stock || 0,
-       selectedVariant: variant || null,
-       isOutOfStock: !variant, // true if no variant with stock
-       variants: undefined,
-       category: undefined,
-     };
-   });
+      return {
+        ...product,
+        categoryName: product.category?.name || "Unknown",
+        oldPrice: oldPrice,
+        discount: discountPercentage,
+        price: Math.round(oldPrice * (1 - discountPercentage / 100)),
+        stock: variant?.stock || 0,
+        selectedVariant: variant || null,
+        isOutOfStock: !variant, // true if no variant with stock
+        variants: undefined,
+        category: undefined,
+      };
+    });
 
+    console.log(updatedProducts);
 
     if (req.xhr || req.headers.accept.includes("application/json")) {
       return res.json({
@@ -461,20 +463,33 @@ const loadProductDetails = async (req, res) => {
           as: "variants",
         },
       },
+      // ✅ keep only active variants (status true)
       {
         $addFields: {
           variants: {
             $filter: {
               input: "$variants",
               as: "variant",
-              cond: {
-                $and: [
-                  { $eq: ["$$variant.status", true] },
-                  { $gte: ["$$variant.stock", 0] },
-                ],
-              },
+              cond: { $eq: ["$$variant.status", true] },
             },
           },
+        },
+      },
+      // ✅ sort variants so that in-stock ones come first
+      {
+        $addFields: {
+          variants: {
+            $sortArray: {
+              input: "$variants",
+              sortBy: { stock: -1 }, // highest stock first
+            },
+          },
+        },
+      },
+      // ✅ pick the first variant (highest stock or next available)
+      {
+        $addFields: {
+          selectedVariant: { $arrayElemAt: ["$variants", 0] },
         },
       },
       {
@@ -488,41 +503,46 @@ const loadProductDetails = async (req, res) => {
       {
         $unwind: { path: "$category", preserveNullAndEmptyArrays: true },
       },
-      { $match: { "variants.0": { $exists: true } } },
     ]).exec();
 
     if (!product || product.length === 0) {
-      return res
-        .status(404)
-        .send("Product not found or no active variants available");
+      return res.status(404).send("Product not found");
     }
 
     product = product[0];
 
-    const firstVariant = product.variants[0];
+    const variant = product.selectedVariant;
     const basePrice = parseFloat(product.basePrice || 0);
+    const additionalPrice = parseFloat(variant?.additionalPrice || 0);
     const discountPercentage = parseFloat(product.discountPercentage || 0);
-    const additionalPrice = parseFloat(firstVariant?.additionalPrice || 0);
     const oldPrice = basePrice + additionalPrice;
     const price = Math.round(oldPrice * (1 - discountPercentage / 100));
 
     const userId = req.session?.user?._id;
-       let isExistingInCart= false
-        if (userId) {
-          let cart=await Cart.findOne({ userId });
-          isExistingInCart = cart.items.some((item) => item.productId.toString()===product._id.toString());
-          console.log(userId,isExistingInCart , cart.items , product._id)
-        }
+    let isExistingInCart = false;
+    let variantsInCart = [];
 
-    
+   if (userId) {
+     const cart = await Cart.findOne({ userId });
+     if (cart) {
+       variantsInCart = cart.items
+         .filter((item) => item.productId.toString() === product._id.toString())
+         .map((item) => item.variantId.toString());
+     }
+   }
+
+
     const productData = {
       ...product,
       categoryName: product.category?.name || "Unknown",
       oldPrice,
       price,
       discount: discountPercentage,
-      rating: 4.8,
+      stock: variant?.stock || 0,
+      selectedVariant: variant,
       isExistingInCart,
+      rating: 4.8,
+      variantsInCart,
       reviews: [
         { user: "Alice", rating: 5, comment: "Excellent product!" },
         { user: "John", rating: 4, comment: "Good but delivery was late." },
@@ -539,6 +559,7 @@ const loadProductDetails = async (req, res) => {
       })),
       category: undefined,
     };
+
 
     const relatedProducts = await Product.aggregate([
       {
@@ -562,28 +583,33 @@ const loadProductDetails = async (req, res) => {
             $filter: {
               input: "$variants",
               as: "variant",
-              cond: {
-                $and: [
-                  { $eq: ["$$variant.status", true] },
-                  { $gt: ["$$variant.stock", 0] },
-                ],
-              },
+              cond: { $eq: ["$$variant.status", true] },
             },
           },
         },
       },
-
+      {
+        $addFields: {
+          variants: {
+            $sortArray: {
+              input: "$variants",
+              sortBy: { stock: -1 },
+            },
+          },
+        },
+      },
       {
         $addFields: {
           selectedVariant: { $arrayElemAt: ["$variants", 0] },
         },
       },
-      { $match: { firstVariant: { $exists: true } } },
       { $limit: 4 },
     ]).exec();
 
     const updatedRelatedProducts = relatedProducts.map((p) => {
-      const additionalPrice = parseFloat(p.firstVariant?.additionalPrice || 0);
+      const additionalPrice = parseFloat(
+        p.selectedVariant?.additionalPrice || 0
+      );
       const basePrice = parseFloat(p.basePrice || 0);
       const discountPercentage = parseFloat(p.discountPercentage || 0);
       const oldPrice = basePrice + additionalPrice;
@@ -593,12 +619,13 @@ const loadProductDetails = async (req, res) => {
         oldPrice,
         discount: discountPercentage,
         price: Math.round(oldPrice * (1 - discountPercentage / 100)),
-        variants: undefined,
-        firstVariant: undefined,
+        stock: p.selectedVariant?.stock || 0,
+        selectedVariant: p.selectedVariant,
       };
     });
 
-
+    console.log(productData);
+    
     res.render("user/productDetail", {
       title: "Product Details",
       layout: "layouts/userLayout",

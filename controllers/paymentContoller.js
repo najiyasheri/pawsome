@@ -66,11 +66,12 @@ const processPayment = async (req, res) => {
           Number(item.priceAtAdding || 0) * Number(item.quantity || 0);
       });
     }
-    const shippingType = req.session.shippingType || "Regular";
+    const shippingType = req.session.shipping || "Regular";
     const deliveryCharge =
-      req.session.shippingType === "express"
+      req.session.shipping === "Express"
         ? Number(process.env.EXPRESS_DELIVERY_CHARGE)
         : Number(process.env.REGULAR_DELIVERY_CHARGE);
+
 
     const total = subtotal + deliveryCharge;
     const orderId = "ORD" + Date.now();

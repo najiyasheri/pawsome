@@ -2,7 +2,49 @@ const Product = require("../models/Product");
 const Category = require("../models/Category");
 const loadHomepage = async (req, res) => {
   try {
-    const products = await Product.find({ isBlocked: false }).lean().limit(8);
+    const products = await Product.aggregate([
+        
+          {
+            $lookup: {
+              from: "variants",
+              localField: "_id",
+              foreignField: "productId",
+              as: "variants",
+            },
+          },
+          {
+            $addFields: {
+              variants: {
+                $filter: {
+                  input: "$variants",
+                  as: "variant",
+                  cond: { $eq: ["$$variant.status", true] }, 
+                },
+              },
+            },
+          },
+          {
+            $addFields: {
+              firstVariant: { $arrayElemAt: ["$variants", 0] },
+            },
+          },
+        
+          {
+            $lookup: {
+              from: "categories",
+              localField: "categoryId",
+              foreignField: "_id",
+              as: "category",
+            },
+          },
+          {
+            $unwind: {
+              path: "$category",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          { $limit: 8 },
+        ]).exec();
     const count = await Category.aggregate([
       {
         $match: { isBlocked: false },
@@ -26,14 +68,25 @@ const loadHomepage = async (req, res) => {
     ]);
 
 
-    const updatedProducts = products.map((p) => {
+    const updatedProducts = products.map((product) => {
+      const additionalPrice = product.firstVariant?.additionalPrice || 0;
+      const basePrice = parseFloat(product.basePrice || 0);
+      const discountPercentage = parseFloat(product.discountPercentage || 0);
+      const oldPrice = basePrice + additionalPrice;
       return {
-        ...p,
-        oldPrice: p.basePrice,
-        discount: p.discountPercentage,
-        price: Math.round(p.basePrice * (1 - p.discountPercentage / 100)),
+        ...product,
+        categoryName: product.category?.name || "Unknown",
+        oldPrice: oldPrice,
+        discount: discountPercentage,
+        price: Math.round(oldPrice * (1 - discountPercentage / 100)),
+        stock: product.firstVariant?.stock || 0, 
+        variants: undefined,
+        firstVariant: undefined,
+        category: undefined,
       };
     });
+
+    console.log(updatedProducts)
     return res.render("user/home", {
       title: "HomePage",
       layout: "layouts/userLayout",

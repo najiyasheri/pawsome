@@ -8,6 +8,8 @@ const loadCart = async (req, res) => {
   const userId = req.session.user._id;
   const cart = await Cart.findOne({ userId }).populate("items.productId");
 
+  console.log(cart)
+
   res.render("user/cart", {
     title: "Cart",
     layout: "layouts/userLayout",
@@ -41,13 +43,8 @@ const addToCart = async (req, res) => {
       cart.items.push({
         productId,
         quantity,
-        priceAtAdding: product.basePrice,
       });
     }
-    cart.totalPrice = cart.items.reduce(
-      (sum, item) => sum + item.quantity * item.priceAtAdding,
-      0
-    );
     await cart.save();
     res.redirect("/cart");
   } catch (err) {
@@ -87,10 +84,7 @@ const updateCart = async (req, res) => {
       }
     }
 
-    cart.totalPrice = cart.items.reduce(
-      (sum, item) => sum + item.quantity * item.priceAtAdding,
-      0
-    );
+
 
     await cart.save();
     res.redirect("/cart");
@@ -117,12 +111,6 @@ const removeCart = async (req, res) => {
     cart.items = cart.items.filter(
       (item) => item.productId.toString() !== productId
     );
-
-    cart.totalPrice = cart.items.reduce(
-      (sum, item) => sum + item.quantity * item.priceAtAdding,
-      0
-    );
-
     await cart.save();
     res.redirect("/cart");
   } catch (err) {

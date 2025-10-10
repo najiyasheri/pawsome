@@ -23,7 +23,7 @@
                                 <p class="font-medium">
                                     <%= item.productId.name %>
                                 </p>
-                                <p class="text-gray-500">₹<%= item.priceAtAdding %>
+                                <p class="text-gray-500">₹<%= item.productId.basePrice %>
                                 </p>
                             </div>
                         </div>
@@ -48,7 +48,7 @@
                                     class="px-2 py-1 border rounded bg-yellow-400 text-white">+</button>
                             </form>
 
-                            <span class="ml-4 font-semibold">₹<%= item.quantity * item.priceAtAdding %></span>
+                            <span class="ml-4 font-semibold">₹<%= item.quantity * item.productId.basePrice%></span>
 
                             <!-- Remove Item -->
                             <form action="/cart/remove" method="POST" class="inline">
@@ -76,7 +76,7 @@
         <% if (!cart || cart.items.length===0) { %>
             <p class="text-gray-500">No items in cart</p>
             <% } else { %>
-                <% const subtotal=cart.items.reduce((sum, item)=> sum + item.quantity * item.priceAtAdding, 0); %>
+                <% const subtotal=cart.items.reduce((sum, item)=> sum + item.quantity * item.productId.basePrice, 0); %>
                     <% const delivery=50; %>
                         <% const total=subtotal + delivery; %>
 

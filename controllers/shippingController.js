@@ -8,8 +8,8 @@ const loadShipping = async (req, res) => {
       return date.toLocaleDateString("en-GB", options);
     };
     const shippingOptions = [
-      { type: "Regular", price: 50, daysAhead: 6, value: "regular" },
-      { type: "Express", price: 120, daysAhead: 4, value: "express" },
+      { type: "Regular", price: 50, daysAhead: 6, value: "Regular" },
+      { type: "Express", price: 120, daysAhead: 4, value: "Express" },
     ];
     shippingOptions.forEach((opt) => (opt.date = getFutureDate(opt.daysAhead)));
     const address = await Address.findById(req.query.addressId);

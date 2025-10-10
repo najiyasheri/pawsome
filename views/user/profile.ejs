@@ -1,3 +1,5 @@
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <button data-drawer-target="sidebar-multi-level-sidebar" data-drawer-toggle="sidebar-multi-level-sidebar"
    aria-controls="sidebar-multi-level-sidebar" type="button"
    class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-yellow-400 dark:focus:ring-gray-600">
@@ -54,7 +56,7 @@
 
    <!-- Edit mode -->
    <div id="profileEdit" class="hidden">
-      <form class="space-y-4" action="/profile" method="POST">
+      <form id="profileForm" class="space-y-4" action="/profile" method="POST">
          <div>
             <label class="block text-sm font-medium text-gray-600">Name</label>
             <input name="name" type="text" value="<%= user.name %>"
@@ -118,8 +120,8 @@
 <!-- modal -->
 
 <div id="emailModal" class="fixed inset-0 hidden flex items-center justify-center z-50 backdrop-blur-sm bg-black/40 ">
-   <div class="bg-white rounded-lg shadow-lg w-96 p-6">
-      <button id="closeModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">&times;</button>
+   <div class="relative bg-white rounded-lg shadow-lg w-96 p-6">
+      <button id="closeModal" class="absolute top-2 right-2 cursor-pointer text-gray-500 hover:text-gray-700">&times;</button>
 
       <h2 class="text-xl font-semibold mb-4 text-gray-700">Change Email</h2>
       <form id="emailChangeForm">
@@ -156,6 +158,44 @@
 
 
 <script>
+   const profileForm = document.getElementById('profileForm');
+
+      profileForm.addEventListener('submit', (e) => {
+         const nameInput = profileForm.name.value.trim();
+         const nameRegex = /^[A-Za-z\s]+$/;
+
+         if (!nameInput) {
+            e.preventDefault();
+            Swal.fire({
+               icon: 'warning',
+               title: 'Missing Name',
+               text: 'Please enter your name before saving.',
+            });
+            profileForm.name.focus();
+            return;
+         }
+         if (nameInput.length < 3 || nameInput.length > 20) {
+            e.preventDefault();
+            Swal.fire({
+               icon: 'info',
+               title: 'Invalid Name Length',
+               text: 'Name must be between 3 and 20 characters long.',
+            });
+            profileForm.name.focus();
+            return;
+         }
+
+         if (!nameRegex.test(nameInput)) {
+            e.preventDefault();
+            Swal.fire({
+               icon: 'error',
+               title: 'Invalid Name',
+               text: 'Name can only contain letters and spaces (no numbers or symbols).',
+            });
+            profileForm.name.focus();
+            return;
+         }
+      });
    const editBtn = document.getElementById('editProfileBtn');
    const cancelBtn = document.getElementById('cancelEditBtn');
    const profileView = document.getElementById('profileView');

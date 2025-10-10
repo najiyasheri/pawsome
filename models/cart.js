@@ -12,10 +12,6 @@ const cartItemSchema = new mongoose.Schema({
     min: 1,
     default: 1,
   },
-  priceAtAdding: {
-    type: Number,
-    required: true,
-  },
 });
 
 const cartSchema = new mongoose.Schema(
@@ -26,10 +22,6 @@ const cartSchema = new mongoose.Schema(
       required: true,
     },
     items: [cartItemSchema],
-    totalPrice: {
-      type: Number,
-      default: 0,
-    },
   },
   { timestamps: true }
 );

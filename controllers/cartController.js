@@ -20,6 +20,12 @@ const loadCart = async (req, res) => {
         user: req.session.user,
         cart: null,
         message: "Your cart is empty",
+        summary: {
+          totalItems: 0,
+          totalQuantity: 0,
+          deliveryCharge:0,
+          totalPrice: 0,
+        },
       });
     }
 
@@ -49,16 +55,28 @@ const loadCart = async (req, res) => {
       })
       .filter(Boolean);
 
-    // Total price calculation
-    const total = enrichedItems.reduce((sum, item) => sum + item.subtotal, 0);
-console.log("cart irems", enrichedItems);
 
-
+      const summary = {
+        totalItems: enrichedItems.length,
+        totalQuantity: enrichedItems.reduce(
+          (sum, item) => sum + item.quantity,
+          0
+        ),
+        deliveryCharge: 50,
+        totalPrice:
+          enrichedItems.reduce((sum, item) => sum + item.subtotal, 0) 
+      };
+  
+      console.log(summary);
     res.render("user/cart", {
       title: "Cart",
       layout: "layouts/userLayout",
       user: req.session.user,
-      cart: { items: enrichedItems, total },
+      cart: {
+        items: enrichedItems,
+        total: summary.totalPrice + summary.deliveryCharge,
+      },
+      summary,
     });
   } catch (err) {
     console.error("Error loading cart:", err);
@@ -144,7 +162,7 @@ const updateCart = async (req, res) => {
       return res.redirect("/login");
     }
 
-    const { productId, action } = req.body;
+    const { productId, variantId, action } = req.body; 
     const userId = req.session.user._id;
     const cart = await Cart.findOne({ userId });
 
@@ -153,23 +171,33 @@ const updateCart = async (req, res) => {
     }
 
     const itemIndex = cart.items.findIndex(
-      (item) => item.productId.toString() === productId
+      (item) =>
+        item.productId.toString() === productId &&
+        item.variantId.toString() === variantId
     );
 
     if (itemIndex === -1) {
       return res.redirect("/cart?error=Item not found");
     }
 
-    if (action === "increase") {
-      cart.items[itemIndex].quantity += 1;
-    } else if (action === "decrease") {
-      cart.items[itemIndex].quantity -= 1;
-      if (cart.items[itemIndex].quantity <= 0) {
-        cart.items.splice(itemIndex, 1);
-      }
+    const item = cart.items[itemIndex];
+
+    const variant = await Variant.findById(variantId);
+    if (!variant) {
+      return res.redirect("/cart?error=Variant not found");
     }
 
-
+    if (action === "increase") {
+      if (item.quantity + 1 > variant.stock) {
+        return res.redirect("/cart?error=Cannot add more than available stock");
+      }
+      item.quantity += 1;
+    } else if (action === "decrease") {
+      item.quantity -= 1;
+      if (item.quantity <= 0) {
+        cart.items.splice(itemIndex, 1); 
+      }
+    }
 
     await cart.save();
     res.redirect("/cart");
@@ -178,6 +206,8 @@ const updateCart = async (req, res) => {
     res.redirect("/cart?error=Server error");
   }
 };
+
+
 
 const removeCart = async (req, res) => {
   try {
@@ -185,7 +215,7 @@ const removeCart = async (req, res) => {
       return res.redirect("/login");
     }
 
-    const { productId } = req.body;
+    const { productId, variantId } = req.body; // include variantId
     const userId = req.session.user._id;
     const cart = await Cart.findOne({ userId });
 
@@ -193,9 +223,13 @@ const removeCart = async (req, res) => {
       return res.redirect("/cart?error=Cart not found");
     }
 
+    // Remove item matching both productId and variantId
     cart.items = cart.items.filter(
-      (item) => item.productId.toString() !== productId
+      (item) =>
+        item.productId.toString() !== productId ||
+        item.variantId.toString() !== variantId
     );
+
     await cart.save();
     res.redirect("/cart");
   } catch (err) {
@@ -203,6 +237,7 @@ const removeCart = async (req, res) => {
     res.redirect("/cart?error=Server error");
   }
 };
+
 module.exports = {
   loadCart,
   addToCart,

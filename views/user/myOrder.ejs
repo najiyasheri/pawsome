@@ -22,7 +22,7 @@
         <% order.items.forEach(item => { %>
           <div class="flex items-center gap-4 border border-gray-200 p-2 rounded-lg bg-gray-50">
           <% if (item.product && item.product.length> 0 && item.product[0].images && item.product[0].images.length > 0) { %>
-            <img src="/uploads/<%= item.product[0].images[0] %>" alt="<%= item.product[0].name %>"
+            <img src="/uploads/<%= item.product.image %>" alt="<%= item.product[0].name %>"
               class="w-16 h-16 object-cover rounded border" />
             <% } else { %>
               <img src="/uploads/default.jpg" alt="No image" class="w-16 h-16 object-cover rounded border" />

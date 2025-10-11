@@ -150,7 +150,7 @@
         // Update button to Go to Cart
         button.textContent = 'Go to Cart';
         button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
-        button.classList.add('bg-green-500', 'hover:bg-green-600', 'text-black');
+        button.classList.add('bg-yellow-700', 'hover:bg-yellow-800', 'text-black');
         button.onclick = () => window.location.href = '/cart';
       } else {
         Toast.fire({ icon: 'warning', title: result.message || 'Failed to add to cart' });
@@ -166,7 +166,5 @@
       });
     }
  }
-  //   button.addEventListener("click", async (e) => {
-     
-  // });
+
 </script>

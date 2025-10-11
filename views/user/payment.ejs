@@ -1,39 +1,68 @@
+
+<!-- Stepper -->
+<div class="flex items-center justify-center mb-8">
+    <div class="flex items-center gap-4">
+        <div class="flex items-center space-x-2 step" data-step="1">
+            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500 text-white font-bold">1
+            </div>
+            <span class="font-medium text-yellow-600">Address</span>
+        </div>
+
+        <!-- Connecting line -->
+        <div class="w-16 h-0.5 bg-yellow-300"></div>
+
+        <div class="flex items-center space-x-2 step" data-step="2">
+            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500 text-white font-bold">2
+            </div>
+            <span class="text-yellow-600">Payment</span>
+        </div>
+    </div>
+</div>
+
 <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Left Column - Summary -->
     <div class="bg-white rounded-lg shadow-sm p-6">
         <h2 class="text-xl font-semibold mb-6">Summary</h2>
 
         <!-- Product Items -->
-        <div class="space-y-4 mb-6">
-            <% cart.items.forEach(item=> { %>
-                <div class="flex items-center justify-between border-b pb-4">
-                    <div class="flex items-center gap-4">
-                        <img src="/uploads/<%= item.productId.images[0] %>" alt="Product"
-                            class="w-16 h-16 rounded object-cover">
-                        <div>
-                            <h3 class="font-medium text-sm">
-                                <%= item.productId.name %>
-                            </h3>
-                            <p class="text-gray-500 text-sm">Grooming Comb</p>
-                            <p class="text-gray-600 text-sm mt-1">x<%= item.quantity %>
+    <div class="space-y-4 mb-6">
+        <% cart.items.forEach(item=> { %>
+            <div class="flex items-center justify-between border-b pb-4">
+                <div class="flex items-center gap-4">
+                    <img src="/uploads/<%= item.image %>" alt="Product"
+                        class="w-16 h-16 rounded object-cover">
+                    <div>
+                        <h3 class="font-medium text-sm">
+                            <%= item.name %>
+                        </h3>
+    
+                        <!-- Show variant details -->
+                        <% if (item.variantId && item.size!=='Nil') { %>
+                            <p class="text-gray-500 text-sm mt-1">
+                                Size: <%= item.size %>
                             </p>
-                        </div>
+                            <% } %>
+    
+                                <p class="text-gray-600 text-sm mt-1">Quantity: x<%= item.quantity %>
+                                </p>
                     </div>
-                    <p class="font-semibold text-yellow-500">₹<%= (parseFloat(item.productId.basePrice.toString()) *
-                            item.quantity).toFixed(2) %>
-                    </p>
                 </div>
-                <% }) %>
-        </div>
+                <p class="font-semibold text-yellow-500">
+                    ₹<%= item.subtotal %>
+                </p>
+            </div>
+            <% }) %>
+    </div>
+
 
         <!-- Coupon Code -->
         <div class="mb-6">
             <label class="block text-sm font-medium mb-2">Coupon code / Promo code</label>
             <div class="flex gap-2">
-                <input type="text" placeholder="HAPPYDAY10"
+                <input type="text" placeholder="" disabled
                     class="flex-1 border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500">
                 <button class="bg-white border border-gray-300 px-6 py-2 rounded text-sm font-medium hover:bg-gray-50">
-                    Applied
+                    Apply
                 </button>
             </div>
         </div>
@@ -67,7 +96,7 @@
             </div>
             <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Coupon Applied</span>
-                <span class="font-medium text-green-600">-₹10.00</span>
+                <span class="font-medium text-green-600">-₹0.00</span>
             </div>
             <div class="flex justify-between text-lg font-semibold border-t pt-3">
                 <span>Total</span>
@@ -79,6 +108,8 @@
 
         <input type="hidden" name="paymentMethod" id="paymentMethod" />
         <input type="hidden" name="totalAmount" value="<%= total %>" />
+        <input type="hidden" name="addressId" value="<%= address._id %>" />
+
         <!-- Right Column - Payment Method Selection -->
         <div class="bg-white rounded-lg shadow-sm p-6">
             <h2 class="text-xl font-semibold mb-6">Payment Method</h2>
@@ -87,12 +118,12 @@
             <!-- Payment Method Options -->
             <div class="space-y-4">
                 <!-- Online Payment -->
-                <button type="button" id="onlinePayment" onclick="selectPayment('online')"
-                    class="payment-option w-full border-2 border-gray-300 rounded-lg p-6 text-left hover:border-yellow-400 hover:bg-yellow-50 transition-all duration-200">
+                <button type="button" id="onlinePayment" disabled
+                    class="payment-option w-full border-2 border-gray-300 rounded-lg p-6 cursor-not-allowed text-left transition-all duration-200">
                     <div class="flex items-start gap-4">
                         <div class="flex-shrink-0 mt-1">
                             <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
-                                <div class="w-3 h-3 rounded-full bg-yellow-400 hidden radio-dot"></div>
+                                <div class="w-3 h-3 rounded-full bg-gray-400  hidden radio-dot"></div>
                             </div>
                         </div>
                         <div class="flex-1">
@@ -135,7 +166,7 @@
 
                 <!-- Wallet -->
                 <button type="button" id="walletPayment" onclick="selectPayment('wallet')"
-                    class="payment-option w-full border-2 border-gray-300 rounded-lg p-6 text-left hover:border-yellow-400 hover:bg-yellow-50 transition-all duration-200">
+                    class="payment-option w-full border-2 border-gray-300 rounded-lg p-6 cursor-not-allowed text-left transition-all duration-200">
                     <div class="flex items-start gap-4">
                         <div class="flex-shrink-0 mt-1">
                             <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
@@ -167,7 +198,7 @@
 
             <!-- Action Buttons -->
             <div class="flex gap-4 mt-8">
-                <button type="button"
+                <button type="button" onclick="window.history.back()"
                     class="flex-1 border border-gray-300 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
                     BACK
                 </button>

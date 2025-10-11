@@ -22,7 +22,7 @@ const loadShipping = async (req, res) => {
       layout: "layouts/userLayout",
       title: "shipping",
       shippingOptions,
-      selectedShipping: req.session.shipping || "regular",
+      selectedShipping: req.session.shipping || "Regular",
     });
   } catch (error) {
     console.log(error);

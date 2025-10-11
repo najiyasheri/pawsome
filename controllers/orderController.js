@@ -71,6 +71,8 @@ const loadOrder = async (req, res) => {
         },
       },
     ]);
+
+    console.log(orders);
    
     res.render("admin/orderManagement", {
       title: "Order-Management",
@@ -91,23 +93,25 @@ const loadOrderDetail = async (req, res) => {
   try {
     const orderId = req.params.id;
 
+    // Fetch order with embedded items and populated user info
     const order = await Order.findById(orderId).populate(
       "userId",
       "name email phone"
     );
 
     if (!order) return res.status(404).send("Order not found");
-    const items = await OrderItem.find({ orderId: order._id }).populate(
-      "productId",
-      "name price images"
-    );
+
+    // Items are already embedded, no need to fetch from OrderItem
+    // If you want, you can also calculate subtotal for each item
+    const itemsWithSubtotal = order.items.map((item) => ({
+      ...item.toObject(),
+      subtotal: item.price * item.quantity,
+    }));
 
     const fullOrder = {
       ...order.toObject(),
-      items,
+      items: itemsWithSubtotal,
     };
-
-
 
     res.render("admin/orderDetail", {
       title: "Order Details",
@@ -120,6 +124,7 @@ const loadOrderDetail = async (req, res) => {
   }
 };
 
+
 const cancelSingleItem = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
@@ -127,10 +132,12 @@ const cancelSingleItem = async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
 
-    const item = await OrderItem.findOne({ orderId, _id:itemId});
-    
-    item.status='Cancelled'
-    await item.save();
+    const item = order.items.find((i) => i._id.toString() === itemId);
+    if (!item) return res.status(404).send("Item not found");
+
+    item.status = "Cancelled";
+    await order.save();
+
     res.redirect(`/admin/order/${orderId}`);
   } catch (err) {
     console.error(err);
@@ -138,13 +145,21 @@ const cancelSingleItem = async (req, res) => {
   }
 };
 
+
+
 const cancelEntireOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
 
-   await OrderItem.updateMany({orderId},{$set:{status:'Cancelled'}})
+  
+    order.items = order.items.map(item => ({
+      ...item.toObject(),
+      status: "Cancelled"
+    }));
+
+    await order.save();
 
     res.redirect(`/admin/order/${orderId}`);
   } catch (err) {
@@ -153,18 +168,21 @@ const cancelEntireOrder = async (req, res) => {
   }
 };
 
+
 const updateOrderStatus = async (req, res) => {
   try {
-    const { orderId,itemId } = req.params;
+    const { orderId, itemId } = req.params;
     const { status } = req.body;
 
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
 
-    const item=await OrderItem.findById(itemId)
+    // Find embedded item
+    const item = order.items.find((i) => i._id.toString() === itemId);
+    if (!item) return res.status(404).send("Item not found");
 
     item.status = status;
-    await item.save();
+    await order.save();
 
     res.redirect(`/admin/order/${orderId}`);
   } catch (err) {
@@ -172,6 +190,9 @@ const updateOrderStatus = async (req, res) => {
     res.status(500).send("Error updating status");
   }
 };
+
+
+
 const loadUserOrders = async (req, res) => {
   try {
     const userId = req.session.user._id;

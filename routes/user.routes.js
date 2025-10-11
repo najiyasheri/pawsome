@@ -50,8 +50,8 @@ router.get("/myAddress/edit/:id", isUser,addressController.editAddress);
 router.post("/myAddress/edit/:id", isUser,addressController.postEdit);
 router.post("/myAddress/delete/:id", isUser,addressController.deleteAddress);
 
-router.get("/shipping", isUser,shippingController.loadShipping);
-router.post("/shipping/save",isUser, shippingController.saveShipping);
+// router.get("/shipping", isUser,shippingController.loadShipping);
+// router.post("/shipping/save",isUser, shippingController.saveShipping);
 
 router.get('/payment',isUser,paymentController.loadPayment)
 router.post("/success", isUser,paymentController.processPayment);

@@ -71,7 +71,7 @@ const loadOrder = async (req, res) => {
         },
       },
     ]);
-
+   
     res.render("admin/orderManagement", {
       title: "Order-Management",
       layout: "layouts/adminLayout",

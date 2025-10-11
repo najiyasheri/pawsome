@@ -69,7 +69,9 @@ console.log("cart irems", enrichedItems);
 
 
 const addToCart = async (req, res) => {
+  console.log(req.session);
   try {
+
     if (!req.session.user) {
       return res.status(401).json({
         success: false,

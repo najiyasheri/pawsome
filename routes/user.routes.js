@@ -37,7 +37,7 @@ router.get('/products',productController.userProducts)
 router.get('/product/:id',productController.loadProductDetails)
 
 router.get("/cart", isUser,cartController.loadCart);
-router.post("/cart/add", isUser,cartController.addToCart);
+router.post("/cart/add",cartController.addToCart);
 router.post("/cart/update", isUser,cartController.updateCart);
 router.post("/cart/remove", isUser,cartController.removeCart);
 

@@ -329,10 +329,17 @@ const userProducts = async (req, res) => {
 
     let sortOption = { createdAt: -1 };
     if (sort) {
-      if (sort === "price-low") sortOption = { basePrice: 1 };
-      if (sort === "price-high") sortOption = { basePrice: -1 };
       if (sort === "name-az") sortOption = { name: 1 };
       if (sort === "name-za") sortOption = { name: -1 };
+    }
+
+    const userId = req.session?.user?._id;
+
+    // Fetch cart items if user logged in
+    let cartItems = [];
+    if (userId) {
+      const cart = await Cart.findOne({ userId }, "items.variantId").lean();
+      cartItems = cart?.items?.map((item) => item.variantId.toString()) || [];
     }
 
     const products = await Product.aggregate([
@@ -366,6 +373,40 @@ const userProducts = async (req, res) => {
           selectedVariant: { $arrayElemAt: ["$variants", 0] },
         },
       },
+      // Calculate oldPrice and finalPrice directly in aggregation
+      {
+        $addFields: {
+          oldPrice: {
+            $add: [
+              "$basePrice",
+              { $ifNull: ["$selectedVariant.additionalPrice", 0] },
+            ],
+          },
+          finalPrice: {
+            $round: [
+              {
+                $multiply: [
+                  {
+                    $subtract: [
+                      1,
+                      {
+                        $divide: [{ $ifNull: ["$discountPercentage", 0] }, 100],
+                      },
+                    ],
+                  },
+                  {
+                    $add: [
+                      "$basePrice",
+                      { $ifNull: ["$selectedVariant.additionalPrice", 0] },
+                    ],
+                  },
+                ],
+              },
+              0,
+            ],
+          },
+        },
+      },
       {
         $lookup: {
           from: "categories",
@@ -374,13 +415,14 @@ const userProducts = async (req, res) => {
           as: "category",
         },
       },
-      {
-        $unwind: {
-          path: "$category",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      { $sort: sortOption },
+      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+
+      ...(sort === "price-low"
+        ? [{ $sort: { finalPrice: 1 } }]
+        : sort === "price-high"
+        ? [{ $sort: { finalPrice: -1 } }]
+        : [{ $sort: sortOption }]),
+
       { $skip: (page - 1) * limit },
       { $limit: limit },
     ]).exec();
@@ -391,7 +433,7 @@ const userProducts = async (req, res) => {
 
     const updatedProducts = products.map((product) => {
       const variant = product.selectedVariant;
-      const additionalPrice = variant?.additionalPrice || 0;
+      const additionalPrice = parseFloat(variant?.additionalPrice || 0);
       const basePrice = parseFloat(product.basePrice || 0);
       const discountPercentage = parseFloat(product.discountPercentage || 0);
       const oldPrice = basePrice + additionalPrice;
@@ -399,12 +441,15 @@ const userProducts = async (req, res) => {
       return {
         ...product,
         categoryName: product.category?.name || "Unknown",
-        oldPrice: oldPrice,
+        oldPrice,
         discount: discountPercentage,
         price: Math.round(oldPrice * (1 - discountPercentage / 100)),
         stock: variant?.stock || 0,
         selectedVariant: variant || null,
-        isOutOfStock: !variant, // true if no variant with stock
+        isOutOfStock: !variant,
+        isExistingInCart: !!(
+          variant && cartItems.includes(variant._id.toString())
+        ),
         variants: undefined,
         category: undefined,
       };
@@ -522,15 +567,16 @@ const loadProductDetails = async (req, res) => {
     let isExistingInCart = false;
     let variantsInCart = [];
 
-   if (userId) {
-     const cart = await Cart.findOne({ userId });
-     if (cart) {
-       variantsInCart = cart.items
-         .filter((item) => item.productId.toString() === product._id.toString())
-         .map((item) => item.variantId.toString());
-     }
-   }
-
+    if (userId) {
+      const cart = await Cart.findOne({ userId });
+      if (cart) {
+        variantsInCart = cart.items
+          .filter(
+            (item) => item.productId.toString() === product._id.toString()
+          )
+          .map((item) => item.variantId.toString());
+      }
+    }
 
     const productData = {
       ...product,
@@ -559,7 +605,6 @@ const loadProductDetails = async (req, res) => {
       })),
       category: undefined,
     };
-
 
     const relatedProducts = await Product.aggregate([
       {
@@ -624,8 +669,6 @@ const loadProductDetails = async (req, res) => {
       };
     });
 
-    console.log(productData);
-    
     res.render("user/productDetail", {
       title: "Product Details",
       layout: "layouts/userLayout",

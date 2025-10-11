@@ -33,12 +33,13 @@
                 
                         <div class="flex items-center gap-2">
                             <!-- Decrease Quantity -->
-                            <form action="/cart/update" method="POST" class="inline">
-                                <input type="hidden" name="productId" value="<%= item.productId %>">
-                                <input type="hidden" name="variantId" value="<%= item.variantId %>">
-                                <input type="hidden" name="action" value="decrease">
-                                <button type="submit" class="px-2 py-1 border rounded">−</button>
-                            </form>
+                        <form action="/cart/update" method="POST" class="inline">
+                            <input type="hidden" name="productId" value="<%= item.productId %>">
+                            <input type="hidden" name="variantId" value="<%= item.variantId %>">
+                            <input type="hidden" name="action" value="decrease">
+                            <button type="submit" class="px-2 py-1 border rounded">−</button>
+                        </form>
+
                 
                             <span class="px-2">
                                 <%= item.quantity %>
@@ -49,7 +50,9 @@
                                 <input type="hidden" name="productId" value="<%= item.productId %>">
                                 <input type="hidden" name="variantId" value="<%= item.variantId %>">
                                 <input type="hidden" name="action" value="increase">
-                                <button type="submit" class="px-2 py-1 border rounded bg-yellow-400 text-white">+</button>
+                                <button type="submit" class="px-2 py-1 border rounded bg-yellow-400 text-white disabled:opacity-50"
+                                    <%=item.quantity>= 10 ? 'disabled' : '' %>
+                                    >+</button>
                             </form>
                 
                             <!-- Subtotal -->

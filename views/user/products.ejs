@@ -133,15 +133,15 @@
           <span class="text-yellow-400 text-lg">★</span>
           <span class="text-gray-800 text-xs font-semibold px-2 py-0.5 rounded-sm">5.0</span>
         </div>
-        <span class="stock-status"></span>
         <div class="mt-auto flex items-center justify-between">
           <div>
             <span class="text-xl font-bold text-black-600 product-price">₹0</span>
             <span class="line-through text-gray-400 old-price">₹0</span>
           </div>
+          <span class="stock-status"></span>
           <button class="add-cart text-gray-900 bg-yellow-400 hover:bg-gray-600 focus:ring-4 
-                   focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            data-product-id="">
+                   focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-3 py-2.5 text-center"
+            data-product-id="" data-variant-id="">
             Add to Cart
           </button>
         </div>
@@ -159,7 +159,7 @@
       stockStatus.textContent = "Out of Stock";
       stockStatus.classList.add("stock-none");
       element.querySelector(".add-cart").disabled = true;
-      element.querySelector(".add-cart").classList.add("btn-disabled");
+      element.querySelector(".add-cart").classList.add("hidden");
     }
   }
 
@@ -192,15 +192,34 @@
         clone.querySelector(".product-name").textContent = p.name;
         clone.querySelector(".product-price").textContent = `₹${p.price}`;
         clone.querySelector(".old-price").textContent = `₹${p.oldPrice}`;
-        clone.querySelector(".add-cart").setAttribute("data-product-id", p._id);
-        updateStockStatus(clone, p.stock || 0); // Use p.stock from backend
+
+        const addCartBtn = clone.querySelector(".add-cart");
+        addCartBtn.dataset.productId = p._id;
+        addCartBtn.dataset.variantId = p?.selectedVariant?._id;
+
+        // Update Add to Cart button if already in cart
+        if (p.isExistingInCart === true || p.selectedVariant?.isInCart === true) {
+          addCartBtn.textContent = "Go to Cart";
+          addCartBtn.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
+          addCartBtn.classList.add("bg-green-500", "hover:bg-green-600", "text-black");
+          addCartBtn.onclick = () => window.location.href = "/cart";
+        } else {
+          addCartBtn.textContent = "Add to Cart";
+          addCartBtn.classList.remove("bg-green-500", "hover:bg-green-600", "text-white");
+          addCartBtn.classList.add("bg-yellow-500", "hover:bg-yellow-600");
+        }
+
+        updateStockStatus(clone, p.stock || 0);
         container.appendChild(clone);
       });
 
       document.querySelectorAll(".add-cart").forEach(button => {
         button.addEventListener("click", async (e) => {
           e.preventDefault();
+
           const productId = button.getAttribute("data-product-id");
+          const variantId = button.getAttribute("data-variant-id");
+
           try {
             const response = await fetch("/cart/add", {
               method: "POST",
@@ -210,22 +229,69 @@
               },
               body: JSON.stringify({
                 productId,
-                quantity: 1 // Default quantity, adjust as needed
+                quantity: 1,
+                variantId
               })
             });
 
-            if (response.ok) {
-              window.location.href = "/cart"; // Redirect to cart page on success
-            } else {
-              const errorData = await response.json();
-              alert(errorData.message || "Failed to add item to cart");
+            // Handle unauthorized user (401)
+            if (response.status === 401) {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Login Required',
+                text: 'Please login to add items to your cart.',
+                confirmButtonText: 'Go to Login',
+                confirmButtonColor: '#facc15',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel'
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  window.location.href = '/login';
+                }
+              });
+              return;
+            }
+
+            const result = await response.json();
+
+            const Toast = Swal.mixin({
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 2000,
+              timerProgressBar: true,
+            });
+
+            if (result.success) {
+    
+              Toast.fire({
+                icon: 'success',
+                title: 'Added to Cart!'
+              });
+
+              button.textContent = 'Go to Cart';
+              button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+              button.classList.add('bg-green-500', 'hover:bg-green-600', 'text-black');
+              button.onclick = () => window.location.href = '/cart';
+            }
+            else {
+              Toast.fire({
+                icon: 'warning',
+                title: result.message || 'Failed to add to cart'
+              });
             }
           } catch (error) {
             console.error("Error adding to cart:", error);
-            alert("An error occurred while adding to cart");
+            Swal.fire({
+              icon: 'error',
+              title: 'Something went wrong!',
+              text: 'Please try again later.',
+              confirmButtonColor: '#f87171'
+            });
           }
         });
       });
+
 
       const paginationList = document.querySelector(".pagination ul");
       paginationList.innerHTML = "";

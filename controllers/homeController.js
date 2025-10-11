@@ -6,110 +6,117 @@ const Cart = require("../models/Cart");
 
 const loadHomepage = async (req, res) => {
   try {
-    const userId = req.session?.user?._id;
+  const userId = req.session?.user?._id;
 
-    const products = await Product.aggregate([
-      {
-        $lookup: {
-          from: "variants",
-          localField: "_id",
-          foreignField: "productId",
-          as: "variants",
-        },
+  const products = await Product.aggregate([
+    {
+      $lookup: {
+        from: "variants",
+        localField: "_id",
+        foreignField: "productId",
+        as: "variants",
       },
-      {
-        $addFields: {
-          variants: {
-            $filter: {
-              input: "$variants",
-              as: "variant",
-              cond: { $eq: ["$$variant.status", true] },
+    },
+    {
+      // Only active variants with stock > 0
+      $addFields: {
+        variants: {
+          $filter: {
+            input: "$variants",
+            as: "variant",
+            cond: {
+              $and: [
+                { $eq: ["$$variant.status", true] },
+                { $gt: ["$$variant.stock", 0] },
+              ],
             },
           },
         },
       },
-      {
-        $addFields: {
-          firstVariant: { $arrayElemAt: ["$variants", 0] },
-        },
+    },
+    {
+      // Pick first available variant (highest stock or first)
+      $addFields: {
+        selectedVariant: { $arrayElemAt: ["$variants", 0] },
       },
-      {
-        $lookup: {
-          from: "categories",
-          localField: "categoryId",
-          foreignField: "_id",
-          as: "category",
-        },
+    },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "categoryId",
+        foreignField: "_id",
+        as: "category",
       },
-      {
-        $unwind: {
-          path: "$category",
-          preserveNullAndEmptyArrays: true,
-        },
+    },
+    {
+      $unwind: {
+        path: "$category",
+        preserveNullAndEmptyArrays: true,
       },
-      { $limit: 8 },
-    ]).exec();
+    },
+    { $limit: 8 },
+  ]).exec();
 
-    const count = await Category.aggregate([
-      {
-        $match: { isBlocked: false },
+  // Get categories with product counts
+  const categories = await Category.aggregate([
+    { $match: { isBlocked: false } },
+    {
+      $lookup: {
+        from: "products",
+        foreignField: "categoryId",
+        localField: "_id",
+        as: "products",
       },
-      {
-        $lookup: {
-          from: "products",
-          foreignField: "categoryId",
-          localField: "_id",
-          as: "products",
-        },
-      },
-      {
-        $addFields: {
-          productCount: { $size: "$products" },
-        },
-      },
-      {
-        $project: { products: 0 },
-      },
-    ]);
+    },
+    { $project: { products: 0 } },
+  ]);
 
-    let cartProductIds = [];
-    if (userId) {
-      const cart = await Cart.findOne({ userId });
-      cartProductIds = cart
-        ? cart.items.map((item) => item.productId.toString())
-        : [];
-    }
+  // Get products in cart for current user
+  let cartItems = [];
+  if (userId) {
+    const cart = await Cart.findOne({ userId });
+    cartItems = cart ? cart.items : [];
+  }
 
-    const updatedProducts = products.map((product) => {
-      const additionalPrice = product.firstVariant?.additionalPrice || 0;
+  // Map products to include final price, stock, and existingInCart
+  const updatedProducts = products
+    .filter((p) => p.selectedVariant) // remove out-of-stock products
+    .map((product) => {
+      const variant = product.selectedVariant;
+      const additionalPrice = variant?.additionalPrice || 0;
       const basePrice = parseFloat(product.basePrice || 0);
       const discountPercentage = parseFloat(product.discountPercentage || 0);
       const oldPrice = basePrice + additionalPrice;
+      const finalPrice = Math.round(oldPrice * (1 - discountPercentage / 100));
 
-      const existingInCart = userId
-        ? cartProductIds.includes(product._id.toString())
-        : undefined;
+      // Check if this product + variant combination exists in cart
+      const existingInCart = cartItems.some(
+        (item) =>
+          item.productId.toString() === product._id.toString() &&
+          item.variantId?.toString() === variant?._id?.toString()
+      );
 
       return {
         ...product,
         categoryName: product.category?.name || "Unknown",
         oldPrice,
         discount: discountPercentage,
-        price: Math.round(oldPrice * (1 - discountPercentage / 100)),
-        stock: product.firstVariant?.stock || 0,
-        existingInCart,
+        price: finalPrice,
+        stock: variant?.stock || 0,
+        selectedVariant: variant,
+        existingInCart, // ✅ true if in cart
+        variants: undefined,
+        category: undefined,
       };
     });
 
-
-
-    return res.render("user/home", {
-      title: "HomePage",
-      layout: "layouts/userLayout",
-      user: req.session.user,
-      products: updatedProducts,
-      categories: count,
-    });
+  return res.render("user/home", {
+    title: "HomePage",
+    layout: "layouts/userLayout",
+    user: req.session.user,
+    products: updatedProducts,
+    categories
+  });
   } catch (error) {
     console.error("Home page error:", error);
     res.status(500).send("Server error while loading Home page");

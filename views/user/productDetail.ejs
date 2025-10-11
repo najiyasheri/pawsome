@@ -120,7 +120,15 @@
           <span id="stockStatus" class="mt-1 block text-sm"></span>
         </div>
 
-        <% } %>
+        <% }else{ %>
+          <button  type="button"  class="variant-box hidden" 
+           <% let variant=product.variants[0]%>
+            data-id="<%= variant._id %>" data-additional-price="<%= variant.additionalPrice %>"
+            data-is-in-cart="<%= product.variantsInCart.includes(variant._id.toString()) %>"
+            data-final-price="<%= variant.finalPrice %>" data-stock="<%= variant.stock %>" <%=variant.stock <=0 ? 'disabled' : ''
+            %>>
+          </button>
+          <% } %>
 
           <!-- Product Actions -->
           <div class="flex gap-4 mb-6">
@@ -270,6 +278,174 @@
 </div>
 
 <script>
+ 
+  
+    const variantButtons = document.querySelectorAll('.variant-box');
+    const productPrice = document.getElementById('productPrice');
+    const productOldPrice = document.getElementById('productOldPrice');
+    const productDiscount = document.getElementById('productDiscount');
+    const stockStatus = document.getElementById('stockStatus');
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    const variantIdInput = document.getElementById('variantId');
+    const productIdInput = document.getElementById('productId');
+
+    const basePrice = parseFloat('<%= product.basePrice %>');
+    const discount = parseFloat('<%= product.discount %>');
+
+    function setAddToCartState(isInCart, stock) {
+        isCartMode = isInCart;
+
+        if (isInCart) {
+          addToCartBtn.textContent = 'Go to Cart';
+          addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-green-500 text-white hover:bg-green-600 cursor-pointer';
+          addToCartBtn.disabled = false;
+        } else {
+          updateAddToCartButton(stock);
+        }
+      }
+
+      const firstVariant = variantButtons[0];
+      setAddToCartState(firstVariant?.dataset?.isInCart === 'true', parseInt(firstVariant?.dataset?.stock));
+
+      variantButtons?.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.disabled) return;
+
+          variantButtons?.forEach(v => v.classList.remove('selected'));
+          btn.classList.add('selected');
+
+          const stock = parseInt(btn.dataset.stock);
+          const price = parseFloat(btn.dataset.finalPrice);
+          const variantId = btn?.dataset?.id;
+          const isInCart = btn.dataset.isInCart === 'true';
+
+          variantIdInput.value = variantId;
+          productPrice.textContent = `₹${price.toFixed(0)}`;
+
+          updateStockStatus(stock);
+          setAddToCartState(isInCart, stock);
+        });
+      });
+
+      // Update stock message
+      function updateStockStatus(stock) {
+        stockStatus.className = 'mt-1 block text-sm';
+        if (stock === 0) {
+          stockStatus.textContent = 'Out of Stock';
+          stockStatus.classList.add('text-red-500');
+        } else if (stock <= 5) {
+          stockStatus.textContent = `Only ${stock} left!`;
+          stockStatus.classList.add('text-yellow-500');
+        } else {
+          stockStatus.textContent = '';
+        }
+      }
+
+      // Update Add to Cart button state
+      function updateAddToCartButton(stock) {
+        if (stock <= 0) {
+          addToCartBtn.disabled = true;
+          addToCartBtn.textContent = 'Out of Stock';
+          addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-red-200 text-red-500 cursor-not-allowed';
+        } else {
+          addToCartBtn.disabled = false;
+          addToCartBtn.textContent = 'Add to Cart';
+          addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-yellow-500 hover:bg-yellow-600 shadow-md text-black';
+        }
+      }
+
+
+    // Single event listener that handles both modes
+      addToCartBtn?.addEventListener('click', async () => {
+        if (isCartMode) {
+          window.location.href = '/cart';
+          return;
+        }
+
+        // Otherwise, add to cart
+        const productId = productIdInput.value;
+        const variantId = variantIdInput.value;
+
+        if (!variantId) {
+          alert('Please select a variant!');
+          return;
+        }
+
+        addToCartBtn.disabled = true;
+        addToCartBtn.textContent = 'Adding...';
+
+       try {
+          const response = await fetch('/cart/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId, variantId })
+          });
+
+          // Handle 401 Unauthorized before reading JSON
+          if (response.status === 401) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Login Required',
+              text: 'Please login to add items to your cart.',
+              confirmButtonText: 'Go to Login',
+              confirmButtonColor: '#facc15', // yellow
+              showCancelButton: true,
+              cancelButtonText: 'Cancel',
+            }).then((result) => {
+              if (result.isConfirmed) {
+                window.location.href = '/login';
+              }
+            });
+            return; // stop further execution
+          }
+
+          const result = await response.json();
+
+          if (result.success) {
+            setAddToCartState(true, result.stock);
+
+            const currentVariant = document.querySelector(`.variant-box[data-id="${variantId}"]`);
+            if (currentVariant) {
+              currentVariant.dataset.isInCart = 'true';
+            }
+
+            Swal.fire({
+              icon: 'success',
+              title: 'Added to Cart!',
+              text: 'The product has been successfully added to your cart.',
+              showConfirmButton: false,
+              timer: 1500
+            });
+          } else {
+            addToCartBtn.disabled = false;
+            addToCartBtn.textContent = 'Add to Cart';
+
+            Swal.fire({
+              icon: 'warning',
+              title: 'Oops!',
+              text: result.message || 'Failed to add to cart.',
+              confirmButtonColor: '#facc15', 
+            });
+          }
+        } catch (error) {
+          console.error('Add to cart error:', error);
+          addToCartBtn.disabled = false;
+          addToCartBtn.textContent = 'Add to Cart';
+
+          Swal.fire({
+            icon: 'error',
+            title: 'Something went wrong!',
+            text: 'Please try again later.',
+            confirmButtonColor: '#f87171', 
+          });
+        }finally{
+           addToCartBtn.disabled = false;
+           addToCartBtn.textContent = 'Add to Cart'
+        }
+
+      });
+
+
   function updateMainImage(src) {
     const mainImage = document.getElementById('mainImage');
     mainImage.src = src;
@@ -299,128 +475,11 @@
       paneHeight: 400
     });
   }
-const mainImg = document.getElementById('mainImage');
-    if (mainImg.complete) {
-      initDrift();
-    } else {
-      mainImg.addEventListener('load', initDrift, { once: true });
-    }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    
-    const variantButtons = document.querySelectorAll('.variant-box');
-    const productPrice = document.getElementById('productPrice');
-    const productOldPrice = document.getElementById('productOldPrice');
-    const productDiscount = document.getElementById('productDiscount');
-    const stockStatus = document.getElementById('stockStatus');
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    const variantIdInput = document.getElementById('variantId');
-    const productIdInput = document.getElementById('productId');
-
-    const basePrice = parseFloat('<%= product.basePrice %>');
-    const discount = parseFloat('<%= product.discount %>');
-
-    function setAddToCartState(isInCart, stock) {
-      if (isInCart) {
-        addToCartBtn.textContent = 'Go to Cart';
-        addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-green-500 text-white hover:bg-green-600';
-        addToCartBtn.onclick = () => window.location.href = '/cart';
-      } else {
-        updateAddToCartButton(stock);
-        addToCartBtn.onclick = null;
-      }
-    }
-
-    const firstVariant = variantButtons[0];
-    setAddToCartState(firstVariant.dataset.isInCart === 'true', parseInt(firstVariant.dataset.stock));
-
-    variantButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (btn.disabled) return;
-
-        variantButtons.forEach(v => v.classList.remove('selected'));
-        btn.classList.add('selected');
-
-        const stock = parseInt(btn.dataset.stock);
-        const price = parseFloat(btn.dataset.finalPrice);
-        const variantId = btn.dataset.id;
-        const isInCart = btn.dataset.isInCart === 'true';
-
-        variantIdInput.value = variantId;
-        productPrice.textContent = `₹${price.toFixed(0)}`;
-
-        updateStockStatus(stock);
-        setAddToCartState(isInCart, stock);
-      });
-    });
-
-    // Update stock message
-    function updateStockStatus(stock) {
-      stockStatus.className = 'mt-1 block text-sm';
-      if (stock === 0) {
-        stockStatus.textContent = 'Out of Stock';
-        stockStatus.classList.add('text-red-500');
-      } else if (stock <= 5) {
-        stockStatus.textContent = `Only ${stock} left!`;
-        stockStatus.classList.add('text-yellow-500');
-      } else {
-        stockStatus.textContent = '';
-      }
-    }
-
-
-    // Update Add to Cart button state
-    function updateAddToCartButton(stock) {
-      if (stock <= 0) {
-        addToCartBtn.disabled = true;
-        addToCartBtn.textContent = 'Out of Stock';
-        addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-red-200 text-red-500 cursor-not-allowed';
-      } else {
-        addToCartBtn.disabled = false;
-        addToCartBtn.textContent = 'Add to Cart';
-        addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-yellow-500 hover:bg-yellow-600 shadow-md text-black';
-      }
-    }
-
-    addToCartBtn?.addEventListener('click', async () => {
-      const productId = productIdInput.value;
-      const variantId = variantIdInput.value;
-
-      if (!variantId) {
-        alert('Please select a variant!');
-        return;
-      }
-
-      addToCartBtn.disabled = true;
-      addToCartBtn.textContent = 'Adding...';
-
-      try {
-        const response = await fetch('/cart/add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId, variantId })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          setAddToCartState(true, result.stock);
-          const currentVariant = document.querySelector(`.variant-box[data-id="${variantId}"]`);
-          if (currentVariant) {
-            currentVariant.dataset.isInCart = 'true';
-          }
-        } else {
-          addToCartBtn.disabled = false;
-          addToCartBtn.textContent = 'Add to Cart';
-          alert(result.message || 'Failed to add to cart');
-        }
-      } catch (error) {
-        console.error('Add to cart error:', error);
-        addToCartBtn.disabled = false;
-        addToCartBtn.textContent = 'Add to Cart';
-        alert('Something went wrong!');
-      }
-    });
-  });
+  const mainImg = document.getElementById('mainImage');
+  if (mainImg.complete) {
+    initDrift();
+  } else {
+    mainImg.addEventListener('load', initDrift, { once: true });
+  }
 
 </script>

@@ -14,65 +14,51 @@
                 </a>
             </div>
             <% } else { %>
-                <% cart.items.forEach(item=> { %>
-                    <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg shadow-sm">
-                        <div class="flex items-center gap-4">
-                            <img src="/uploads/<%= item.image %>" alt="<%= item.name %>" class="w-16 h-16 rounded">
-                            <div>
-                                <p class="font-medium">
-                                    <%= item.name %>
+            <% cart.items.forEach(item=> { %>
+                <div class="flex items-center justify-between bg-gray-50 p-4 rounded-lg shadow-sm"
+                    data-item-id="<%= item.productId %>-<%= item.variantId %>" data-out-of-stock="<%= item.stock === 0 %>">
+                    <div class="flex items-center gap-4">
+                        <img src="/uploads/<%= item.image %>" alt="<%= item.name %>" class="w-16 h-16 rounded">
+                        <div>
+                            <p class="font-medium">
+                                <%= item.name %>
+                            </p>
+                            <% if(item.size !=='Nil' ) { %>
+                                <p class="text-gray-500">Size: <%= item.size %>
                                 </p>
-                                <% if(item.size !=='Nil' ){ %>
-                                    <p class="text-gray-500">
-                                        Size: <%= item.size %>
+                                <% } %>
+            
+                                    <p class="text-gray-500 price">Price: ₹<%= item.price %>
                                     </p>
-                                    <% } %>
-
-                                        <p class="text-gray-500">
-                                            Price: ₹<%= item.price %>
-                                        </p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <!-- Decrease Quantity -->
-                            <form action="/cart/update" method="POST" class="inline">
-                                <input type="hidden" name="productId" value="<%= item.productId %>">
-                                <input type="hidden" name="variantId" value="<%= item.variantId %>">
-                                <input type="hidden" name="action" value="decrease">
-                                <button type="submit" class="px-2 py-1 border rounded">−</button>
-                            </form>
-
-
-                            <span class="px-2">
-                                <%= item.quantity %>
-                            </span>
-
-                            <!-- Increase Quantity -->
-                            <form action="/cart/update" method="POST" class="inline">
-                                <input type="hidden" name="productId" value="<%= item.productId %>">
-                                <input type="hidden" name="variantId" value="<%= item.variantId %>">
-                                <input type="hidden" name="action" value="increase">
-                                <button type="submit"
-                                    class="px-2 py-1 border rounded bg-yellow-400 text-white disabled:opacity-50"
-                                    <%=item.quantity>= 10 ? 'disabled' : '' %>
-                                    >+</button>
-                            </form>
-
-                            <!-- Subtotal -->
-                            <span class="ml-4 font-semibold">₹<%= item.subtotal %></span>
-
-                            <!-- Remove Item -->
-                            <form action="/cart/remove" method="POST" class="inline">
-                                <input type="hidden" name="productId" value="<%= item.productId %>">
-                                <input type="hidden" name="variantId" value="<%= item.variantId %>">
-                                <button type="submit" class="ml-2 text-gray-400 hover:text-red-500">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </form>
+            
+                                    <% if(item.stock===0){ %>
+                                        <p class="text-red-500 font-semibold mt-1">Out of Stock</p>
+                                        <% } %>
                         </div>
                     </div>
-                    <% }) %>
+                    <!-- Quantity & Remove buttons -->
+                    <div class="flex items-center gap-2">
+                        <button onclick="updateQuantity('<%= item.productId %>', '<%= item.variantId %>', 'decrease')"
+                            class="px-2 py-1 border rounded hover:bg-gray-100 transition" <%=item.stock===0 ? 'disabled' : '' %>>
+                            −
+                        </button>
+                        <span class="px-2 quantity-display">
+                            <%= item.quantity %>
+                        </span>
+                        <button onclick="updateQuantity('<%= item.productId %>', '<%= item.variantId %>', 'increase')"
+                            class="px-2 py-1 border rounded bg-yellow-400 text-white hover:bg-yellow-500 disabled:opacity-50 transition"
+                            <%=item.quantity>= 10 || item.stock === 0 ? 'disabled' : '' %>>
+                            +
+                        </button>
+                        <span class="ml-4 font-semibold subtotal-display">₹<%= item.subtotal %></span>
+                        <button onclick="removeItem('<%= item.productId %>', '<%= item.variantId %>')"
+                            class="ml-2 text-gray-400 hover:text-red-500 transition">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <% }) %>
+
 
 
                         <div>
@@ -92,26 +78,149 @@
             <% } else { %>
 
                 <div class="flex justify-between mb-2">
-                    <span>Subtotal (<%=summary.totalQuantity %> items)</span>
-                    <span>₹<%= summary.totalPrice %></span>
+                    <span>Subtotal (<span id="total-quantity">
+                            <%=summary.totalQuantity %>
+                        </span> items)</span>
+                    <span>₹<span id="subtotal-price">
+                            <%= summary.totalPrice %>
+                        </span></span>
                 </div>
 
                 <div class="flex justify-between mb-4">
                     <span>Delivery Charge</span>
-                    <span>₹<%= summary.deliveryCharge %></span>
+                    <span>₹<span id="delivery-charge">
+                            <%= summary.deliveryCharge %>
+                        </span></span>
                 </div>
 
                 <div class="flex justify-between font-bold text-lg mb-4">
                     <span>Total</span>
-                    <span>₹<%= cart.total %></span>
+                    <span>₹<span id="total-price">
+                            <%= cart.total %>
+                        </span></span>
                 </div>
 
-                <div class="flex justify-center">
-                    <a href="/address"
-                        class="w-full max-w-xs text-center bg-yellow-400 text-black py-2 rounded hover:bg-yellow-500 transition-colors">
-                        Checkout
-                    </a>
-                </div>
+            <div class="flex flex-col items-center gap-2 mt-4">
+                <% if (hasOutOfStock) { %>
+                    <p class="text-red-500 font-semibold">
+                        You have out-of-stock items in your cart. Please remove them to proceed.
+                    </p>
+                    <% } %>
+            
+                        <a href="/address"
+                            class="w-full max-w-xs text-center bg-yellow-400 text-black py-2 rounded hover:bg-yellow-500 transition-colors <%= hasOutOfStock ? 'opacity-50 pointer-events-none' : '' %>">
+                            Checkout
+                        </a>
+            </div>
+
                 <% } %>
     </div>
 </div>
+
+<script>
+    async function updateQuantity(productId, variantId, action) {
+        try {
+            const response = await fetch('/cart/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId, variantId, action })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                // Handle 400 error specifically
+                if (response.status === 400) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Oops!',
+                        text: data.error || 'Cannot update cart',
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.error || 'Failed to update cart',
+                    });
+                }
+                return; // stop further execution
+            }
+
+            updateCartUI(data);
+
+        } catch (error) {
+            console.error('Error updating cart:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to update cart. Please try again.',
+            });
+        }
+    }
+    async function removeItem(productId, variantId) {
+        // Use SweetAlert confirmation
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to remove this item from the cart?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, remove it!',
+            cancelButtonText: 'Cancel'
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            const response = await fetch('/cart/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId, variantId })
+            });
+
+            if (!response.ok) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.error || 'Failed to remove item'
+                });
+                return;
+            }
+                window.location.reload();
+            
+
+        } catch (error) {
+            console.error('Error removing item:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to remove item. Please try again.'
+            });
+        }
+    }
+
+
+    function updateCartUI(data) {
+        const { cart, summary } = data;
+        let totalPrice=0
+        cart.items.forEach(item => {
+            const itemElement = document.querySelector(`[data-item-id="${item.productId}-${item.variantId}"]`);
+            if (!itemElement) return;
+            
+            let price =parseInt(itemElement.querySelector('.price').textContent.trim().replace(/[^0-9.]/g, '')) 
+            let newSubTotal= price * +item.quantity
+            itemElement.querySelector('.quantity-display').textContent = item.quantity;
+            itemElement.querySelector('.subtotal-display').textContent = `₹${newSubTotal}`;
+            const increaseBtn = itemElement.querySelector('button[onclick*="increase"]');
+            increaseBtn.disabled = item.quantity >= 10;
+            totalPrice+= newSubTotal
+        });
+
+        // Update summary section only
+        document.getElementById('total-quantity').textContent = summary.totalQuantity;
+        document.getElementById('subtotal-price').textContent = totalPrice
+        document.getElementById('total-price').textContent = totalPrice + 50
+    }
+    
+</script>

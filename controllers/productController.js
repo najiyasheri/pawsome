@@ -167,6 +167,7 @@ const postEditProduct = async (req, res) => {
       variantId,
     } = req.body;
 
+
     const product = await Product.findById(id);
     if (!product) {
       return res.status(404).send("Product not found");

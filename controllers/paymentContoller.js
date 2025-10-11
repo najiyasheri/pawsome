@@ -1,7 +1,8 @@
 const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const Address = require("../models/Address");
-const OrderItem=require('../models/OrderItem')
+const OrderItem = require("../models/OrderItem");
+const Product = require("../models/Product");
 
 const loadPayment = async (req, res) => {
   try {
@@ -13,7 +14,7 @@ const loadPayment = async (req, res) => {
 
     const cart = await Cart.findOne({ userId })
       .populate("items.productId")
-      .populate("items.variantId"); 
+      .populate("items.variantId");
 
     if (!cart || cart.items.length === 0) {
       return res.render("user/payment", {
@@ -28,7 +29,6 @@ const loadPayment = async (req, res) => {
       });
     }
 
-  
     let subtotal = 0;
     const enrichedItems = cart.items
       .map((item) => {
@@ -95,7 +95,6 @@ const loadPayment = async (req, res) => {
 const processPayment = async (req, res) => {
   try {
     const { paymentMethod, addressId } = req.body;
-
     const method = (paymentMethod || "").toLowerCase();
 
     if (method !== "cod") {
@@ -104,7 +103,6 @@ const processPayment = async (req, res) => {
 
     const userId = req.session.user._id;
 
-    
     const cart = await Cart.findOne({ userId })
       .populate("items.productId")
       .populate("items.variantId");
@@ -113,7 +111,7 @@ const processPayment = async (req, res) => {
       return res.redirect("/cart?error=Cart is empty");
     }
 
-   
+    // Calculate totals and embed items
     let subtotal = 0;
     const embeddedItems = cart.items.map((item) => {
       const product = item.productId;
@@ -147,14 +145,14 @@ const processPayment = async (req, res) => {
     const deliveryCharge = 50;
     const total = subtotal + deliveryCharge;
 
- 
     const address = await Address.findById(addressId);
     if (!address) {
       return res.render("user/address", { error: "Address not found" });
     }
 
-   
     const orderId = "ORD" + Date.now();
+
+    // 🧾 Create new order
     const newOrder = new Order({
       orderId,
       userId,
@@ -164,24 +162,44 @@ const processPayment = async (req, res) => {
         address: address.address,
       },
       paymentMethod: paymentMethod.toUpperCase(),
-      items: embeddedItems, 
+      items: embeddedItems,
       totalAmount: total,
       status: "Pending",
     });
 
     await newOrder.save();
 
-   
+    // 🧩 Update stock for each item
+    for (const item of embeddedItems) {
+      const product = await Product.findById(item.productId);
+
+      if (!product) continue;
+
+      // If product has variants
+      if (item.variant?.id) {
+        const variant = product.variants.id(item.variant.id);
+        if (variant) {
+          variant.stock = Math.max(0, (variant.stock || 0) - item.quantity);
+        }
+      } else {
+        // If no variants, reduce main product stock
+        product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+      }
+
+      await product.save();
+    }
+
+    // 🛒 Clear user's cart
     cart.items = [];
     await cart.save();
 
+    // ✅ Render success page
     res.render("user/orderSuccess", { order: newOrder });
   } catch (err) {
-    console.error(err);
+    console.error("Error during payment process:", err);
     res.status(500).send("Server error");
   }
 };
-
 
 module.exports = {
   loadPayment,

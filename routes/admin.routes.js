@@ -56,7 +56,7 @@ router.post(
 );
 
 router.post(
-  "/order/:orderId/:itemId/update-status",
+  "/order/:orderId/update-status",
   adminAuth,
   orderController.updateOrderStatus
 );

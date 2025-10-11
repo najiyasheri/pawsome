@@ -56,7 +56,7 @@ router.post("/myAddress/delete/:id", isUser,addressController.deleteAddress);
 router.get('/payment',isUser,paymentController.loadPayment)
 router.post("/success", isUser,paymentController.processPayment);
 
-router.get("/myOrders",isUser, orderController.loadUserOrders);
+router.get("/orders",isUser, orderController.loadUserOrders);
 
 router.post('/profileOtp',profileOtpController.postProfileOtp)
 
@@ -67,6 +67,8 @@ router.post("/profileOtp-resend",profileOtpController.postResendOtp)
 router.get("/myAddress",isUser,addressController.loadMyAddress);
 
 router.post("/myAddress/add", isUser, addressController.addMyAddress);
+
+router.get("/order/:id", isUser, orderController.loadUserOrderDetail);
 
 
 module.exports = router;

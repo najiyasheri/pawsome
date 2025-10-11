@@ -1,231 +1,244 @@
-<%- include('../partials/user/profileSidebar')%>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <div class="w-full max-w-lg bg-white shadow rounded-lg mx-auto">
-        <% if (addresses && addresses.length> 0) { %>
-            <% addresses.forEach((addr)=> { %>
-                <label class="block border rounded-lg p-4 mb-4 cursor-pointer hover:border-yellow-500 transition">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <input type="radio" name="address" class="accent-yellow-500" <%=addr.default ? "checked"
-                                : "" %>>
+<div class="min-h-screen flex">
 
-                            <span class="ml-2 font-semibold">
-                                <%= addr.name %>
-                            </span>
-                            <span class="ml-2 text-xs bg-yellow-500 text-white px-2 py-0.5 rounded">
-                                <%= addr.type %>
-                            </span>
-
-                            <% if (addr.default) { %>
-                                <span class="ml-1 text-xs bg-black text-white px-2 py-0.5 rounded">DEFAULT</span>
-                                <% } %>
-
-                                    <p class="ml-6 text-gray-700 mt-1">
-                                        <%= addr.phone %>
-                                    </p>
-                                    <p class="ml-6 text-gray-700">
-                                        <%= addr.address %>
-                                    </p>
-                                    <p class="ml-6 text-gray-700">
-                                        <%= addr.pinCode %>
-                                    </p>
-                        </div>
-
-                        <div class="flex space-x-3 text-gray-500">
-                            <form action="/myAddress/edit/<%= addr._id %>" method="GET">
-                                <button type="submit"><i class="fas fa-pen"></i></button>
-                            </form>
-                            <form action="/myAddress/delete/<%= addr._id %>" method="POST">
-
-                                <button type="submit"><i class="fas fa-times"></i></button>
-                            </form>
-                        </div>
-                    </div>
-                </label>
-                <% }) %>
-                    <% } else { %>
-                        <p class="text-center text-gray-600 py-4">No addresses added yet.</p>
-                        <% } %>
+    <!-- Sidebar -->
+    <div class="hidden sm:block">
+        <%- include('../partials/user/profileSidebar') %>
     </div>
 
-    <!-- Add New Address Button -->
-    <div class="flex justify-center my-6">
-        <button id="showFormBtn" class="flex items-center text-yellow-600 font-medium hover:underline">
-            <span
-                class="w-6 h-6 flex items-center justify-center border border-yellow-500 rounded-full text-yellow-500 mr-2">+</span>
-            Add New Address
-        </button>
-    </div>
+    <!-- Content Area -->
+    <main class="flex-1 sm:ml-64 p-2">
+        
+        <div class="w-full p-6  bg-white shadow rounded-lg mx-auto">
+                <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3 ">My Address</h1>
+            <% if (addresses && addresses.length> 0) { %>
+                <% addresses.forEach((addr)=> { %>
+                    <label class="block border rounded-lg  p-4 mb-4 cursor-pointer hover:border-yellow-500 transition">
+                        <div class="flex items-start  justify-between">
+                            <div>
+                                <input type="radio" name="address" class="accent-yellow-500" <%=addr.default ? "checked"
+                                    : "" %>>
 
-    <!-- Add Address Form -->
-    <div class="w-full max-w-lg bg-white shadow rounded-lg mx-auto">
-        <div id="addAddressForm" class="hidden bg-white p-4 border rounded-lg">
-            <h3 class="font-semibold mb-2">Add New Address</h3>
-            <form id="addressForm" action="/myAddress/add" method="POST">
-                <div class="mb-2">
-                    <label class="block text-sm font-medium">Name</label>
-                    <input type="text" name="name" class="w-full border p-2 rounded">
-                </div>
-                <div class="mb-2">
-                    <label class="block text-sm font-medium">Phone</label>
-                    <input type="text" name="phone" class="w-full border p-2 rounded">
-                </div>
-                <div class="mb-2">
-                    <label class="block text-sm font-medium">Type</label>
-                    <select name="type" class="w-full border p-2 rounded">
-                        <option value="HOME">Home</option>
-                        <option value="OFFICE">Office</option>
-                    </select>
-                </div>
-                <div class="mb-2">
-                    <label class="block text-sm font-medium">Full Address</label>
-                    <textarea name="address" class="w-full border p-2 rounded"></textarea>
-                </div>
-                <div class="mb-2">
-                    <label class="block text-sm font-medium">PinCode</label>
-                    <input type="text" name="pinCode" class="w-full border p-2 rounded">
-                </div>
-                <div class="mb-2">
-                    <label>
-                        <input type="checkbox" name="default"> Set as default
+                                <span class="ml-2 font-semibold">
+                                    <%= addr.name %>
+                                </span>
+                                <span class="ml-2 text-xs bg-yellow-500 text-white px-2 py-0.5 rounded">
+                                    <%= addr.type %>
+                                </span>
+
+                                <% if (addr.default) { %>
+                                    <span class="ml-1 text-xs bg-black text-white px-2 py-0.5 rounded">DEFAULT</span>
+                                    <% } %>
+
+                                        <p class="ml-6 text-gray-700 mt-1">
+                                            <%= addr.phone %>
+                                        </p>
+                                        <p class="ml-6 text-gray-700">
+                                            <%= addr.address %>
+                                        </p>
+                                        <p class="ml-6 text-gray-700">
+                                            <%= addr.pinCode %>
+                                        </p>
+                            </div>
+
+                            <div class="flex space-x-3 text-gray-500">
+                                <form action="/myAddress/edit/<%= addr._id %>" method="GET">
+                                    <button type="submit"><i class="fas fa-pen"></i></button>
+                                </form>
+                                <form action="/myAddress/delete/<%= addr._id %>" method="POST">
+
+                                    <button type="submit"><i class="fas fa-times"></i></button>
+                                </form>
+                            </div>
+                        </div>
                     </label>
-                </div>
-
-                <div class="flex justify-between mt-3">
-                    <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Save
-                        Address</button>
-                    <button type="button" id="cancelFormBtn"
-                        class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Cancel</button>
-                </div>
+                    <% }) %>
+                        <% } else { %>
+                            <p class="text-center text-gray-600 py-4">No addresses added yet.</p>
+                            <% } %>
         </div>
-        </form>
-    </div>
 
-    <script>
-        const showFormBtn = document.getElementById('showFormBtn');
-        const addAddressForm = document.getElementById('addAddressForm');
-        const cancelFormBtn = document.getElementById('cancelFormBtn');
-        const addressForm = document.getElementById('addressForm');
+        <!-- Add New Address Button -->
+        <div class="flex justify-center my-6">
+            <button id="showFormBtn" class="flex items-center text-yellow-600 font-medium hover:underline">
+                <span
+                    class="w-6 h-6 flex items-center justify-center border border-yellow-500 rounded-full text-yellow-500 mr-2">+</span>
+                Add New Address
+            </button>
+        </div>
 
-        showFormBtn.addEventListener('click', () => {
-            addAddressForm.classList.toggle('hidden');
-        });
+        <!-- Add Address Form -->
+        <div class="w-full max-w-lg bg-white shadow rounded-lg mx-auto">
+            <div id="addAddressForm" class="hidden bg-white p-4 border rounded-lg">
+                <h3 class="font-semibold mb-2">Add New Address</h3>
+                <form id="addressForm" action="/myAddress/add" method="POST">
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium">Name</label>
+                        <input type="text" name="name" class="w-full border p-2 rounded">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium">Phone</label>
+                        <input type="text" name="phone" class="w-full border p-2 rounded">
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium">Type</label>
+                        <select name="type" class="w-full border p-2 rounded">
+                            <option value="HOME">Home</option>
+                            <option value="OFFICE">Office</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium">Full Address</label>
+                        <textarea name="address" class="w-full border p-2 rounded"></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="block text-sm font-medium">PinCode</label>
+                        <input type="text" name="pinCode" class="w-full border p-2 rounded">
+                    </div>
+                    <div class="mb-2">
+                        <label>
+                            <input type="checkbox" name="default"> Set as default
+                        </label>
+                    </div>
 
-        cancelFormBtn.addEventListener('click', () => {
-            addAddressForm.classList.add('hidden');
-            addressForm.reset();
-        });
+                    <div class="flex justify-between mt-3">
+                        <button type="submit"
+                            class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Save
+                            Address</button>
+                        <button type="button" id="cancelFormBtn"
+                            class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Cancel</button>
+                    </div>
+            </div>
+            </form>
+        </div>
+    </main>
+</div>
 
-        addressForm.addEventListener('submit', (e) => {
-            e.preventDefault();
+<script>
+    const showFormBtn = document.getElementById('showFormBtn');
+    const addAddressForm = document.getElementById('addAddressForm');
+    const cancelFormBtn = document.getElementById('cancelFormBtn');
+    const addressForm = document.getElementById('addressForm');
 
-            const name = addressForm.name.value.trim();
-            const phone = addressForm.phone.value.trim();
-            const type = addressForm.type.value;
-            const address = addressForm.address.value.trim();
-            const pinCode = addressForm.pinCode.value.trim();
+    showFormBtn.addEventListener('click', () => {
+        addAddressForm.classList.toggle('hidden');
+    });
 
-            const addressRegex = /^[A-Za-z0-9\s,.\-\/#]+$/;
-            const nameRegex = /^[A-Za-z\s]+$/;
-            const phoneRegex = /^[0-9]{10}$/
-            const pinRegex = /^[0-9]{6}$/;
-            if (!name) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Missing Name',
-                    text: 'Please enter your name.',
-                });
-                addressForm.name.focus();
-                return;
-            }
-            if (!nameRegex.test(name)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Name',
-                    text: 'Name can only contain letters and spaces.',
-                });
-                addressForm.name.focus();
-                return;
-            }
+    cancelFormBtn.addEventListener('click', () => {
+        addAddressForm.classList.add('hidden');
+        addressForm.reset();
+    });
 
-            if (!phone) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Missing Phone Number',
-                    text: 'Please enter your phone number.',
-                });
-                addressForm.phone.focus();
-                return;
-            }
-            if (!phoneRegex.test(phone)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Phone Number',
-                    text: 'Please enter a valid 10-digit phone number.',
-                });
-                addressForm.phone.focus();
-                return;
-            }
+    addressForm.addEventListener('submit', (e) => {
+        e.preventDefault();
 
-            if (!type) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Missing Type',
-                    text: 'Please select an address type.',
-                });
-                addressForm.type.focus();
-                return;
-            }
+        const name = addressForm.name.value.trim();
+        const phone = addressForm.phone.value.trim();
+        const type = addressForm.type.value;
+        const address = addressForm.address.value.trim();
+        const pinCode = addressForm.pinCode.value.trim();
 
-            if (!address) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Missing Address',
-                    text: 'Please enter your full address.',
-                });
-                addressForm.address.focus();
-                return;
-            }
-            if (!addressRegex.test(address)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Address',
-                    text: 'Address contains invalid characters.',
-                });
-                addressForm.address.focus();
-                return;
-            }
-
-            if (!pinCode) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Missing Pin Code',
-                    text: 'Please enter your pin code.',
-                });
-                addressForm.pinCode.focus();
-                return;
-            }
-            if (!pinRegex.test(pinCode)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Pin Code',
-                    text: 'Please enter a valid 6-digit pin code.',
-                });
-                addressForm.pinCode.focus();
-                return;
-            }
-
-           
+        const addressRegex = /^[A-Za-z0-9\s,.\-\/#]+$/;
+        const nameRegex = /^[A-Za-z\s]+$/;
+        const phoneRegex = /^[0-9]{10}$/
+        const pinRegex = /^[0-9]{6}$/;
+        if (!name) {
             Swal.fire({
-                icon: 'success',
-                title: 'Address Updated!',
-                text: 'Your address has been validated successfully.',
-                showConfirmButton: false,
-                timer: 1200
-            }).then(() => {
-                addressForm.submit();
+                icon: 'warning',
+                title: 'Missing Name',
+                text: 'Please enter your name.',
             });
-        });
+            addressForm.name.focus();
+            return;
+        }
+        if (!nameRegex.test(name)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Name',
+                text: 'Name can only contain letters and spaces.',
+            });
+            addressForm.name.focus();
+            return;
+        }
 
-    </script>
+        if (!phone) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Missing Phone Number',
+                text: 'Please enter your phone number.',
+            });
+            addressForm.phone.focus();
+            return;
+        }
+        if (!phoneRegex.test(phone)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Phone Number',
+                text: 'Please enter a valid 10-digit phone number.',
+            });
+            addressForm.phone.focus();
+            return;
+        }
+
+        if (!type) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Missing Type',
+                text: 'Please select an address type.',
+            });
+            addressForm.type.focus();
+            return;
+        }
+
+        if (!address) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Missing Address',
+                text: 'Please enter your full address.',
+            });
+            addressForm.address.focus();
+            return;
+        }
+        if (!addressRegex.test(address)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Address',
+                text: 'Address contains invalid characters.',
+            });
+            addressForm.address.focus();
+            return;
+        }
+
+        if (!pinCode) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Missing Pin Code',
+                text: 'Please enter your pin code.',
+            });
+            addressForm.pinCode.focus();
+            return;
+        }
+        if (!pinRegex.test(pinCode)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Pin Code',
+                text: 'Please enter a valid 6-digit pin code.',
+            });
+            addressForm.pinCode.focus();
+            return;
+        }
+
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Address Updated!',
+            text: 'Your address has been validated successfully.',
+            showConfirmButton: false,
+            timer: 1200
+        }).then(() => {
+            addressForm.submit();
+        });
+    });
+
+</script>

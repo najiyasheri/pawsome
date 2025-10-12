@@ -142,8 +142,8 @@ const cancelSingleItem = async (req, res) => {
     // Restore stock before cancelling
     const product = await Product.findById(item.productId);
     if (product) {
-      if (item.variant?.id) {
-        const variant = product.variants.id(item.variant.id);
+      if (item.variant?._id) {
+        const variant = product.variants._id(item.variant._id);
         if (variant) {
           variant.stock = (variant.stock || 0) + item.quantity;
         }
@@ -193,8 +193,8 @@ const cancelEntireOrder = async (req, res) => {
       if (item.status !== "Cancelled") {
         const product = await Product.findById(item.productId);
         if (product) {
-          if (item.variant?.id) {
-            const variant = product.variants.id(item.variant.id);
+          if (item.variant?._id) {
+            const variant = product.variants._id(item.variant._id);
             if (variant) {
               variant.stock = (variant.stock || 0) + item.quantity;
             }
@@ -295,15 +295,25 @@ const loadUserOrderDetail = async (req, res) => {
 
     if (!order) return res.status(404).send("Order not found");
 
-    // Add subtotal per item
-    const itemsWithSubtotal = order.items.map((item) => ({
-      ...item.toObject(),
-      subtotal: item.price * item.quantity,
-    }));
+    // Map product info and calculate subtotal
+    const itemsWithDetails = await Promise.all(
+      order.items.map(async (item) => {
+        const product = await Product.findById(item.productId).select(
+          "name price images variants"
+        );
+        return {
+          ...item.toObject(),
+          name: product?.name || "N/A",
+          price: product?.price || 0,
+          image: product?.images?.[0] || "",
+          subtotal: (item.price || product?.price || 0) * item.quantity,
+        };
+      })
+    );
 
     const fullOrder = {
       ...order.toObject(),
-      items: itemsWithSubtotal,
+      items: itemsWithDetails,
     };
 
     res.render("user/orderDetails", {
@@ -318,6 +328,95 @@ const loadUserOrderDetail = async (req, res) => {
 };
 
 
+
+// Cancel a single item in user's order
+const userCancelSingleItem = async (req, res) => {
+  try {
+    const { orderId, itemId } = req.params;
+    const { reason } = req.body;
+    const userId = req.session.user._id;
+
+    const order = await Order.findOne({ _id: orderId, userId });
+    if (!order) return res.status(404).send("Order not found");
+
+    const item = order.items.find((i) => i._id.toString() === itemId);
+    if (!item) return res.status(404).send("Item not found");
+
+    if (item.status === "Cancelled")
+      return res.redirect(`/user/order/${orderId}`);
+
+    // Restore stock
+    const product = await Product.findById(item.productId);
+    if (product) {
+      if (item.variant?._id) {
+        const variant = product.variants._id(item.variant._id);
+        if (variant) variant.stock = (variant.stock || 0) + item.quantity;
+      } else {
+        product.stock = (product.stock || 0) + item.quantity;
+      }
+      await product.save();
+    }
+
+    item.status = "Cancelled";
+    item.cancellationReason = reason || "No reason provided";
+
+    // If all items cancelled, mark order as cancelled
+    const allCancelled = order.items.every((i) => i.status === "Cancelled");
+    if (allCancelled) order.status = "Cancelled";
+
+    await order.save();
+    res.redirect(`/user/order/${orderId}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+};
+
+
+// Cancel entire order
+const userCancelEntireOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { reason } = req.body;
+    const userId = req.session.user._id;
+
+    const order = await Order.findOne({ _id: orderId, userId });
+    if (!order) return res.status(404).send("Order not found");
+
+    if (order.status === "Cancelled") return res.redirect(`/user/order/${orderId}`);
+
+    for (const item of order.items) {
+      if (item.status !== "Cancelled") {
+        const product = await Product.findById(item.productId);
+        if (product) {
+          if (item.variant?.id) {
+            const variant = product.variants.id(item.variant.id);
+            if (variant) variant.stock = (variant.stock || 0) + item.quantity;
+          } else {
+            product.stock = (product.stock || 0) + item.quantity;
+          }
+          await product.save();
+        }
+        item.status = "Cancelled";
+        item.cancellationReason = reason || "No reason provided";
+      }
+    }
+
+    order.status = "Cancelled";
+    order.cancellationReason = reason || "No reason provided";
+
+    await order.save();
+    res.redirect(`/user/order/${orderId}`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
+};
+
+
+
+
+
 module.exports = {
   loadOrder,
   loadOrderDetail,
@@ -326,4 +425,6 @@ module.exports = {
   updateOrderStatus,
   loadUserOrders,
   loadUserOrderDetail,
+  userCancelEntireOrder,
+  userCancelSingleItem
 };

@@ -69,6 +69,16 @@ router.get("/myAddress",isUser,addressController.loadMyAddress);
 router.post("/myAddress/add", isUser, addressController.addMyAddress);
 
 router.get("/order/:id", isUser, orderController.loadUserOrderDetail);
+router.post(
+  "/order/:orderId/cancel-item/:itemId",isUser,
+  orderController.userCancelSingleItem
+);
 
+
+router.post(
+  "/order/:orderId/cancel-all",
+  isUser,
+  orderController.userCancelEntireOrder
+);
 
 module.exports = router;

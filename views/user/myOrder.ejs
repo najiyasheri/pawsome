@@ -9,7 +9,7 @@
   <main class="flex-1 sm:ml-64 p-2">
     <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6">
 
-        <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3">My Orders</h1>
+      <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3">My Orders</h1>
 
       <% if (orders.length===0) { %>
         <div class="text-center py-12 text-gray-600">
@@ -33,56 +33,68 @@
                     </p>
                     <p><strong>Total:</strong> ₹<%= order.totalAmount %>
                     </p>
+                    <p><strong>Status:</strong>
+                      <span class=" text-sm font-medium
+                              <%= order.status === 'Cancelled' ? 'text-red-500' :
+                                  order.status === 'Delivered' ? 'text-green-600' :
+                                  order.status === 'Pending' ? 'text-yellow-500' :
+                                  order.status === 'Shipped' ? 'text-blue-500' : 'text-gray-500' %>">
+                        <%= order.status %>
+                      </span>
+                    </p>
+
+                    <!-- ✅ Order Status Badge -->
+
+                    <br />
+                    <a href="/order/<%= order._id %>"
+                      class="inline-block mt-2 bg-yellow-500 text-white px-4 py-1.5 rounded hover:bg-yellow-600 transition">
+                      View Details
+                    </a>
                   </div>
-                  <a href="/order/<%= order._id %>"
-                    class="bg-yellow-500 text-white px-4 py-1.5 rounded hover:bg-yellow-600 transition">
-                    View Details
-                  </a>
                 </div>
 
                 <!-- Order Items -->
+                <!-- Order Items -->
                 <div class="space-y-3">
                   <% order.items.forEach(item=> { %>
-                    <div class="flex items-center gap-4 border border-gray-100 p-3 rounded-md bg-gray-50">
-                      <% if (item.product && item.product.length> 0 && item.product[0].images &&
-                        item.product[0].images.length > 0) { %>
-                        <img src="/uploads/<%= item.product[0].images[0] %>" alt="<%= item.product[0].name %>"
+                    <% const imagePath=item.image && item.image !=="" ? `/uploads/${item.image}`
+                      : '/uploads/accessories.png' ; %>
+                      <div class="flex items-center gap-4 border border-gray-100 p-3 rounded-md bg-gray-50">
+                        <img src="<%= imagePath %>" alt="<%= item.name %>"
                           class="w-16 h-16 object-cover rounded border" />
-                        <% } else { %>
-                          <img src="/uploads/default.jpg" alt="No image"
-                            class="w-16 h-16 object-cover rounded border" />
-                          <% } %>
 
-                            <div class="flex flex-col">
-                              <p class="font-semibold text-gray-800">
-                                <%= item.product[0].name %>
-                              </p>
-                              <p class="text-sm text-gray-600">Quantity: <%= item.quantity %>
-                              </p>
-                              <p class="text-sm text-gray-600">Price: ₹<%= item.price %>
-                              </p>
-                              <p class="text-sm text-gray-600">Subtotal: ₹<%= item.price * item.quantity %>
-                              </p>
+                        <div class="flex flex-col">
+                          <p class="font-semibold text-gray-800">
+                            <%= item.name %>
+                          </p>
+                          <p class="text-sm text-gray-600">Quantity: <%= item.quantity %>
+                          </p>
+                          <p class="text-sm text-gray-600">Price: ₹<%= item.price %>
+                          </p>
+                          <p class="text-sm text-gray-600">Subtotal: ₹<%= item.subtotal %>
+                          </p>
 
-                              <p class="text-sm font-medium mt-1">
-                                Status:
-                                <span class="px-2 py-0.5 rounded text-white
-                          <%= item.status === 'Cancelled' ? 'bg-red-500' :
-                              item.status === 'Delivered' ? 'bg-green-600' :
-                              item.status === 'Pending' ? 'bg-yellow-500' :
-                              item.status === 'Shipped' ? 'bg-blue-500' : 'bg-gray-500' %>">
-                                  <%= item.status %>
-                                </span>
-                              </p>
-                            </div>
-                    </div>
-                    <% }) %>
+                          <p class="text-sm font-medium mt-1">
+                            Status:
+                            <span class="<%= item.status === 'Cancelled' ? 'text-red-500' :
+                              item.status === 'Delivered' ? 'text-green-600' :
+                              item.status === 'Pending' ? 'text-yellow-500' :
+                              item.status === 'Shipped' ? 'text-blue-500' : 'text-gray-500' %>">
+                              <%= item.status %>
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                      <% }) %>
                 </div>
+
               </div>
-              <% }) %>
+              <% }) %> <!-- close orders.forEach -->
           </div>
-          <% } %>
+          <% } %> <!-- close if-else -->
 
     </div>
-  </main>
+
+</div>
+</main>
 </div>

@@ -24,7 +24,7 @@
 
                 <div class="mb-6 flex items-center gap-4">
                     <label for="order-status" class="font-medium text-gray-700">Order Status:</label>
-                    <form action="/admin/order/<%= order._id %>/update-status" method="POST"
+                    <form action="/order/<%= order._id %>/update-status" method="POST"
                         class="flex gap-2 items-center">
                         <select name="status" id="order-status"
                             class="border border-gray-300 rounded-md px-4 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -135,16 +135,26 @@
 
 
     <!-- Cancel Entire Order or Single Items -->
+<!-- Cancel Entire Order Button -->
+<% if (order.status !=="Cancelled" ) { %>
     <div class="mt-8 text-center">
-        <% if (order.status==="Cancelled" ) { %>
+        <button type="button"
+            class="cancel-order-btn bg-red-600 text-white px-5 py-2 rounded-md font-medium hover:bg-red-700 transition"
+            data-action="/order/<%= order._id %>/cancel-all">
+            Cancel Entire Order
+        </button>
+    </div>
+    <% } else { %>
+        <div class="mt-8 text-center">
             <p class="text-red-600 font-semibold">
                 Entire Order Cancelled
             </p>
             <p class="text-gray-700 mt-1">
                 Reason: <%= order.cancellationReason || "N/A" %>
             </p>
-            <% } %>
-    </div>
+        </div>
+        <% } %>
+
 
 
 

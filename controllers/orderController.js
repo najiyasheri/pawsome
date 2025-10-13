@@ -245,31 +245,53 @@ const updateOrderStatus = async (req, res) => {
 const loadUserOrders = async (req, res) => {
   try {
     const userId = req.session.user._id;
-    const orders = await Order.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-      { $sort: { createdAt: -1 } },
-      {
-        $lookup: {
-          from: "orderitems",
-          localField: "_id",
-          foreignField: "orderId",
-          as: "items",
-          pipeline: [
-            {
-              $lookup: {
-                from: "products",
-                localField: "productId",
-                foreignField: "_id",
-                as: "product",
-              },
-            },
-           
-          ],
-        },
-      },
-    ]);
+   const orders = await Order.aggregate([
+     { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+     { $sort: { createdAt: -1 } },
+     {
+       $unwind: "$items",
+     },
+     {
+       $lookup: {
+         from: "products",
+         localField: "items.productId",
+         foreignField: "_id",
+         as: "items.productInfo",
+       },
+     },
+     {
+       $unwind: {
+         path: "$items.productInfo",
+         preserveNullAndEmptyArrays: true,
+       },
+     },
+     {
+       $addFields: {
+         "items.name": "$items.productInfo.name",
+         "items.image": { $arrayElemAt: ["$items.productInfo.images", 0] },
+         "items.price": "$items.price", // keep original price if needed
+         "items.subtotal": { $multiply: ["$items.price", "$items.quantity"] },
+       },
+     },
+     {
+       $group: {
+         _id: "$_id",
+         orderId: { $first: "$orderId" },
+         userId: { $first: "$userId" },
+         paymentMethod: { $first: "$paymentMethod" },
+         totalAmount: { $first: "$totalAmount" },
+         shippingType: { $first: "$shippingType" },
+         address: { $first: "$address" },
+         status: { $first: "$status" },
+         cancellationReason: { $first: "$cancellationReason" },
+         createdAt: { $first: "$createdAt" },
+         items: { $push: "$items" },
+       },
+     },
+     { $sort: { createdAt: -1 } },
+   ]);
 
- console.log(orders)
+    console.log(orders)
 
     res.render("user/myOrder", {
       title: "MyOrders",
@@ -343,7 +365,7 @@ const userCancelSingleItem = async (req, res) => {
     if (!item) return res.status(404).send("Item not found");
 
     if (item.status === "Cancelled")
-      return res.redirect(`/user/order/${orderId}`);
+      return res.redirect(`/order/${orderId}`);
 
     // Restore stock
     const product = await Product.findById(item.productId);
@@ -365,7 +387,7 @@ const userCancelSingleItem = async (req, res) => {
     if (allCancelled) order.status = "Cancelled";
 
     await order.save();
-    res.redirect(`/user/order/${orderId}`);
+    res.redirect(`/order/${orderId}`);
   } catch (err) {
     console.error(err);
     res.status(500).send("Server Error");
@@ -383,14 +405,14 @@ const userCancelEntireOrder = async (req, res) => {
     const order = await Order.findOne({ _id: orderId, userId });
     if (!order) return res.status(404).send("Order not found");
 
-    if (order.status === "Cancelled") return res.redirect(`/user/order/${orderId}`);
+    if (order.status === "Cancelled") return res.redirect(`/order/${orderId}`);
 
     for (const item of order.items) {
       if (item.status !== "Cancelled") {
         const product = await Product.findById(item.productId);
         if (product) {
-          if (item.variant?.id) {
-            const variant = product.variants.id(item.variant.id);
+          if (item.variant?._id) {
+            const variant = product.variants._id(item.variant._id);
             if (variant) variant.stock = (variant.stock || 0) + item.quantity;
           } else {
             product.stock = (product.stock || 0) + item.quantity;
@@ -406,7 +428,7 @@ const userCancelEntireOrder = async (req, res) => {
     order.cancellationReason = reason || "No reason provided";
 
     await order.save();
-    res.redirect(`/user/order/${orderId}`);
+    res.redirect(`/order/${orderId}`);
   } catch (err) {
     console.error(err);
     res.status(500).send("Server Error");

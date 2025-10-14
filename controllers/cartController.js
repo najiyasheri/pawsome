@@ -13,7 +13,36 @@ const loadCart = async (req, res) => {
       .populate("items.productId")
       .populate("items.variantId");
 
+      if (cart && cart.items.length > 0) {
+  for (let item of cart.items) {
+    const variant = item.variantId;
+
+    if (!variant) continue;
+
+    // If stock is 0, mark it out-of-stock
+    if (variant.stock <= 0) {
+      item.quantity = 0;
+      continue;
+    }
+
+    // If cart quantity > available stock → reduce
+    if (item.quantity > variant.stock) {
+      item.quantity = variant.stock;
+
+      // Update the DB to reflect new quantity
+      await Cart.updateOne(
+        {
+          userId,
+          "items.productId": item.productId,
+          "items.variantId": item.variantId,
+        },
+        { $set: { "items.$.quantity": variant.stock } }
+      );
+    }
+  }
+}
     if (!cart || cart.items.length === 0) {
+      
       return res.render("user/cart", {
         title: "Cart",
         layout: "layouts/userLayout",

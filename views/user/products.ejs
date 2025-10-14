@@ -214,8 +214,12 @@
       });
 
       document.querySelectorAll(".add-cart").forEach(button => {
+        if (button.textContent.trim() === "Go to Cart") return
         button.addEventListener("click", async (e) => {
           e.preventDefault();
+
+          if (button.disabled) return;
+          button.disabled = true;
 
           const productId = button.getAttribute("data-product-id");
           const variantId = button.getAttribute("data-variant-id");
@@ -263,41 +267,47 @@
             });
 
             if (result.success) {
-    
+
               Toast.fire({
                 icon: 'success',
                 title: 'Added to Cart!'
               });
 
-              button.textContent = 'Go to Cart';
-              button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
-              button.classList.add('bg-green-500', 'hover:bg-green-600', 'text-black');
-              button.onclick = () => window.location.href = '/cart';
+              const newBtn = button.cloneNode(true);
+              button.replaceWith(newBtn);
+
+              newBtn.textContent = 'Go to Cart';
+              newBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+              newBtn.classList.add('bg-green-500', 'hover:bg-green-600', 'text-black');
+              newBtn.disabled = false;
+
+           
+              newBtn.onclick = () => window.location.href = '/cart';
             }
             else {
-              Toast.fire({
-                icon: 'warning',
-                title: result.message || 'Failed to add to cart'
-              });
-            }
-          } catch (error) {
-            console.error("Error adding to cart:", error);
-            Swal.fire({
-              icon: 'error',
-              title: 'Something went wrong!',
-              text: 'Please try again later.',
-              confirmButtonColor: '#f87171'
+            Toast.fire({
+              icon: 'warning',
+              title: result.message || 'Failed to add to cart'
             });
           }
-        });
+        } catch (error) {
+          console.error("Error adding to cart:", error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Something went wrong!',
+            text: 'Please try again later.',
+            confirmButtonColor: '#f87171'
+          });
+        }
       });
+    });
 
 
-      const paginationList = document.querySelector(".pagination ul");
-      paginationList.innerHTML = "";
+    const paginationList = document.querySelector(".pagination ul");
+    paginationList.innerHTML = "";
 
-      const prevLi = document.createElement("li");
-      prevLi.innerHTML = `
+    const prevLi = document.createElement("li");
+    prevLi.innerHTML = `
         <button class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700
           ${data.currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}"
           onclick="fetchProducts({...getCurrentFilters(), page: ${data.currentPage - 1}})">
@@ -306,21 +316,21 @@
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4" />
           </svg>
         </button>`;
-      paginationList.appendChild(prevLi);
+    paginationList.appendChild(prevLi);
 
-      for (let i = 1; i <= data.totalPages; i++) {
-        const li = document.createElement("li");
-        li.innerHTML = `
+    for (let i = 1; i <= data.totalPages; i++) {
+      const li = document.createElement("li");
+      li.innerHTML = `
           <button class="flex items-center justify-center px-4 h-10 leading-tight border border-gray-100 
             ${i === data.currentPage ? 'bg-yellow-500 text-white' : 'bg-white hover:bg-gray-100'}"
             onclick="fetchProducts({...getCurrentFilters(), page: ${i}})">
             ${i}
           </button>`;
-        paginationList.appendChild(li);
-      }
+      paginationList.appendChild(li);
+    }
 
-      const nextLi = document.createElement("li");
-      nextLi.innerHTML = `
+    const nextLi = document.createElement("li");
+    nextLi.innerHTML = `
         <button class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700
           ${data.currentPage >= data.totalPages ? 'pointer-events-none opacity-50' : ''}"
           onclick="fetchProducts({...getCurrentFilters(), page: ${data.currentPage + 1}})">
@@ -329,19 +339,19 @@
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4" />
           </svg>
         </button>`;
-      paginationList.appendChild(nextLi);
+    paginationList.appendChild(nextLi);
 
-      const clearContainer = document.querySelector("#clearFiltersContainer");
-      const hasRealFilters = Object.entries(cleanedParams).some(([k, v]) => {
-        return !["limit", "page"].includes(k) && v;
-      });
-      clearContainer.classList.toggle("hidden", !hasRealFilters);
+    const clearContainer = document.querySelector("#clearFiltersContainer");
+    const hasRealFilters = Object.entries(cleanedParams).some(([k, v]) => {
+      return !["limit", "page"].includes(k) && v;
+    });
+    clearContainer.classList.toggle("hidden", !hasRealFilters);
 
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      const container = document.querySelector(".products-container");
-      container.innerHTML = '<p class="text-red-500 text-center">Error loading products. Please try again.</p>';
-    }
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    const container = document.querySelector(".products-container");
+    container.innerHTML = '<p class="text-red-500 text-center">Error loading products. Please try again.</p>';
+  }
   }
 
   function getCurrentFilters(extra = {}) {

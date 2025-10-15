@@ -65,7 +65,6 @@ const adminAuth = async (req, res, next) => {
 
 const isUser = (req, res, next) => {
   if (!req.session.user) {
-    console.log("No user session, redirecting to /login");
     return res.redirect("/login");
   }
   if (req.session.user.isAdmin) {
@@ -90,6 +89,8 @@ const sessionCheck = async (req, res, next) => {
     next(err);
   }
 };
+
+
 
 module.exports = {
   userAuth,

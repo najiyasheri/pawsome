@@ -12,6 +12,10 @@ const addressController=require('../controllers/addressController')
 const shippingController=require('../controllers/shippingController')
 const paymentController=require('../controllers/paymentContoller')
 const orderController=require('../controllers/orderController')
+const profileOtpController=require('../controllers/profileOtpController')
+const { requireCartNotEmpty } = require("../middlewares/checkoutMiddleware");
+
+
 
 router.get("/", homeController.loadHomepage);
 router.get("/login",isLogin, authController.loadLoginPage);
@@ -34,28 +38,53 @@ router.get('/products',productController.userProducts)
 router.get('/product/:id',productController.loadProductDetails)
 
 router.get("/cart", isUser,cartController.loadCart);
-router.post("/cart/add", isUser,cartController.addToCart);
+router.post("/cart/add",cartController.addToCart);
 router.post("/cart/update", isUser,cartController.updateCart);
 router.post("/cart/remove", isUser,cartController.removeCart);
 
 router.get('/profile',isUser,profileController.loadProfile)
 router.post('/profile',isUser,profileController.postProfile)
 
-router.get("/address", isUser,addressController.loadAddress);
+router.get(
+  "/address",
+  isUser,
+  requireCartNotEmpty,
+  addressController.loadAddress
+);
 router.post("/address/add",isUser, addressController.addAddress);
-router.get("/address/edit/:id", isUser,addressController.editAddress);
-router.post("/address/edit/:id", isUser,addressController.postEdit);
-router.post("/address/delete/:id", isUser,addressController.deleteAddress);
+router.get("/myAddress/edit/:id", isUser,addressController.editAddress);
+router.post("/myAddress/edit/:id", isUser,addressController.postEdit);
+router.post("/myAddress/delete/:id", isUser,addressController.deleteAddress);
 
-router.get("/shipping", isUser,shippingController.loadShipping);
-router.post("/shipping/save",isUser, shippingController.saveShipping);
+// router.get("/shipping", isUser,shippingController.loadShipping);
+// router.post("/shipping/save",isUser, shippingController.saveShipping);
 
-router.get('/payment',isUser,paymentController.loadPayment)
+router.get('/payment',isUser,requireCartNotEmpty,paymentController.loadPayment)
 router.post("/success", isUser,paymentController.processPayment);
 
-router.get("/myOrders",isUser, orderController.loadUserOrders);
+router.get("/orders",isUser, orderController.loadUserOrders);
+
+router.post('/profileOtp',profileOtpController.postProfileOtp)
+
+router.post("/profileOtp-verify", profileOtpController.verifyProfileOtp);
+
+router.post("/profileOtp-resend",profileOtpController.postResendOtp)
+
+router.get("/myAddress",isUser,addressController.loadMyAddress);
+
+router.post("/myAddress/add", isUser, addressController.addMyAddress);
+
+router.get("/order/:id", isUser, orderController.loadUserOrderDetail);
+router.post(
+  "/order/:orderId/cancel-item/:itemId",isUser,
+  orderController.userCancelSingleItem
+);
 
 
-
+router.post(
+  "/order/:orderId/cancel-all",
+  isUser,
+  orderController.userCancelEntireOrder
+);
 
 module.exports = router;

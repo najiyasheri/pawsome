@@ -6,6 +6,7 @@ const addressSchema = new mongoose.Schema({
   phone: String,
   type: String, 
   address: String,
+  pinCode:String,
   default: { type: Boolean, default: false },
 });
 

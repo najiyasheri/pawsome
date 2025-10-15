@@ -219,7 +219,7 @@
                         <tbody id="variantsTable">
                             <tr class="border-b border-gray-100">
                                 <td class="py-4 px-4">
-                                    <input name="size[]" type="text"
+                                    <input name="size[]" type="text" placeholder="Nil"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                     <div class="error text-red-500"></div>
                                 </td>
@@ -356,7 +356,6 @@
             });
 
             if (uploadedImages < 4) {
-                console.log(uploadedImages, 'entering hereeeeeeeeeeeeeeeeee')
                 document.getElementById('imageError').textContent = 'Upload at least 4 images';
                 isValid = false;
             }
@@ -370,12 +369,8 @@
                 const priceError = row.querySelector('td:nth-child(2) .error');
                 const stockError = row.querySelector('td:nth-child(3) .error');
 
-                if (!size.value.trim()) {
-                    sizeError.textContent = 'Size required';
-                    size.classList.add('border-error');
-                    isValid = false;
-                }
-                else if (!nameRegex.test(size.value)) {
+            
+                if (size.value.trim() !== '' && !nameRegex.test(size.value.trim())) {
                     sizeError.textContent = 'Only letters/numbers allowed'
                     size.classList.add('border-error');
                     isValid = false;

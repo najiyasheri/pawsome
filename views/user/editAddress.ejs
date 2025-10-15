@@ -1,16 +1,20 @@
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <section class="max-w-3xl mx-auto p-8">
   <h2 class="text-xl font-semibold mb-6">Edit Address</h2>
 
-  <form action="/address/edit/<%= address._id %>" method="POST" class="space-y-4 bg-white p-4 border rounded-lg">
+  <form action="/myAddress/edit/<%= address._id %>" method="POST" class="space-y-4 bg-white p-4 border rounded-lg">
     <div>
       <label class="block text-sm font-medium">Name</label>
-      <input type="text" name="name" value="<%= address.name %>" class="w-full border p-2 rounded" required>
+      <input type="text" name="name" value="<%= address.name %>" class="w-full border p-2 rounded" >
     </div>
 
     <div>
       <label class="block text-sm font-medium">Phone</label>
-      <input type="text" name="phone" value="<%= address.phone %>" class="w-full border p-2 rounded" required>
+      <input type="text" name="phone" value="<%= address.phone %>" class="w-full border p-2 rounded" >
     </div>
+       
 
     <div>
       <label class="block text-sm font-medium">Type</label>
@@ -26,6 +30,11 @@
     </div>
 
     <div>
+      <label class="block text-sm font-medium">PinCode</label>
+      <input type="text" name="pinCode" value="<%= address.pinCode %>" class="w-full border p-2 rounded" >
+    </div>
+
+    <div>
       <label>
         <input type="checkbox" name="default" <%= address.default ? 'checked' : '' %>>
         Set as default
@@ -36,7 +45,121 @@
       <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
         Update Address
       </button>
-      <a href="/address" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</a>
+      <a href="/myAddress" class="px-4 py-2 border rounded hover:bg-gray-100">Cancel</a>
     </div>
   </form>
 </section>
+<script>
+  const addressForm = document.querySelector('form');
+
+  addressForm.addEventListener('submit', (e) => {
+    e.preventDefault(); 
+
+    const name = addressForm.name.value.trim();
+    const phone = addressForm.phone.value.trim();
+    const type = addressForm.type.value;
+    const address = addressForm.address.value.trim();
+    const pinCode = addressForm.pinCode.value.trim();
+
+    const nameRegex = /^[A-Za-z\s]+$/;
+    if (!name) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Field",
+        text: "Please enter your name",
+      });
+      addressForm.name.focus();
+      return;
+    }
+    if (!nameRegex.test(name)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Name",
+        text: "Name can only contain letters and spaces (no emojis or symbols).",
+      });
+      addressForm.name.focus();
+      return;
+    }
+
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phone) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Field",
+        text: "Please enter your phone number",
+      });
+      addressForm.phone.focus();
+      return;
+    }
+    if (!phoneRegex.test(phone)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Phone Number",
+        text: "Please enter a valid 10-digit phone number.",
+      });
+      addressForm.phone.focus();
+      return;
+    }
+
+    if (!type) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Field",
+        text: "Please select an address type.",
+      });
+      addressForm.type.focus();
+      return;
+    }
+
+    const addressRegex = /^[A-Za-z0-9\s,.-]+$/;
+    if (!address) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Field",
+        text: "Please enter your full address.",
+      });
+      addressForm.address.focus();
+      return;
+    }
+    if (!addressRegex.test(address)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Address",
+        text: "Address contains invalid characters.",
+      });
+      addressForm.address.focus();
+      return;
+    }
+
+    const pinRegex = /^[0-9]{6}$/;
+    if (!pinCode) {
+      Swal.fire({
+        icon: "warning",
+        title: "Missing Field",
+        text: "Please enter your pin code.",
+      });
+      addressForm.pinCode.focus();
+      return;
+    }
+    if (!pinRegex.test(pinCode)) {
+      Swal.fire({
+        icon: "error",
+        title: "Invalid Pin Code",
+        text: "Please enter a valid 6-digit pin code.",
+      });
+      addressForm.pinCode.focus();
+      return;
+    }
+
+    Swal.fire({
+      icon: "success",
+      title: "Validation Successful",
+      text: "All fields are valid! Submitting form...",
+      showConfirmButton: false,
+      timer: 1500
+    }).then(() => {
+      addressForm.submit();
+    });
+  });
+</script>
+

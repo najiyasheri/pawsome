@@ -7,8 +7,7 @@ const userController = require("../controllers/userController");
 const categoryController = require("../controllers/categoryController");
 const productController = require("../controllers/productController");
 const uploadProductImages = require("../middlewares/multer");
-const orderController=require('../controllers/orderController')
-
+const orderController = require("../controllers/orderController");
 
 router.get("/login", isLogin, authController.loadAdminLogin);
 router.post("/login", isLogin, authController.postAdminLogin);
@@ -16,6 +15,7 @@ router.get("/dashboard", adminAuth, homeController.loadAdminDashboard);
 router.get("/users", adminAuth, userController.loadUserManagement);
 router.get("/logout", authController.logoutAdmin);
 router.get("/user/toggleBlock", adminAuth, userController.toggleBlock);
+router.get("/user/:id",adminAuth,userController.viewUserDetails);
 
 router
   .route("/category")
@@ -26,22 +26,40 @@ router.get("/categoryBlock", adminAuth, categoryController.toggleBlock);
 router.post("/category/edit/:id", adminAuth, categoryController.categoryEdit);
 
 router.get("/product", adminAuth, productController.loadProductManagement);
-router.route("/product/add")
-.get(adminAuth, productController.loadAddProduct)
-.post(adminAuth,uploadProductImages,productController.addProduct)
+router
+  .route("/product/add")
+  .get(adminAuth, productController.loadAddProduct)
+  .post(adminAuth, uploadProductImages, productController.addProduct);
 
-router.get('/product/block',adminAuth,productController.toggleBlock)
+router.get("/product/block", adminAuth, productController.toggleBlock);
 
-router.get('/product/edit/:id', adminAuth,productController.loadEditProduct);
-router.post('/product/edit/:id', adminAuth , uploadProductImages, productController.postEditProduct);
-router.get('/product/view/:id',productController.loadProductDetailAdmin)
+router.get("/product/edit/:id", adminAuth, productController.loadEditProduct);
+router.post(
+  "/product/edit/:id",
+  adminAuth,
+  uploadProductImages,
+  productController.postEditProduct
+);
+router.get("/product/view/:id", productController.loadProductDetailAdmin);
 
-router.get('/order',orderController.loadOrder)
-router.get('/order/:id',orderController.loadOrderDetail)
-router.post("/order/:orderId/cancel-item/:itemId",orderController.cancelSingleItem);
+router.get("/order", adminAuth, orderController.loadOrder);
+router.get("/order/:id", adminAuth, orderController.loadOrderDetail);
+router.post(
+  "/order/:orderId/cancel-item/:itemId",
+  adminAuth,
+  orderController.cancelSingleItem
+);
 
-router.post("/order/:orderId/cancel-all",orderController.cancelEntireOrder);
+router.post(
+  "/order/:orderId/cancel-all",
+  adminAuth,
+  orderController.cancelEntireOrder
+);
 
-router.post("/order/:orderId/:itemId/update-status",orderController.updateOrderStatus);
+router.post(
+  "/order/:orderId/update-status",
+  adminAuth,
+  orderController.updateOrderStatus
+);
 
 module.exports = router;

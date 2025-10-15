@@ -15,6 +15,7 @@ router.get("/dashboard", adminAuth, homeController.loadAdminDashboard);
 router.get("/users", adminAuth, userController.loadUserManagement);
 router.get("/logout", authController.logoutAdmin);
 router.get("/user/toggleBlock", adminAuth, userController.toggleBlock);
+router.get("/user/:id",adminAuth,userController.viewUserDetails);
 
 router
   .route("/category")

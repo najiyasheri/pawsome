@@ -53,7 +53,7 @@
                   </div>
                 </div>
 
-                <!-- Order Items -->
+
                 <!-- Order Items -->
                 <div class="space-y-3">
                   <% order.items.forEach(item=> { %>
@@ -76,11 +76,13 @@
 
                           <p class="text-sm font-medium mt-1">
                             Status:
-                            <span class="<%= item.status === 'Cancelled' ? 'text-red-500' :
-                              item.status === 'Delivered' ? 'text-green-600' :
-                              item.status === 'Pending' ? 'text-yellow-500' :
-                              item.status === 'Shipped' ? 'text-blue-500' : 'text-gray-500' %>">
-                              <%= item.status %>
+                            <span class="<%= 
+                              order.status === 'Cancelled' ? 'text-red-500' :
+                              order.status === 'Delivered' ? 'text-green-600' :
+                              order.status === 'Pending' ? 'text-yellow-500' :
+                              order.status === 'Shipped' ? 'text-blue-500' :
+                              'text-gray-500' %>">
+                              <%= order.status %>
                             </span>
                           </p>
                         </div>

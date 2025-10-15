@@ -1,0 +1,265 @@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<section class="max-w-3xl mx-auto p-6">
+
+<!-- Stepper -->
+<div class="flex items-center justify-center mb-8">
+  <div class="flex items-center gap-4">
+    <div class="flex items-center space-x-2 step" data-step="1">
+      <div class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500 text-white font-bold">1</div>
+      <span class="font-medium text-yellow-600">Address</span>
+    </div>
+
+    <!-- Connecting line -->
+    <div class="w-16 h-0.5 bg-gray-300"></div>
+
+    <div class="flex items-center space-x-2 step" data-step="2">
+      <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 font-bold">2</div>
+      <span class="text-gray-500">Payment</span>
+    </div>
+  </div>
+</div>
+
+  <h2 class="text-xl font-semibold mb-6">Select Address</h2>
+
+  <!-- Address List -->
+  <div class="space-y-4" id="addressList">
+
+    <!-- Step Content -->
+    <div id="stepContent">
+      <!-- Step 1: Address -->
+      <div class="step-pane" data-step="1">
+        <% if(addresses){%>
+          <% addresses.forEach(addr=> { %>
+            <label class="block border rounded-lg p-4 mb-4 cursor-pointer hover:border-yellow-500 transition">
+              <div class="flex items-start justify-between">
+                <div>
+                  <input type="radio" name="address" class="accent-yellow-500" data-id=<%=addr._id %>
+                  <%= addr.default ? 'checked' : '' %>>
+                    <span class="ml-2 font-semibold">
+                      <%= addr.name %>
+                    </span>
+                    <span class="ml-2 text-xs bg-yellow-500 text-white px-2 py-0.5 rounded">
+                      <%= addr.type %>
+                    </span>
+                    <% if(addr.default){ %>
+                      <span class="ml-1 text-xs bg-black text-white px-2 py-0.5 rounded">DEFAULT</span>
+                      <% } %>
+                        <p class="ml-6 text-gray-700 mt-1">
+                          <%= addr.phone %>
+                        </p>
+                        <p class="ml-6 text-gray-700">
+                          <%= addr.address %>
+                        </p>
+                        <p class="ml-6 text-gray-700">
+                          <%= addr.pinCode %>
+                        </p>
+
+                </div>
+
+              </div>
+            </label>
+            <% }) %>
+              <%}%>
+      </div>
+
+
+      <!-- Add New Address Button -->
+      <div class="flex justify-center gap-10 my-6 ">
+        <button id="showFormBtn" class="flex items-center text-yellow-600 font-medium ">
+          <span
+            class="w-6 h-6 flex items-center justify-center border border-yellow-500 rounded-full text-yellow-500 mr-2">+</span>
+          Add New Address
+        </button>
+        <a href="/myAddress" class="flex items-center text-yellow-600 font-medium ">Manage Address</a>
+      </div>
+
+      <!-- Add Address Form -->
+      <div id="addAddressForm" class="hidden bg-white p-4 border rounded-lg mb-4">
+        <h3 class="font-semibold mb-2">Add New Address</h3>
+        <form id="addressForm" action="/address/add" method="POST">
+          <div class="mb-2">
+            <label class="block text-sm font-medium">Name</label>
+            <input type="text" name="name" class="w-full border p-2 rounded">
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm font-medium">Phone</label>
+            <input type="text" name="phone" class="w-full border p-2 rounded">
+          </div>
+         
+          <div class="mb-2">
+            <label class="block text-sm font-medium">Type</label>
+            <select name="type" class="w-full border p-2 rounded">
+              <option value="HOME">Home</option>
+              <option value="OFFICE">Office</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm font-medium">Full Address</label>
+            <textarea name="address" class="w-full border p-2 rounded"></textarea>
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm font-medium">PinCode</label>
+            <input type="text" name="pinCode" class="w-full border p-2 rounded">
+          </div>
+          <div class="mb-2">
+            <label>
+              <input type="checkbox" name="default"> Set as default
+            </label>
+          </div>
+          <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Save
+            Address</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="flex justify-between mt-8">
+    <a href="/cart" class="px-6 py-2 border border-gray-400 rounded-lg hover:bg-gray-100">Back</a>
+    <a href="#" id="nextBtn" class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">Next</a>
+  </div>
+
+</section>
+
+<script>
+  // Show/hide Add Address Form
+  const showFormBtn = document.getElementById('showFormBtn');
+  const addAddressForm = document.getElementById('addAddressForm');
+  showFormBtn.addEventListener('click', () => addAddressForm.classList.toggle('hidden'));
+
+  // Form validation
+  const addressForm = document.getElementById('addressForm');
+  addressForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const name = addressForm.name.value.trim();
+    const phone = addressForm.phone.value.trim();
+    const type = addressForm.type.value;
+    const address = addressForm.address.value.trim();
+    const pinCode = addressForm.pinCode.value.trim();
+
+    const nameRegex = /^[A-Za-z\s]+$/;
+    const phoneRegex = /^[0-9]{10}$/;
+    const addressRegex = /^[A-Za-z0-9\s,.\-\/#]+$/;
+    const pinRegex = /^[0-9]{6}$/;
+
+    if (!name) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Name',
+        text: 'Please enter your name.',
+      });
+      addressForm.name.focus();
+      return;
+    }
+    if (!nameRegex.test(name)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Name',
+        text: 'Name can only contain letters and spaces (no emojis or symbols).',
+      });
+      addressForm.name.focus();
+      return;
+    }
+
+    if (!phone) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Phone Number',
+        text: 'Please enter your phone number.',
+      });
+      addressForm.phone.focus();
+      return;
+    }
+    if (!phoneRegex.test(phone)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Phone Number',
+        text: 'Please enter a valid 10-digit phone number.',
+      });
+      addressForm.phone.focus();
+      return;
+    }
+
+    if (!type) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Type',
+        text: 'Please select an address type.',
+      });
+      addressForm.type.focus();
+      return;
+    }
+
+    if (!address) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Address',
+        text: 'Please enter your full address.',
+      });
+      addressForm.address.focus();
+      return;
+    }
+    if (!addressRegex.test(address)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Address',
+        text: 'Address contains invalid characters.',
+      });
+      addressForm.address.focus();
+      return;
+    }
+
+    if (!pinCode) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Pin Code',
+        text: 'Please enter your pin code.',
+      });
+      addressForm.pinCode.focus();
+      return;
+    }
+    if (!pinRegex.test(pinCode)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Pin Code',
+        text: 'Please enter a valid 6-digit pin code.',
+      });
+      addressForm.pinCode.focus();
+      return;
+    }
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Address Saved!',
+      text: 'Your address has been validated successfully.',
+      showConfirmButton: false,
+      timer: 1200,
+      position: 'top'
+    }).then(() => {
+      addressForm.submit();
+    });
+  });
+
+  // Checkout next button
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    const selectedAddress = document.querySelector('input[name="address"]:checked');
+    if (!selectedAddress) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Address Selected',
+        text: 'Please select an address before proceeding to shipping.',
+        confirmButtonText: 'OK',
+        position: 'top'
+      });
+      return;
+    }
+
+    const addressId = selectedAddress.getAttribute('data-id');
+    window.location.href = `/payment?addressId=${addressId}`;
+  });
+</script>

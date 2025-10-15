@@ -1,9 +1,40 @@
+<style>
+  .stock-status {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    display: inline-block;
+    margin-top: 0.5rem;
+  }
+
+  .stock-good {
+    background-color: #DCFCE7;
+    color: #166534;
+  }
+
+  .stock-low {
+    background-color: #FEF3C7;
+    color: #92400E;
+  }
+
+  .stock-none {
+    background-color: #FEE2E2;
+    color: #991B1B;
+  }
+
+  .btn-disabled {
+    background-color: #E5E7EB !important;
+    color: #6B7280 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+  }
+</style>
+
 <section>
   <div class="flex items-center justify-between gap-6 overflow-x-auto whitespace-nowrap">
-
     <div class="bg-white p-4 mb-4 rounded-lg shadow-sm w-full">
       <form id="filterForm" class="flex items-center justify-between gap-2 overflow-x-auto whitespace-nowrap w-full">
-
         <div class="flex items-center gap-2">
           <input type="text" id="searchInput" name="search" placeholder="Search products..." class="px-4 py-2 border border-gray-300 rounded-l-lg 
                    focus:outline-none focus:ring-2 focus:ring-gray-50 focus:border-[#F9C22A] w-80" />
@@ -12,7 +43,6 @@
             <i class="fas fa-search group-hover:text-white"></i>
           </button>
         </div>
-
 
         <div class="flex items-center gap-4">
           <!-- Sort -->
@@ -99,7 +129,7 @@
             Product Name
           </h5>
         </a>
-        <div class="flex items-center mt-2 mb-4">
+        <div class="flex items-center mt-2 mb-2">
           <span class="text-yellow-400 text-lg">★</span>
           <span class="text-gray-800 text-xs font-semibold px-2 py-0.5 rounded-sm">5.0</span>
         </div>
@@ -108,10 +138,11 @@
             <span class="text-xl font-bold text-black-600 product-price">₹0</span>
             <span class="line-through text-gray-400 old-price">₹0</span>
           </div>
+          <span class="stock-status"></span>
           <button class="add-cart text-gray-900 bg-yellow-400 hover:bg-gray-600 focus:ring-4 
-                   focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-            data-product-id="">
-            Add to cart
+                   focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-3 py-2.5 text-center"
+            data-product-id="" data-variant-id="">
+            Add to Cart
           </button>
         </div>
       </div>
@@ -120,6 +151,18 @@
 </section>
 
 <script>
+  function updateStockStatus(element, stock) {
+    const stockStatus = element.querySelector(".stock-status");
+    stockStatus.className = "stock-status";
+
+    if (stock === 0) {
+      stockStatus.textContent = "Out of Stock";
+      stockStatus.classList.add("stock-none");
+      element.querySelector(".add-cart").disabled = true;
+      element.querySelector(".add-cart").classList.add("hidden");
+    }
+  }
+
   async function fetchProducts(params = {}) {
     try {
       const { limit, ...userParams } = params;
@@ -149,13 +192,38 @@
         clone.querySelector(".product-name").textContent = p.name;
         clone.querySelector(".product-price").textContent = `₹${p.price}`;
         clone.querySelector(".old-price").textContent = `₹${p.oldPrice}`;
-        clone.querySelector(".add-cart").setAttribute("data-product-id", p._id);
+
+        const addCartBtn = clone.querySelector(".add-cart");
+        addCartBtn.dataset.productId = p._id;
+        addCartBtn.dataset.variantId = p?.selectedVariant?._id;
+
+        // Update Add to Cart button if already in cart
+        if (p.isExistingInCart === true || p.selectedVariant?.isInCart === true) {
+          addCartBtn.textContent = "Go to Cart";
+          addCartBtn.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
+          addCartBtn.classList.add("bg-green-500", "hover:bg-green-600", "text-black");
+          addCartBtn.onclick = () => window.location.href = "/cart";
+        } else {
+          addCartBtn.textContent = "Add to Cart";
+          addCartBtn.classList.remove("bg-green-500", "hover:bg-green-600", "text-white");
+          addCartBtn.classList.add("bg-yellow-500", "hover:bg-yellow-600");
+        }
+
+        updateStockStatus(clone, p.stock || 0);
         container.appendChild(clone);
       });
+
       document.querySelectorAll(".add-cart").forEach(button => {
+        if (button.textContent.trim() === "Go to Cart") return
         button.addEventListener("click", async (e) => {
           e.preventDefault();
+
+          if (button.disabled) return;
+          button.disabled = true;
+
           const productId = button.getAttribute("data-product-id");
+          const variantId = button.getAttribute("data-variant-id");
+
           try {
             const response = await fetch("/cart/add", {
               method: "POST",
@@ -165,28 +233,81 @@
               },
               body: JSON.stringify({
                 productId,
-                quantity: 1 // Default quantity, adjust as needed
+                quantity: 1,
+                variantId
               })
             });
 
-            if (response.ok) {
-              window.location.href = "/cart"; // Redirect to cart page on success
-            } else {
-              const errorData = await response.json();
-              alert(errorData.message || "Failed to add item to cart");
+            // Handle unauthorized user (401)
+            if (response.status === 401) {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Login Required',
+                text: 'Please login to add items to your cart.',
+                confirmButtonText: 'Go to Login',
+                confirmButtonColor: '#facc15',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel'
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  window.location.href = '/login';
+                }
+              });
+              return;
             }
-          } catch (error) {
-            console.error("Error adding to cart:", error);
-            alert("An error occurred while adding to cart");
+
+            const result = await response.json();
+
+            const Toast = Swal.mixin({
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 2000,
+              timerProgressBar: true,
+            });
+
+            if (result.success) {
+
+              Toast.fire({
+                icon: 'success',
+                title: 'Added to Cart!'
+              });
+
+              const newBtn = button.cloneNode(true);
+              button.replaceWith(newBtn);
+
+              newBtn.textContent = 'Go to Cart';
+              newBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+              newBtn.classList.add('bg-green-500', 'hover:bg-green-600', 'text-black');
+              newBtn.disabled = false;
+
+           
+              newBtn.onclick = () => window.location.href = '/cart';
+            }
+            else {
+            Toast.fire({
+              icon: 'warning',
+              title: result.message || 'Failed to add to cart'
+            });
           }
-        });
+        } catch (error) {
+          console.error("Error adding to cart:", error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Something went wrong!',
+            text: 'Please try again later.',
+            confirmButtonColor: '#f87171'
+          });
+        }
       });
+    });
 
-      const paginationList = document.querySelector(".pagination ul");
-      paginationList.innerHTML = "";
 
-      const prevLi = document.createElement("li");
-      prevLi.innerHTML = `
+    const paginationList = document.querySelector(".pagination ul");
+    paginationList.innerHTML = "";
+
+    const prevLi = document.createElement("li");
+    prevLi.innerHTML = `
         <button class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700
           ${data.currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}"
           onclick="fetchProducts({...getCurrentFilters(), page: ${data.currentPage - 1}})">
@@ -195,21 +316,21 @@
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4" />
           </svg>
         </button>`;
-      paginationList.appendChild(prevLi);
+    paginationList.appendChild(prevLi);
 
-      for (let i = 1; i <= data.totalPages; i++) {
-        const li = document.createElement("li");
-        li.innerHTML = `
+    for (let i = 1; i <= data.totalPages; i++) {
+      const li = document.createElement("li");
+      li.innerHTML = `
           <button class="flex items-center justify-center px-4 h-10 leading-tight border border-gray-100 
             ${i === data.currentPage ? 'bg-yellow-500 text-white' : 'bg-white hover:bg-gray-100'}"
             onclick="fetchProducts({...getCurrentFilters(), page: ${i}})">
             ${i}
           </button>`;
-        paginationList.appendChild(li);
-      }
+      paginationList.appendChild(li);
+    }
 
-      const nextLi = document.createElement("li");
-      nextLi.innerHTML = `
+    const nextLi = document.createElement("li");
+    nextLi.innerHTML = `
         <button class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700
           ${data.currentPage >= data.totalPages ? 'pointer-events-none opacity-50' : ''}"
           onclick="fetchProducts({...getCurrentFilters(), page: ${data.currentPage + 1}})">
@@ -218,23 +339,23 @@
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4" />
           </svg>
         </button>`;
-      paginationList.appendChild(nextLi);
-      const clearContainer = document.querySelector("#clearFiltersContainer");
-      const hasRealFilters = Object.entries(cleanedParams).some(([k, v]) => {
-        return !["limit", "page"].includes(k) && v;
-      });
-      clearContainer.classList.toggle("hidden", !hasRealFilters);
+    paginationList.appendChild(nextLi);
 
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      const container = document.querySelector(".products-container");
-      container.innerHTML = '<p class="text-red-500 text-center">Error loading products. Please try again.</p>';
-    }
+    const clearContainer = document.querySelector("#clearFiltersContainer");
+    const hasRealFilters = Object.entries(cleanedParams).some(([k, v]) => {
+      return !["limit", "page"].includes(k) && v;
+    });
+    clearContainer.classList.toggle("hidden", !hasRealFilters);
+
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    const container = document.querySelector(".products-container");
+    container.innerHTML = '<p class="text-red-500 text-center">Error loading products. Please try again.</p>';
+  }
   }
 
   function getCurrentFilters(extra = {}) {
     const urlParams = new URLSearchParams(window.location.search);
-    console.log(urlParams);
     return {
       search: document.getElementById("searchInput").value.trim() || urlParams.get("search") || "",
       sort: document.getElementById("sortSelect").value || urlParams.get("sort") || "",
@@ -247,7 +368,6 @@
 
   document.getElementById("filterForm").addEventListener("submit", e => {
     e.preventDefault();
-
     const searchValue = document.getElementById("searchInput").value.trim();
     if (searchValue.length === 0 && document.getElementById("searchInput").value !== "") {
       return;
@@ -269,12 +389,10 @@
 
   document.getElementById("clearFiltersContainer").addEventListener("click", e => {
     if (e.target.id === "clearFiltersBtn") {
-
       document.getElementById("searchInput").value = "";
       document.getElementById("sortSelect").value = "";
       document.getElementById("categoryFilter").value = "";
       document.getElementById("priceRangeFilter").value = "";
-
       const baseUrl = window.location.pathname;
       window.history.replaceState({}, "", baseUrl);
       fetchProducts({ limit: 12 });

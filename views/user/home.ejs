@@ -12,7 +12,7 @@
           <img src="/img/<%= category.name %>.png" alt="<%= category.name %>"
             class="w-32 h-32 object-cover shadow-md rounded-full mx-auto">
           <p class="mt-2 font-medium">
-            <%= category.name %> (<%= category.productCount %>)
+            <%= category.name %> 
           </p>
         </a>
       </div>
@@ -37,60 +37,55 @@
 
 <section class="mt-20">
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center md:mx-20 mb-10">
-
-    <% products.forEach(product=> { %>
+    <% products.forEach(p=> { %>
       <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm relative flex flex-col">
-
-        <!-- Favorite Button -->
         <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn">
           <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 heart-icon" viewBox="0 0 24 24">
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
-                 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
-                 C13.09 3.81 14.76 3 16.5 3 
-                 19.58 3 22 5.42 22 8.5 
-                 c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                     2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
+                     C13.09 3.81 14.76 3 16.5 3 
+                     19.58 3 22 5.42 22 8.5 
+                     c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
         </button>
 
-        <!-- Product Image -->
-        <a href="/product/<%= product._id %>">
-          <img class="p-6 rounded-t-lg h-48 w-full object-contain"
-            src="/uploads/<%= product.images && product.images.length > 0 ? product.images[0] : '/default.jpg' %>"
-            alt="<%= product.name %>" />
+        <a class="product-link" href="/product/<%= p._id %>">
+          <img class="p-6 rounded-t-lg h-48 w-full object-contain product-img"
+            src="/Uploads/<%= p.images?.[0] || 'default.jpg' %>" alt="<%= p.name %>">
         </a>
 
-        <!-- Content -->
         <div class="px-5 pb-5 flex flex-col flex-1">
-
-          <!-- Product Name -->
-          <a href="/product/<%= product._id %>">
-            <h5 class="text-lg font-semibold tracking-tight text-gray-900 line-clamp-2 h-14 leading-relaxed">
-              <%= product.name %>
+          <a class="product-link" href="/product/<%= p._id %>">
+            <h5
+              class="text-lg font-semibold tracking-tight text-gray-900 line-clamp-2 h-14 leading-relaxed product-name">
+              <%= p.name %>
             </h5>
           </a>
-
-          <!-- Rating -->
-          <div class="flex items-center mt-2 mb-4">
+          <div class="flex items-center mt-2 mb-2">
             <span class="text-yellow-400 text-lg">★</span>
-            <span class=" text-gray-800 text-xs font-semibold px-2 py-0.5 rounded-sm">5.0</span>
+            <span class="text-gray-800 text-xs font-semibold px-2 py-0.5 rounded-sm">5.0</span>
+            <span class="stock-status ml-2 <%= p.selectedVariant?.stock <= 5 ? 'text-yellow-500' : '' %>">
+              <% if (!p.selectedVariant || p.selectedVariant.stock <=0) { %>
+                Out of Stock
+                <% } else if (p.selectedVariant.stock <=5) { %>
+                  Only <%= p.selectedVariant.stock %> left!
+                    <% } %>
+            </span>
           </div>
 
-          <!-- Price & Add to Cart -->
           <div class="mt-auto flex items-center justify-between">
             <div>
-              <span class="text-xl font-bold text-black-600">₹<%= product.price %></span>
-              <span class="line-through text-gray-400">₹<%= product.oldPrice %></span>
+              <span class="text-xl font-bold text-black-600 product-price">₹<%= p.price %></span>
+              <span class="line-through text-gray-400 old-price">₹<%= p.oldPrice %></span>
             </div>
-            <form action="/cart/add" method="POST">
-              <input type="hidden" name="productId" value="<%= product._id %>">
-              <input type="hidden" name="quantity" value="1">
-              <% if (typeof csrfToken !=='undefined' ) { %>
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <% } %>
-                  <button type="submit"
-                    class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Add
-                    to cart</button>
-            </form>
+
+            <button onclick=<%= p.existingInCart ? 'window.location.href=\'/cart\'' : 'addToCart(this)' %>
+              class="add-cart text-gray-900 <%= p.existingInCart ? 'bg-yellow-700 hover:bg-yellow-800 text-black' : 'bg-yellow-500 hover:bg-yellow-600' %> focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-3 py-2.5 text-center"
+              data-product-id="<%= p._id %>" data-variant-id="<%= p.selectedVariant?._id %>" <%=(!p.selectedVariant ||
+              p.selectedVariant.stock <=0) ? 'disabled' : '' %>>
+              <%= p.existingInCart ? 'Go to Cart' : 'Add to Cart' %>
+            </button>
+
           </div>
         </div>
       </div>
@@ -101,3 +96,75 @@
 <section class="w-full flex relative mt-20 mb-0">
   <img src="/img/banner.jpg" alt="ad banner" class="w-full h-auto border border-gray-100">
 </section>
+
+
+<script>
+
+ async function addToCart(button){
+
+    if (button.disabled || button.textContent === "Go to Cart") {
+      window.location.href = '/cart';
+      return;
+    }
+
+    const productId = button.dataset.productId;
+    const variantId = button.dataset.variantId;
+
+    try {
+      const response = await fetch("/cart/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ productId, variantId, quantity: 1 })
+      });
+
+      if (response.status === 401) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Login Required',
+          text: 'Please login to add items to your cart.',
+          confirmButtonText: 'Go to Login',
+          confirmButtonColor: '#facc15',
+          showCancelButton: true,
+          cancelButtonText: 'Cancel'
+        }).then((result) => {
+          if (result.isConfirmed) window.location.href = '/login';
+        });
+        return;
+      }
+
+      const result = await response.json();
+      const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+      });
+
+      if (result.success) {
+        Toast.fire({ icon: 'success', title: 'Added to Cart!' });
+
+        // Update button to Go to Cart
+        button.textContent = 'Go to Cart';
+        button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+        button.classList.add('bg-yellow-700', 'hover:bg-yellow-800', 'text-black');
+        button.onclick = () => window.location.href = '/cart';
+      } else {
+        Toast.fire({ icon: 'warning', title: result.message || 'Failed to add to cart' });
+      }
+
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Something went wrong!',
+        text: 'Please try again later.',
+        confirmButtonColor: '#f87171'
+      });
+    }
+ }
+
+</script>

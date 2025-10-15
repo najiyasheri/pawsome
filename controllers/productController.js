@@ -4,6 +4,9 @@ const Product = require("../models/Product");
 const ProductVariant = require("../models/ProductVarient");
 const fs = require("fs");
 const path = require("path");
+const User = require("../models/User");
+const Cart = require("../models/Cart");
+const { log } = require("console");
 
 const loadProductManagement = async (req, res) => {
   try {
@@ -87,7 +90,7 @@ const addProduct = async (req, res) => {
     const savedProduct = await product.save();
     const variants = req.body.size.map((size, index) => ({
       productId: savedProduct._id,
-      size: size.trim(),
+      size: size.trim() !== "" ? size.trim() : "Nil",
       additionalPrice: parseFloat(req.body.additionalPrice[index]) || 0,
       stock: parseInt(req.body.stock[index]) || 0,
     }));
@@ -150,8 +153,20 @@ const loadEditProduct = async (req, res) => {
 const postEditProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, price, category, brand, discount, images } =
-      req.body;
+    const {
+      name,
+      description,
+      price,
+      category,
+      brand,
+      discount,
+      images,
+      size,
+      additionalPrice,
+      stock,
+      variantId,
+    } = req.body;
+
 
     const product = await Product.findById(id);
     if (!product) {
@@ -186,6 +201,7 @@ const postEditProduct = async (req, res) => {
           newImages.push(...req.files[fieldName].map((file) => file.filename));
         }
       });
+
       for (const [index, newImage] of Object.entries(replaceImages)) {
         const idx = parseInt(index, 10);
         if (idx >= 0 && idx < product.images.length) {
@@ -205,6 +221,70 @@ const postEditProduct = async (req, res) => {
           }
         }
         return res.status(400).send("Cannot add more than 4 images");
+      }
+    }
+
+    const sizes = Array.isArray(size) ? size : size ? [size] : [];
+    const finalSizes = sizes.map((s) =>
+      s && s.trim() !== "" ? s.trim() : "Nil"
+    );
+
+    const additionalPrices = Array.isArray(additionalPrice)
+      ? additionalPrice
+      : additionalPrice
+      ? [additionalPrice]
+      : [];
+
+    const stocks = Array.isArray(stock) ? stock : stock ? [stock] : [];
+    const variantIds = Array.isArray(variantId)
+      ? variantId
+      : variantId
+      ? [variantId]
+      : [];
+
+    if (
+      sizes.length !== additionalPrices.length ||
+      sizes.length !== stocks.length
+    ) {
+      return res
+        .status(400)
+        .send("Invalid variant data: mismatched array lengths");
+    }
+
+    const existingVariants = await ProductVariant.find({ productId: id });
+    const updatedVariantIds = variantIds.filter((id) =>
+      mongoose.Types.ObjectId.isValid(id)
+    );
+
+    // Delete variants removed by user
+    for (const existingVariant of existingVariants) {
+      if (!updatedVariantIds.includes(existingVariant._id.toString())) {
+        await ProductVariant.findByIdAndDelete(existingVariant._id);
+      }
+    }
+
+    // Update or create variants
+    for (let i = 0; i < sizes.length; i++) {
+      if (stocks[i] < 0) {
+        return res
+          .status(400)
+          .send("Invalid variant data: stock must be non-negative");
+      }
+
+      const variantData = {
+        size: finalSizes[i],
+        additionalPrice: parseFloat(additionalPrices[i]) || 0,
+        stock: parseInt(stocks[i], 10) || 0,
+        productId: id,
+        status: true,
+      };
+
+      if (variantIds[i] && mongoose.Types.ObjectId.isValid(variantIds[i])) {
+        await ProductVariant.findByIdAndUpdate(variantIds[i], variantData, {
+          new: true,
+        });
+      } else {
+        await ProductVariant.create(variantData);
       }
     }
     await product.save();
@@ -250,31 +330,133 @@ const userProducts = async (req, res) => {
 
     let sortOption = { createdAt: -1 };
     if (sort) {
-      if (sort === "price-low") sortOption = { basePrice: 1 };
-      if (sort === "price-high") sortOption = { basePrice: -1 };
       if (sort === "name-az") sortOption = { name: 1 };
       if (sort === "name-za") sortOption = { name: -1 };
     }
 
-    const products = await Product.find(filter)
-      .lean()
-      .collation({ locale: "en", strength: 1 })
-      .sort(sortOption)
-      .limit(limit)
-      .skip((page - 1) * limit)
-      .exec();
+    const userId = req.session?.user?._id;
+
+    // Fetch cart items if user logged in
+    let cartItems = [];
+    if (userId) {
+      const cart = await Cart.findOne({ userId }, "items.variantId").lean();
+      cartItems = cart?.items?.map((item) => item.variantId.toString()) || [];
+    }
+
+    const products = await Product.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: "variants",
+          localField: "_id",
+          foreignField: "productId",
+          as: "variants",
+        },
+      },
+      {
+        $addFields: {
+          variants: {
+            $filter: {
+              input: "$variants",
+              as: "variant",
+              cond: {
+                $and: [
+                  { $eq: ["$$variant.status", true] },
+                  { $gt: ["$$variant.stock", 0] },
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          selectedVariant: { $arrayElemAt: ["$variants", 0] },
+        },
+      },
+      // Calculate oldPrice and finalPrice directly in aggregation
+      {
+        $addFields: {
+          oldPrice: {
+            $add: [
+              "$basePrice",
+              { $ifNull: ["$selectedVariant.additionalPrice", 0] },
+            ],
+          },
+          finalPrice: {
+            $round: [
+              {
+                $multiply: [
+                  {
+                    $subtract: [
+                      1,
+                      {
+                        $divide: [{ $ifNull: ["$discountPercentage", 0] }, 100],
+                      },
+                    ],
+                  },
+                  {
+                    $add: [
+                      "$basePrice",
+                      { $ifNull: ["$selectedVariant.additionalPrice", 0] },
+                    ],
+                  },
+                ],
+              },
+              0,
+            ],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+
+      ...(sort === "price-low"
+        ? [{ $sort: { finalPrice: 1 } }]
+        : sort === "price-high"
+        ? [{ $sort: { finalPrice: -1 } }]
+        : [{ $sort: sortOption }]),
+
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+    ]).exec();
 
     const count = await Product.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
-    const categories = await Category.find({ isBlocked: false });
-    const updatedProducts = products.map((p) => {
+    const categories = await Category.find({ isBlocked: false }).lean();
+
+    const updatedProducts = products.map((product) => {
+      const variant = product.selectedVariant;
+      const additionalPrice = parseFloat(variant?.additionalPrice || 0);
+      const basePrice = parseFloat(product.basePrice || 0);
+      const discountPercentage = parseFloat(product.discountPercentage || 0);
+      const oldPrice = basePrice + additionalPrice;
+
       return {
-        ...p,
-        oldPrice: parseFloat(p.basePrice),
-        discount: p.discountPercentage,
-        price: Math.round(p.basePrice * (1 - p.discountPercentage / 100)),
+        ...product,
+        categoryName: product.category?.name || "Unknown",
+        oldPrice,
+        discount: discountPercentage,
+        price: Math.round(oldPrice * (1 - discountPercentage / 100)),
+        stock: variant?.stock || 0,
+        selectedVariant: variant || null,
+        isOutOfStock: !variant,
+        isExistingInCart: !!(
+          variant && cartItems.includes(variant._id.toString())
+        ),
+        variants: undefined,
+        category: undefined,
       };
     });
+
+    console.log(updatedProducts);
 
     if (req.xhr || req.headers.accept.includes("application/json")) {
       return res.json({
@@ -311,35 +493,180 @@ const userProducts = async (req, res) => {
 const loadProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
-    const product = await Product.findById(productId).lean();
-    if (!product) {
-      return res.status(404).send("product not found");
+
+    let product = await Product.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(productId),
+          isBlocked: false,
+        },
+      },
+      {
+        $lookup: {
+          from: "variants",
+          localField: "_id",
+          foreignField: "productId",
+          as: "variants",
+        },
+      },
+      // ✅ keep only active variants (status true)
+      {
+        $addFields: {
+          variants: {
+            $filter: {
+              input: "$variants",
+              as: "variant",
+              cond: { $eq: ["$$variant.status", true] },
+            },
+          },
+        },
+      },
+      // ✅ sort variants so that in-stock ones come first
+      {
+        $addFields: {
+          variants: {
+            $sortArray: {
+              input: "$variants",
+              sortBy: { stock: -1 }, // highest stock first
+            },
+          },
+        },
+      },
+      // ✅ pick the first variant (highest stock or next available)
+      {
+        $addFields: {
+          selectedVariant: { $arrayElemAt: ["$variants", 0] },
+        },
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $unwind: { path: "$category", preserveNullAndEmptyArrays: true },
+      },
+    ]).exec();
+
+    if (!product || product.length === 0) {
+      return res.status(404).send("Product not found");
     }
-    const relatedProducts = await Product.find({
-      categoryId: product.categoryId,
-      _id: { $ne: productId },
-      isBlocked: false,
-    })
-      .limit(4)
-      .lean();
-    product.rating = 4.8;
-    product.reviews = [
-      { user: "Alice", rating: 5, comment: "Excellent product!" },
-      { user: "John", rating: 4, comment: "Good but delivery was late." },
-    ];
 
-    product.oldPrice = product.basePrice;
-    product.discount = product.discountPercentage;
-    product.price = Math.round(
-      product.basePrice * (1 - product.discountPercentage / 100)
-    );
+    product = product[0];
 
-    const updatedProducts = relatedProducts.map((p) => {
+    const variant = product.selectedVariant;
+    const basePrice = parseFloat(product.basePrice || 0);
+    const additionalPrice = parseFloat(variant?.additionalPrice || 0);
+    const discountPercentage = parseFloat(product.discountPercentage || 0);
+    const oldPrice = basePrice + additionalPrice;
+    const price = Math.round(oldPrice * (1 - discountPercentage / 100));
+
+    const userId = req.session?.user?._id;
+    let isExistingInCart = false;
+    let variantsInCart = [];
+
+    if (userId) {
+      const cart = await Cart.findOne({ userId });
+      if (cart) {
+        variantsInCart = cart.items
+          .filter(
+            (item) => item.productId.toString() === product._id.toString()
+          )
+          .map((item) => item.variantId.toString());
+      }
+    }
+
+    const productData = {
+      ...product,
+      categoryName: product.category?.name || "Unknown",
+      oldPrice,
+      price,
+      discount: discountPercentage,
+      stock: variant?.stock || 0,
+      selectedVariant: variant,
+      isExistingInCart,
+      rating: 4.8,
+      variantsInCart,
+      reviews: [
+        { user: "Alice", rating: 5, comment: "Excellent product!" },
+        { user: "John", rating: 4, comment: "Good but delivery was late." },
+      ],
+      variants: product.variants.map((v) => ({
+        _id: v._id,
+        size: v.size,
+        additionalPrice: parseFloat(v.additionalPrice || 0),
+        stock: v.stock,
+        finalPrice: Math.round(
+          (basePrice + parseFloat(v.additionalPrice || 0)) *
+            (1 - discountPercentage / 100)
+        ),
+      })),
+      category: undefined,
+    };
+
+    const relatedProducts = await Product.aggregate([
+      {
+        $match: {
+          categoryId: product.categoryId,
+          _id: { $ne: new mongoose.Types.ObjectId(productId) },
+          isBlocked: false,
+        },
+      },
+      {
+        $lookup: {
+          from: "variants",
+          localField: "_id",
+          foreignField: "productId",
+          as: "variants",
+        },
+      },
+      {
+        $addFields: {
+          variants: {
+            $filter: {
+              input: "$variants",
+              as: "variant",
+              cond: { $eq: ["$$variant.status", true] },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          variants: {
+            $sortArray: {
+              input: "$variants",
+              sortBy: { stock: -1 },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          selectedVariant: { $arrayElemAt: ["$variants", 0] },
+        },
+      },
+      { $limit: 4 },
+    ]).exec();
+
+    const updatedRelatedProducts = relatedProducts.map((p) => {
+      const additionalPrice = parseFloat(
+        p.selectedVariant?.additionalPrice || 0
+      );
+      const basePrice = parseFloat(p.basePrice || 0);
+      const discountPercentage = parseFloat(p.discountPercentage || 0);
+      const oldPrice = basePrice + additionalPrice;
+
       return {
         ...p,
-        oldPrice: p.basePrice,
-        discount: p.discountPercentage,
-        price: Math.round(p.basePrice * (1 - p.discountPercentage / 100)),
+        oldPrice,
+        discount: discountPercentage,
+        price: Math.round(oldPrice * (1 - discountPercentage / 100)),
+        stock: p.selectedVariant?.stock || 0,
+        selectedVariant: p.selectedVariant,
       };
     });
 
@@ -347,8 +674,8 @@ const loadProductDetails = async (req, res) => {
       title: "Product Details",
       layout: "layouts/userLayout",
       user: req.session.user,
-      product,
-      relatedProducts: updatedProducts,
+      product: productData,
+      relatedProducts: updatedRelatedProducts,
     });
   } catch (error) {
     console.error("Error loading product details:", error);

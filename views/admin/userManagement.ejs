@@ -90,7 +90,10 @@
                       Block
                     </button>
                     <% } %>
-
+                    <div>
+                        <a href="/admin/user/<%= user._id %>" class=" text-blue-600 hover:text-blue-800 font-medium">View</a>
+                    </div>
+                   
               </td>
             </tr>
             <% }) %>
@@ -99,6 +102,7 @@
                 <td class="p-2">User Data Not Found</td>
                 <% } %>
       </tbody>
+     
     </table>
   </div>
 

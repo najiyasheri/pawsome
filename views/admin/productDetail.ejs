@@ -4,9 +4,10 @@
   
 </div>
 
+
 <!-- Product Section -->
-<div class="max-w-6xl mx-auto p-6 bg-white mt-6 rounded-lg shadow">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="  max-w-6xl mx-auto p-6 bg-white mt-6 rounded-lg shadow">
+    <div class="relative grid grid-cols-1 md:grid-cols-2 gap-8">
 
         <!-- Left: Images -->
         <div>
@@ -54,7 +55,7 @@
                                 <td class="py-2 px-4"><%=variant.additionalPrice%></td>
                                 <td class="py-2 px-4"><%=variant.stock%></td>
                                 <td class="py-2 px-4">
-                                    <span class="px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm"><%= variant.stock.length < 1?'StockOut':'Available' %> </span>
+                                    <span class="px-3 py-1 rounded-full text-sm <%= variant.stock< 1?'bg-red-100 text-red-600':'bg-green-100 text-green-600'%>"><%= variant.stock < 1?'StockOut':'Available' %> </span>
                                 </td>
                             </tr>
                        <%})%>
@@ -62,7 +63,10 @@
                     </tbody>
                 </table>
             </div>
-
-        </div>
+  </div>
+        <a href="/admin/product/edit/<%= product._id %>"> <button type="button"
+                class="absolute right-1 bottom-1  mb-6 ml-4 flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-300 focus:ring-4 focus:outline-none focus:ring-yellow-300">
+                Edit Product
+            </button></a>
     </div>
 </div>

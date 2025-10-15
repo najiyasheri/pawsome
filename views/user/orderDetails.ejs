@@ -1,0 +1,318 @@
+<div class="max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-lg border border-gray-200">
+
+    <!-- Order Summary -->
+    <div class="mb-8 border-b border-gray-300 pb-4">
+        <div class="gap-y-4 text-gray-700 space-y-3.5">
+
+            <p class="text-2xl"><strong>Order</strong>
+                #<%= order.orderId %>
+            </p>
+            <p><strong>Order Date:</strong>
+                <%= order.createdAt.toLocaleDateString("en-IN") %>
+            </p>
+            <p><strong>Payment Method:</strong>
+                <%= order.paymentMethod %>
+            </p>
+            <p><strong>Total:</strong> ₹<%= order.totalAmount %>
+            </p>
+            <p><strong>User:</strong>
+                <%= order.userId.name %>
+            </p>
+
+            <!-- Order Status for Entire Order -->
+            <% disableStatus=order.status==="Cancelled" ; %>
+
+                <div class="mb-6 flex items-center gap-4">
+                    <label for="order-status" class="font-medium text-gray-700">Order Status:</label>
+                    <form action="/order/<%= order._id %>/update-status" method="POST"
+                        class="flex gap-2 items-center">
+                        <select name="status" id="order-status"
+                            class="border border-gray-300 rounded-md px-4 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            <%=disableStatus ? "disabled" : "" %>>
+                            <option value="Pending" <%=order.status==="Pending" ? "selected" : "" %>>Pending</option>
+                            <option value="Confirmed" <%=order.status==="Confirmed" ? "selected" : "" %>>Confirmed
+                            </option>
+                            <option value="Shipped" <%=order.status==="Shipped" ? "selected" : "" %>>Shipped</option>
+                            <option value="Delivered" <%=order.status==="Delivered" ? "selected" : "" %>>Delivered
+                            </option>
+                            <option value="Cancelled" <%=order.status==="Cancelled" ? "selected" : "" %>>Cancelled
+                            </option>
+
+                        </select>
+
+
+
+                    </form>
+                </div>
+
+
+        </div>
+        <button id="downloadInvoiceBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            data-order='<%- JSON.stringify(order).replace(/' /g, "&apos;" ) %>'>
+            Download Invoice
+        </button>
+    </div>
+
+
+    <!-- Order Items -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Order Items</h2>
+        <div class="space-y-4">
+            <% order.items.forEach(item=> { %>
+                <div
+                    class="flex flex-col sm:flex-row items-center justify-between border border-gray-100 rounded-lg p-4 bg-white hover:bg-gray-100 transition">
+                    <div class="flex items-center gap-4 w-full sm:w-auto">
+                        <% if(item.image) { %>
+                            <img src="/uploads/<%= item.image %>" class="w-16 h-16 object-cover rounded-md border" />
+                            <% } %>
+                                <div>
+                                    <p class="font-semibold text-gray-800">
+                                        <%= item.name %>
+                                    </p>
+                                    <% if(item.variant) { %>
+                                        <p class="text-sm text-gray-600">
+                                            <% if(item.variant.size) { %>Size: <%= item.variant.size %>
+                                                    <% } %>
+                                                        <% if(item.variant.color) { %>, Color: <%= item.variant.color %>
+                                                                <% } %>
+                                        </p>
+                                        <% } %>
+                                            <p class="text-sm text-gray-600">Quantity: <%= item.quantity %>
+                                            </p>
+                                            <p class="text-sm text-gray-600">Price: ₹<%= item.price %>
+                                            </p>
+                                </div>
+                    </div>
+
+                    <div class="mt-3 sm:mt-0 text-right">
+                        <p class="font-medium text-gray-700">Subtotal: ₹<%= item.subtotal %>
+                        </p>
+
+                        <% if (item.status==="Cancelled" ) { %>
+                            <p class="text-red-600 text-sm font-medium mt-2">
+                                Cancelled<br>
+                                <span class="text-gray-600">Reason: <%= item.cancellationReason || "N/A" %></span>
+                            </p>
+                            <% } else { %>
+                                <button type="button"
+                                    class="cancel-item-btn bg-red-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-600 transition"
+                                    data-action="/order/<%= order._id %>/cancel-item/<%= item._id %>">
+                                    Cancel Item
+                                </button>
+                                <% } %>
+                    </div>
+
+                </div>
+                <% }) %>
+        </div>
+    </div>
+
+    <!-- Billing Details -->
+    <div class="border-t pt-6 border-gray-300 pb-4">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Billing Details</h2>
+        <div class="gap-y-2 text-gray-700 space-x-2.5">
+            <p><strong>Name:</strong>
+                <%= order.userId.name %>
+            </p>
+            <p><strong>Email:</strong>
+                <%= order.userId.email || "N/A" %>
+            </p>
+        </div>
+    </div>
+
+    <!-- Billing Address -->
+    <div class="mt-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Billing Address</h2>
+        <div class="text-gray-700 space-y-1">
+            <p><strong>Name:</strong>
+                <%= order.address?.name || order.userId.name %>
+            </p>
+            <p><strong>Address:</strong>
+                <%= order.address?.address || "N/A" %>
+            </p>
+        </div>
+    </div>
+
+
+    <!-- Cancel Entire Order or Single Items -->
+<!-- Cancel Entire Order Button -->
+<% if (order.status !=="Cancelled" ) { %>
+    <div class="mt-8 text-center">
+        <button type="button"
+            class="cancel-order-btn bg-red-600 text-white px-5 py-2 rounded-md font-medium hover:bg-red-700 transition"
+            data-action="/order/<%= order._id %>/cancel-all">
+            Cancel Entire Order
+        </button>
+    </div>
+    <% } else { %>
+        <div class="mt-8 text-center">
+            <p class="text-red-600 font-semibold">
+                Entire Order Cancelled
+            </p>
+            <p class="text-gray-700 mt-1">
+                Reason: <%= order.cancellationReason || "N/A" %>
+            </p>
+        </div>
+        <% } %>
+
+
+
+
+
+
+
+    <!-- Cancellation Modal -->
+    <div id="cancelModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+            <h3 class="text-lg font-semibold mb-4">Cancellation Reason</h3>
+            <form id="cancelForm" method="POST">
+                <textarea name="reason" required placeholder="Enter cancellation reason..."
+                    class="w-full border border-gray-300 rounded-md p-2 mb-4 focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+                <div class="flex justify-end gap-2">
+                    <button type="button" id="cancelCloseBtn"
+                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Close</button>
+                    <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Confirm
+                        Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        const cancelModal = document.getElementById('cancelModal');
+        const cancelForm = document.getElementById('cancelForm');
+        const cancelCloseBtn = document.getElementById('cancelCloseBtn');
+
+        // Open modal for individual items
+        document.querySelectorAll('.cancel-item-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                cancelForm.action = btn.dataset.action; // set form action dynamically
+                cancelModal.classList.remove('hidden');
+            });
+        });
+
+        // Open modal for entire order
+        document.querySelectorAll('.cancel-order-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                cancelForm.action = btn.dataset.action; // set form action dynamically
+                cancelModal.classList.remove('hidden');
+            });
+        });
+
+        // Close modal
+        cancelCloseBtn.addEventListener('click', () => {
+            cancelModal.classList.add('hidden');
+            cancelForm.action = '';
+            cancelForm.reset();
+        });
+
+
+
+
+        // Download Invoice logic
+        const downloadBtn = document.getElementById("downloadInvoiceBtn");
+
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+            console.error("jsPDF library is not loaded.");
+            alert("Failed to load jsPDF library. Please try again later.");
+        } else if (downloadBtn) {
+            const { jsPDF } = window.jspdf;
+
+            downloadBtn.addEventListener("click", () => {
+                try {
+                    // Parse order data safely
+                    let orderData;
+                    try {
+                        orderData = JSON.parse(downloadBtn.dataset.order);
+                    } catch (e) {
+                        console.error("Failed to parse order data:", e);
+                        alert("Invalid order data. Please check the server configuration.");
+                        return;
+                    }
+
+                    const doc = new jsPDF();
+                    let y = 20;
+
+                    // Header
+                    doc.setFontSize(18);
+                    doc.text("Invoice", 20, y);
+                    y += 15;
+
+                    // Order Info
+                    doc.setFontSize(12);
+                    doc.text(`Order ID: ${orderData.orderId || "N/A"}`, 20, y); y += 10;
+                    doc.text(`Order Date: ${orderData.createdAt ? new Date(orderData.createdAt).toLocaleDateString("en-IN") : "N/A"}`, 20, y); y += 10;
+                    doc.text(`Payment Method: ${orderData.paymentMethod || "N/A"}`, 20, y); y += 10;
+                    doc.text(`Total: ₹${Number(orderData.totalAmount || 0).toFixed(2)}`, 20, y); y += 10;
+                    doc.text(`User: ${orderData.userId?.name || "N/A"}`, 20, y); y += 15;
+
+                    // Order Items
+                    doc.setFontSize(14);
+                    doc.text("Order Items", 20, y); y += 10;
+                    doc.setFontSize(12);
+
+                    if (orderData.items && Array.isArray(orderData.items) && orderData.items.length > 0) {
+                        orderData.items.forEach((item, i) => {
+                            if (y > 260) { doc.addPage(); y = 20; } // new page if needed
+
+                            const quantity = Number(item.quantity || 0);
+                            const price = Number(item.price || 0).toFixed(2);
+                            const subtotal = Number(item.subtotal || quantity * price).toFixed(2);
+
+                            doc.text(`Qty: ${quantity} | Price: ₹${price} | Subtotal: ₹${subtotal}`, 20, y);
+                            if (item.variant) {
+                                const variantText = [
+                                    item.variant.size ? `Size: ${item.variant.size}` : "",
+                                    item.variant.color ? `Color: ${item.variant.color}` : ""
+                                ].filter(Boolean).join(", ");
+                                if (variantText) { doc.text(variantText, 20, y); y += 8; }
+                            }
+                            doc.text(`Qty: ${quantity} | Price: ₹${price} | Subtotal: ₹${subtotal}`, 20, y); y += 10;
+
+                            if (item.status === "Cancelled") {
+                                doc.text(`Status: Cancelled (Reason: ${item.cancellationReason || "N/A"})`, 20, y); y += 10;
+                            }
+
+                            y += 2;
+                        });
+                    } else {
+                        doc.text("No items found in this order.", 20, y); y += 10;
+                    }
+
+                    // Billing Details
+                    y += 5;
+                    doc.setFontSize(14); doc.text("Billing Details", 20, y); y += 10;
+                    doc.setFontSize(12);
+                    doc.text(`Name: ${orderData.userId?.name || "N/A"}`, 20, y); y += 8;
+                    doc.text(`Email: ${orderData.userId?.email || "N/A"}`, 20, y); y += 10;
+
+                    // Billing Address
+                    y += 5;
+                    doc.setFontSize(14); doc.text("Billing Address", 20, y); y += 10;
+                    doc.setFontSize(12);
+                    doc.text(`Name: ${orderData.address?.name || orderData.userId?.name || "N/A"}`, 20, y); y += 8;
+                    doc.text(`Address: ${orderData.address?.address || "N/A"}`, 20, y); y += 10;
+
+                    // Cancelled Order
+                    if (orderData.status === "Cancelled") {
+                        y += 5;
+                        doc.setFontSize(14); doc.text("Order Status", 20, y); y += 10;
+                        doc.setFontSize(12);
+                        doc.text(`Entire Order Cancelled (Reason: ${orderData.cancellationReason || "N/A"})`, 20, y); y += 10;
+                    }
+
+                    // Save PDF
+                    doc.save(`invoice_${orderData.orderId || "unknown"}.pdf`);
+                    console.log("PDF downloaded successfully");
+                } catch (e) {
+                    console.error("Failed to generate PDF:", e);
+                    alert("Failed to download invoice. Check console for details.");
+                }
+            });
+        } else {
+            console.error("Download Invoice button not found.");
+            alert("Download Invoice button not found.");
+        }
+    </script>

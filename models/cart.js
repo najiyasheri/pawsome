@@ -6,16 +6,17 @@ const cartItemSchema = new mongoose.Schema({
     ref: "Product",
     required: true,
   },
+  variantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Variant",
+    required: true,
+  },
   quantity: {
     type: Number,
     required: true,
     min: 1,
     default: 1,
-  },
-  priceAtAdding: {
-    type: Number,
-    required: true,
-  },
+  } 
 });
 
 const cartSchema = new mongoose.Schema(
@@ -26,10 +27,6 @@ const cartSchema = new mongoose.Schema(
       required: true,
     },
     items: [cartItemSchema],
-    totalPrice: {
-      type: Number,
-      default: 0,
-    },
   },
   { timestamps: true }
 );

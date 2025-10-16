@@ -6,14 +6,17 @@ const {isLogin, isUser}=require('../middlewares/authMiddleware');
 const passport = require("passport");
 const cartController=require('../controllers/cartController')
 const productController=require('../controllers/productController')
-const { loadProductDetails } = require("../controllers/productController")
+
 const profileController=require('../controllers/profileController')
 const addressController=require('../controllers/addressController')
-const shippingController=require('../controllers/shippingController')
+
 const paymentController=require('../controllers/paymentContoller')
 const orderController=require('../controllers/orderController')
 const profileOtpController=require('../controllers/profileOtpController')
 const { requireCartNotEmpty } = require("../middlewares/checkoutMiddleware");
+const wishlistController=require('../controllers/wishlistController')
+
+
 
 
 
@@ -79,12 +82,25 @@ router.post(
   "/order/:orderId/cancel-item/:itemId",isUser,
   orderController.userCancelSingleItem
 );
-
-
 router.post(
   "/order/:orderId/cancel-all",
   isUser,
   orderController.userCancelEntireOrder
 );
 
+
+
+router.get("/wishlist", isUser, wishlistController.viewWishlist);
+
+router.post(
+  "/wishlist/add/:productId",
+  isUser,
+  wishlistController.addToWishlist
+);
+
+router.post(
+  "wishlist/remove/:productId",
+  isUser,
+  wishlistController.removeFromWishlist
+);
 module.exports = router;

@@ -1,7 +1,6 @@
 const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const Address = require("../models/Address");
-const OrderItem = require("../models/OrderItem");
 const Product = require("../models/Product");
 const Variant = require('../models/ProductVarient')
 

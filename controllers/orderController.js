@@ -1,8 +1,6 @@
 const { default: mongoose } = require("mongoose");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
-const User = require("../models/User");
-const OrderItem = require("../models/OrderItem");
 
 const loadOrder = async (req, res) => {
   try {

@@ -672,13 +672,31 @@ const loadProductDetails = async (req, res) => {
         selectedVariant: p.selectedVariant,
       };
     });
+     let isInWishlist = false;
+    let wishlistProductIds = [];
 
+    if (userId) {
+      const wishlist = await Wishlist.findOne({ userId }).lean();
+      if (wishlist) {
+        wishlistProductIds = wishlist.products.map((product) => product.productId.toString());
+        isInWishlist = wishlistProductIds.includes(product._id.toString());
+      }
+    }
+
+    // ✅ mark related products as wishlist or not
+    const relatedWithWishlist = updatedRelatedProducts.map((p) => ({
+      ...p,
+      isInWishlist: wishlistProductIds.includes(p._id.toString()),
+    }));
+ console.log(isInWishlist)
+    // ✅ render final
     res.render("user/productDetail", {
       title: "Product Details",
       layout: "layouts/userLayout",
       user: req.session.user,
       product: productData,
-      relatedProducts: updatedRelatedProducts,
+      relatedProducts: relatedWithWishlist,
+      isInWishlist, 
     });
   } catch (error) {
     console.error("Error loading product details:", error);

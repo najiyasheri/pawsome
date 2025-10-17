@@ -1,27 +1,131 @@
+<div class="max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6">My Wishlist</h1>
 
+    <% if (products.length===0) { %>
+        <div id="empty-message" class="flex flex-col items-center justify-center mt-20">
+            <img src="/img/wishlist.webp" alt="Empty Wishlist" class="w-64 h-64 mb-6 object-contain">
+            <p class="text-gray-500 text-lg mb-4">Your wishlist is empty.</p>
+            <a href="/products" class="px-6 py-3 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition">
+                Go to Shop
+            </a>
+        </div>
+        <% } else { %>
+            <div
+                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center md:mx-20 mb-10 products-container">
+                <% products.forEach(product=> { %>
+                    <div
+                        class="w-full bg-white border border-gray-200 rounded-lg shadow-sm relative flex flex-col product-card">
+                        <!-- Remove from Wishlist -->
+                        <button
+                            class="absolute top-1 right-1 p-2 text-gray-800 hover:text-red-600 transition flex items-center justify-center remove-btn"
+                            data-product-id="<%= product._id %>">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z" />
+                            </svg>
+                        </button>
 
-    <div class="max-w-6xl mx-auto">
-        <h1 class="text-3xl font-bold mb-6">My Wishlist</h1>
+                        <!-- Product Image -->
+                        <a href="/product/<%= product._id %>" class="product-link">
+                            <img class="p-6 rounded-t-lg h-48 w-full object-contain product-img"
+                                src="/uploads/<%= product.images[0] || 'default.jpg' %>" alt="<%= product.name %>">
+                        </a>
 
-        <% if(products.length===0){ %>
-            <p class="text-gray-500">Your wishlist is empty.</p>
-            <% } else { %>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                    <% products.forEach(product=> { %>
-                        <div class="bg-white rounded-xl shadow p-4 flex flex-col items-center">
-                            <img src="<%= product.image %>" class="h-40 w-40 object-cover rounded-lg mb-4">
-                            <h2 class="font-semibold text-lg mb-2">
-                                <%= product.name %>
-                            </h2>
-                            <p class="text-gray-600 mb-4">₹<%= product.price %>
-                            </p>
-                            <form action="/wishlist/remove/<%= product._id %>" method="POST">
-                                <button class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition">
-                                    Remove
-                                </button>
-                            </form>
+                        <div class="px-5 pb-5 flex flex-col flex-1">
+                            <!-- Product Name -->
+                            <a href="/product/<%= product._id %>" class="product-link">
+                                <h5
+                                    class="text-lg font-semibold tracking-tight text-gray-900 line-clamp-2 h-14 leading-relaxed product-name">
+                                    <%= product.name %>
+                                </h5>
+                            </a>
+
+                            <!-- Rating -->
+                            <div class="flex items-center mt-2 mb-2">
+                                <span class="text-yellow-400 text-lg">★</span>
+                                <span class="text-gray-800 text-xs font-semibold px-2 py-0.5 rounded-sm">5.0</span>
+                            </div>
+
+                            <!-- Price -->
+                        <!-- Price / Stock -->
+                        <div class="mt-2 mb-2">
+                            <% if(product.isOutOfStock) { %>
+                                
+                                <% } else { %>
+                                    <span class="text-xl font-bold text-black-600 product-price">₹<%= product.finalPrice %></span>
+                                    <% if(product.oldPrice> product.finalPrice) { %>
+                                        <span class="line-through text-gray-400 old-price">₹<%= product.oldPrice %></span>
+                                        <% } %>
+                                            <% } %>
                         </div>
-                        <% }) %>
-                </div>
-                <% } %>
-    </div>
+
+
+                            <!-- Move to Cart -->
+                        <form action="/cart/add/<%= product._id %>" method="POST" class="mt-auto">
+                            <button class="w-full px-4 py-2 text-white rounded transition
+                                       <%= product.isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600' %>"
+                                <%=product.isOutOfStock ? 'disabled' : '' %>>
+                                <%= product.isOutOfStock ? 'Out of Stock' : 'Move to Cart' %>
+                            </button>
+                        </form>
+                        </div>
+                    </div>
+                    <% }) %>
+            </div>
+            <% } %>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.querySelectorAll('.remove-btn').forEach(button => {
+        button.addEventListener('click', async () => {
+            const productId = button.dataset.productId;
+
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: "Do you want to remove this product from your wishlist?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, remove it!',
+                cancelButtonText: 'Cancel'
+            });
+            if (!result.isConfirmed) return;
+
+            try {
+                const res = await fetch(`/wishlist/remove/${productId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin'
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    button.closest('div.product-card').remove();
+
+                    // Show empty state if no products left
+                    if (document.querySelectorAll('.product-card').length === 0) {
+                        const emptyDiv = document.createElement('div');
+                        emptyDiv.className = 'flex flex-col items-center justify-center mt-20';
+                        emptyDiv.innerHTML = `
+                        <img src="/img/wishlist.webp" alt="Empty Wishlist" class="w-64 h-64 mb-6 object-contain">
+                        <p class="text-gray-500 text-lg mb-4">Your wishlist is empty.</p>
+                        <a href="/products" class="px-6 py-3 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition">Go to Shop</a>
+                    `;
+                        document.querySelector('.max-w-7xl').appendChild(emptyDiv);
+                    }
+
+                    Swal.fire('Removed!', 'Product has been removed from your wishlist.', 'success');
+                } else {
+                    Swal.fire('Error', data.message || 'Failed to remove', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error', 'Something went wrong', 'error');
+            }
+        });
+    });
+</script>

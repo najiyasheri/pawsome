@@ -93,13 +93,13 @@ router.post(
 router.get("/wishlist", isUser, wishlistController.viewWishlist);
 
 router.post(
-  "/wishlist/add/:productId",
+  "/wishlist/add/:productId/:variantId",
   isUser,
   wishlistController.addToWishlist
 );
 
 router.post(
-  "wishlist/remove/:productId",
+  "/wishlist/remove/:productId",
   isUser,
   wishlistController.removeFromWishlist
 );

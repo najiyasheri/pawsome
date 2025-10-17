@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const User = require("../models/User");
 const Cart = require("../models/Cart");
-const { log } = require("console");
+const Wishlist = require("../models/Wishlist");
 
 const loadProductManagement = async (req, res) => {
   try {
@@ -359,12 +359,7 @@ const userProducts = async (req, res) => {
             $filter: {
               input: "$variants",
               as: "variant",
-              cond: {
-                $and: [
-                  { $eq: ["$$variant.status", true] },
-                  { $gt: ["$$variant.stock", 0] },
-                ],
-              },
+              cond: { $eq: ["$$variant.status", true] },
             },
           },
         },
@@ -428,6 +423,13 @@ const userProducts = async (req, res) => {
       { $limit: limit },
     ]).exec();
 
+    let wishlistItems = [];
+    if (userId) {
+      const wishlist = await Wishlist.findOne({ userId }).lean();
+      wishlistItems =
+        wishlist?.products?.map((item) => item.variantId.toString()) || [];
+    }
+    
     const count = await Product.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
     const categories = await Category.find({ isBlocked: false }).lean();
@@ -438,6 +440,7 @@ const userProducts = async (req, res) => {
       const basePrice = parseFloat(product.basePrice || 0);
       const discountPercentage = parseFloat(product.discountPercentage || 0);
       const oldPrice = basePrice + additionalPrice;
+    
 
       return {
         ...product,
@@ -451,12 +454,12 @@ const userProducts = async (req, res) => {
         isExistingInCart: !!(
           variant && cartItems.includes(variant._id.toString())
         ),
+        isFavourite: !!(variant && wishlistItems.includes(variant._id.toString())),
         variants: undefined,
         category: undefined,
       };
     });
 
-    console.log(updatedProducts);
 
     if (req.xhr || req.headers.accept.includes("application/json")) {
       return res.json({
@@ -606,7 +609,7 @@ const loadProductDetails = async (req, res) => {
       })),
       category: undefined,
     };
-
+     
     const relatedProducts = await Product.aggregate([
       {
         $match: {

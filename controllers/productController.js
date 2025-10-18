@@ -654,7 +654,16 @@ const loadProductDetails = async (req, res) => {
       },
       { $limit: 4 },
     ]).exec();
-
+      
+          let cartItems = [];
+          if (userId) {
+            const cart = await Cart.findOne(
+              { userId },
+              "items.variantId"
+            ).lean();
+            cartItems =
+              cart?.items?.map((item) => item.variantId.toString()) || [];
+          }
     const updatedRelatedProducts = relatedProducts.map((p) => {
       const additionalPrice = parseFloat(
         p.selectedVariant?.additionalPrice || 0
@@ -662,8 +671,7 @@ const loadProductDetails = async (req, res) => {
       const basePrice = parseFloat(p.basePrice || 0);
       const discountPercentage = parseFloat(p.discountPercentage || 0);
       const oldPrice = basePrice + additionalPrice;
-     
-      
+
       return {
         ...p,
         oldPrice,
@@ -685,18 +693,30 @@ const loadProductDetails = async (req, res) => {
     }
 
     // ✅ mark related products as wishlist or not
-    const relatedWithWishlist = updatedRelatedProducts.map((p) => ({
-      ...p,
-      isInWishlist: wishlistProductIds.includes(p._id.toString()),
-    }));
-    
+const relatedWithWishlist = updatedRelatedProducts.map((p) => {
+  const variantId = p.selectedVariant?._id?.toString();
+  const isInCart = variantId && cartItems.includes(variantId);
+  const isInWishlist = wishlistProductIds.includes(p._id.toString());
+
+  return {
+    ...p,
+    isInWishlist,
+    isInCart,
+  };
+});
+
+
+    // ✅ render final
     res.render("user/productDetail", {
       title: "Product Details",
       layout: "layouts/userLayout",
       user: req.session.user,
       product: productData,
       relatedProducts: relatedWithWishlist,
-      isInWishlist, 
+      isInWishlist,
+      isExistingInCart: !!(
+        variant && cartItems.includes(variant._id.toString())
+      ),
     });
   } catch (error) {
     console.error("Error loading product details:", error);

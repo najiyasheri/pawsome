@@ -662,7 +662,8 @@ const loadProductDetails = async (req, res) => {
       const basePrice = parseFloat(p.basePrice || 0);
       const discountPercentage = parseFloat(p.discountPercentage || 0);
       const oldPrice = basePrice + additionalPrice;
-
+     
+      
       return {
         ...p,
         oldPrice,
@@ -688,8 +689,7 @@ const loadProductDetails = async (req, res) => {
       ...p,
       isInWishlist: wishlistProductIds.includes(p._id.toString()),
     }));
- console.log(isInWishlist)
-    // ✅ render final
+    
     res.render("user/productDetail", {
       title: "Product Details",
       layout: "layouts/userLayout",

@@ -181,9 +181,11 @@
         <% relatedProducts.forEach(rp=> { %>
           <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm relative flex flex-col">
             <!-- Favorite Button -->
-            <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 heart-icon"
+            <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn" data-in-wishlist="<%= rp.isInWishlist %>" data-product-id="<%= rp._id %>"
+              data-variant-id="">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 heart-icon <%= rp.isInWishlist ? 'text-red-500' : 'text-gray-400 hover:text-red-500' %>"
                 viewBox="0 0 24 24">
+                
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
                        2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
                        C13.09 3.81 14.76 3 16.5 3 
@@ -493,68 +495,75 @@
     mainImg.addEventListener('load', initDrift, { once: true });
   }
   // WISHLIST BUTTON HANDLER
-  const favBtn = document.querySelector(".favorite-btn");
-    let inWishlist = favBtn.dataset.inWishlist === 'true';
+  const wishlistButtons = document.querySelectorAll(".favorite-btn");
 
-    favBtn?.addEventListener("click", async (e) => {
-      e.preventDefault();
+    wishlistButtons.forEach(favBtn => {
+      // Read initial state
+      let inWishlist = favBtn.dataset.inWishlist === 'true';
 
-      const productId = document.getElementById("productId").value;
-      const variantId = document.getElementById("variantId").value;
+      favBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
 
-      try {
-        const response = await fetch(
-          inWishlist
-            ? `/wishlist/remove/${productId}`
-            : `/wishlist/add/${productId}${variantId ? `/${variantId}` : ''}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" }
+        // Get product and variant IDs dynamically
+        const productId = favBtn.closest('[data-product-id]')?.dataset.productId ||
+          document.getElementById("productId")?.value;
+        const variantId = favBtn.closest('[data-variant-id]')?.dataset.variantId ||
+          document.getElementById("variantId")?.value;
+
+        try {
+          const response = await fetch(
+            inWishlist
+              ? `/wishlist/remove/${productId}`
+              : `/wishlist/add/${productId}${variantId ? `/${variantId}` : ''}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" }
+            }
+          );
+
+          if (response.status === 401) {
+            Swal.fire({
+              icon: "warning",
+              title: "Login Required",
+              text: "Please login to manage your wishlist.",
+              confirmButtonText: "Go to Login",
+              confirmButtonColor: "#facc15",
+              showCancelButton: true,
+              cancelButtonText: "Cancel",
+            }).then((result) => {
+              if (result.isConfirmed) window.location.href = "/login";
+            });
+            return;
           }
-        );
 
-        if (response.status === 401) {
+          const result = await response.json();
+
+          if (result.success) {
+            inWishlist = !inWishlist;
+            favBtn.dataset.inWishlist = inWishlist;
+
+            const heartIcon = favBtn.querySelector(".heart-icon");
+            if (inWishlist) heartIcon.classList.add("text-red-500");
+            else heartIcon.classList.remove("text-red-500");
+
+            Swal.fire({
+              icon: inWishlist ? "success" : "info",
+              title: inWishlist ? "Added to Wishlist!" : "Removed from Wishlist",
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          }
+
+        } catch (error) {
+          console.error("Wishlist error:", error);
           Swal.fire({
-            icon: "warning",
-            title: "Login Required",
-            text: "Please login to manage your wishlist.",
-            confirmButtonText: "Go to Login",
-            confirmButtonColor: "#facc15",
-            showCancelButton: true,
-            cancelButtonText: "Cancel",
-          }).then((result) => {
-            if (result.isConfirmed) window.location.href = "/login";
-          });
-          return;
-        }
-
-        const result = await response.json();
-
-        if (result.success) {
-          inWishlist = !inWishlist;
-          favBtn.dataset.inWishlist = inWishlist;
-
-          const heartIcon = favBtn.querySelector(".heart-icon");
-          if (inWishlist) heartIcon.classList.add("text-red-500");
-          else heartIcon.classList.remove("text-red-500");
-
-          Swal.fire({
-            icon: inWishlist ? "success" : "info",
-            title: inWishlist ? "Added to Wishlist!" : "Removed from Wishlist",
-            showConfirmButton: false,
-            timer: 1500,
+            icon: "error",
+            title: "Something went wrong!",
+            text: "Unable to update wishlist. Please try again later.",
+            confirmButtonColor: "#f87171",
           });
         }
-
-      } catch (error) {
-        console.error("Wishlist error:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Something went wrong!",
-          text: "Unable to update wishlist. Please try again later.",
-          confirmButtonColor: "#f87171",
-        });
-      }
+      });
     });
 
 

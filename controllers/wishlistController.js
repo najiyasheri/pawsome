@@ -1,22 +1,23 @@
 const Wishlist = require("../models/Wishlist");
-const ProductVariant=require('../models/ProductVarient')
+const ProductVariant = require("../models/ProductVarient");
 
 const viewWishlist = async (req, res) => {
   const userId = req.session.user._id;
-const wishlist = await Wishlist.findOne({ userId })
-  .populate({
-    path: "products.productId",
-    select: "name basePrice images discountPercentage",
-  }).populate({
-    path: "products.variantId",  
-    select: "stock additionalPrice size", 
-  })
+  const wishlist = await Wishlist.findOne({ userId })
+    .populate({
+      path: "products.productId",
+      select: "name basePrice images discountPercentage",
+    })
+    .populate({
+      path: "products.variantId",
+      select: "stock additionalPrice size",
+    })
 
-  .lean();
+    .lean();
 
   const updatedWishlist = (wishlist?.products || []).map((item) => {
-    const product = item.productId;  
-    const variant = item.variantId;  
+    const product = item.productId;
+    const variant = item.variantId;
     const additionalPrice = parseFloat(variant?.additionalPrice || 0);
     const basePrice = parseFloat(product.basePrice || 0);
     const discountPercentage = parseFloat(product.discountPercentage || 0);
@@ -30,7 +31,6 @@ const wishlist = await Wishlist.findOne({ userId })
       isOutOfStock: variant?.stock === 0,
     };
   });
-
 
   console.log(updatedWishlist);
 
@@ -49,11 +49,10 @@ const addToWishlist = async (req, res) => {
     console.log(productId);
     console.log(variantId);
 
-if (!variantId) {
-  const variant = await ProductVariant.findOne({ productId });
-  variantId = variant?._id || null; 
-  
-}
+    if (!variantId) {
+      const variant = await ProductVariant.findOne({ productId });
+      variantId = variant?._id || null;
+    }
 
     let wishlist = await Wishlist.findOne({ userId });
 
@@ -79,8 +78,8 @@ if (!variantId) {
       .status(200)
       .json({ success: true, message: "Product added to wishlist" });
   } catch (error) {
-    console.error(error)
-    res.status(402).send('server error')
+    console.error(error);
+    res.status(402).send("server error");
   }
 };
 
@@ -97,7 +96,6 @@ const removeFromWishlist = async (req, res) => {
     res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
-
 
 module.exports = {
   viewWishlist,

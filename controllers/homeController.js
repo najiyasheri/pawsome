@@ -1,6 +1,7 @@
 const Product = require("../models/Product");
 const Category = require("../models/Category");
 const Cart = require("../models/Cart");
+const Wishlist=require('../models/Wishlist')
 
 
 
@@ -77,7 +78,11 @@ const loadHomepage = async (req, res) => {
     const cart = await Cart.findOne({ userId });
     cartItems = cart ? cart.items : [];
   }
-
+  let wishlistItems = [];
+  if (userId) {
+    const wishlist = await Wishlist.findOne({ userId });
+    wishlistItems = wishlist ? wishlist.products.map((p) => p.productId.toString()) : [];
+  }
   // Map products to include final price, stock, and existingInCart
   const updatedProducts = products
     .filter((p) => p.selectedVariant) // remove out-of-stock products
@@ -95,6 +100,7 @@ const loadHomepage = async (req, res) => {
           item.productId.toString() === product._id.toString() &&
           item.variantId?.toString() === variant?._id?.toString()
       );
+       const inWishlist = wishlistItems.includes(product._id.toString());
 
       return {
         ...product,
@@ -104,11 +110,13 @@ const loadHomepage = async (req, res) => {
         price: finalPrice,
         stock: variant?.stock || 0,
         selectedVariant: variant,
-        existingInCart, // ✅ true if in cart
+        existingInCart,
+        inWishlist, 
         variants: undefined,
         category: undefined,
       };
     });
+
 
   return res.render("user/home", {
     title: "HomePage",

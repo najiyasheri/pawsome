@@ -12,7 +12,7 @@
           <img src="/img/<%= category.name %>.png" alt="<%= category.name %>"
             class="w-32 h-32 object-cover shadow-md rounded-full mx-auto">
           <p class="mt-2 font-medium">
-            <%= category.name %> 
+            <%= category.name %>
           </p>
         </a>
       </div>
@@ -39,15 +39,19 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-items-center md:mx-20 mb-10">
     <% products.forEach(p=> { %>
       <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm relative flex flex-col">
-        <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 heart-icon" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
-                     2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
-                     C13.09 3.81 14.76 3 16.5 3 
-                     19.58 3 22 5.42 22 8.5 
-                     c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-          </svg>
-        </button>
+  <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn" data-product-id="<%= p._id %>"
+    data-variant-id="<%= p.selectedVariant?._id %>" data-in-wishlist="<%= p.inWishlist %>">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 heart-icon" fill="<%= p.inWishlist ? 'red' : 'currentColor' %>"
+      viewBox="0 0 24 24">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
+               2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
+               C13.09 3.81 14.76 3 16.5 3 
+               19.58 3 22 5.42 22 8.5 
+               c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
+  </button>
+
+
 
         <a class="product-link" href="/product/<%= p._id %>">
           <img class="p-6 rounded-t-lg h-48 w-full object-contain product-img"
@@ -79,12 +83,18 @@
               <span class="line-through text-gray-400 old-price">₹<%= p.oldPrice %></span>
             </div>
 
-            <button onclick=<%= p.existingInCart ? 'window.location.href=\'/cart\'' : 'addToCart(this)' %>
-              class="add-cart text-gray-900 <%= p.existingInCart ? 'bg-yellow-700 hover:bg-yellow-800 text-black' : 'bg-yellow-500 hover:bg-yellow-600' %> focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-3 py-2.5 text-center"
-              data-product-id="<%= p._id %>" data-variant-id="<%= p.selectedVariant?._id %>" <%=(!p.selectedVariant ||
-              p.selectedVariant.stock <=0) ? 'disabled' : '' %>>
-              <%= p.existingInCart ? 'Go to Cart' : 'Add to Cart' %>
-            </button>
+        <button 
+  type="button"
+  onclick=<%= p.existingInCart ? 'window.location.href=\'/cart\'' : 'addToCart(this)' %>
+  class="add-cart text-gray-900 <%= p.existingInCart ? 'bg-yellow-700 hover:bg-yellow-800 text-black' : 'bg-yellow-500 hover:bg-yellow-600' %> focus:ring-4 focus:outline-none focus:ring-yellow-300
+         font-medium rounded-lg text-sm px-3 py-2.5 text-center"
+  data-product-id="<%= p._id %>" 
+  data-variant-id="<%= p.selectedVariant?._id %>" 
+  <%=(!p.selectedVariant || p.selectedVariant.stock <=0) ? 'disabled' : '' %>
+>
+  <%= p.existingInCart ? 'Go to Cart' : 'Add to Cart' %>
+</button>
+
 
           </div>
         </div>
@@ -100,7 +110,7 @@
 
 <script>
 
- async function addToCart(button){
+  async function addToCart(button) {
 
     if (button.disabled || button.textContent === "Go to Cart") {
       window.location.href = '/cart';
@@ -165,6 +175,78 @@
         confirmButtonColor: '#f87171'
       });
     }
- }
+  }
+
+   const wishlistButtons = document.querySelectorAll(".favorite-btn");
+
+    wishlistButtons.forEach(favBtn => {
+      // Read initial state
+      let inWishlist = favBtn.dataset.inWishlist === 'true';
+
+      const heartIcon = favBtn.querySelector(".heart-icon");
+      // Initialize color based on initial state
+      heartIcon.setAttribute('fill', inWishlist ? 'red' : 'currentColor');
+
+      favBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        const productId = favBtn.dataset.productId;
+        const variantId = favBtn.dataset.variantId;
+
+        try {
+          const response = await fetch(
+            inWishlist
+              ? `/wishlist/remove/${productId}`
+              : `/wishlist/add/${productId}${variantId ? `/${variantId}` : ''}`,
+            { method: "POST", headers: { "Content-Type": "application/json" } }
+          );
+
+          if (response.status === 401) {
+            Swal.fire({
+              icon: "warning",
+              title: "Login Required",
+              text: "Please login to manage your wishlist.",
+              confirmButtonText: "Go to Login",
+              confirmButtonColor: "#facc15",
+              showCancelButton: true,
+              cancelButtonText: "Cancel",
+            }).then((result) => {
+              if (result.isConfirmed) window.location.href = "/login";
+            });
+            return;
+          }
+
+          const result = await response.json();
+
+          if (result.success) {
+            // Toggle wishlist state
+            inWishlist = !inWishlist;
+            favBtn.dataset.inWishlist = inWishlist;
+
+            // Update heart color
+            heartIcon.setAttribute('fill', inWishlist ? 'red' : 'currentColor');
+        
+
+
+            Swal.fire({
+              icon: inWishlist ? "success" : "info",
+              title: inWishlist ? "Added to Wishlist!" : "Removed from Wishlist",
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          }
+
+        } catch (error) {
+          console.error("Wishlist error:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Something went wrong!",
+            text: "Unable to update wishlist. Please try again later.",
+            confirmButtonColor: "#f87171",
+          });
+        }
+      });
+    });
+
 
 </script>

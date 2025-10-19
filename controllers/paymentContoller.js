@@ -2,7 +2,8 @@ const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const Address = require("../models/Address");
 const Product = require("../models/Product");
-const Variant = require('../models/ProductVariant')
+const Variant = require('../models/ProductVariant');
+const { razorpay } = require("../config/razorpay");
 
 const loadPayment = async (req, res) => {
   try {
@@ -96,11 +97,6 @@ const processPayment = async (req, res) => {
   try {
     const { paymentMethod, addressId } = req.body;
     const method = (paymentMethod || "").toLowerCase();
-
-    if (method !== "cod") {
-      return res.status(400).send("Only Cash on Delivery is allowed right now");
-    }
-
     const userId = req.session.user._id;
 
     const cart = await Cart.findOne({ userId })
@@ -164,28 +160,45 @@ const processPayment = async (req, res) => {
       status: "Pending",
     });
 
-    await newOrder.save();
+     if (method === "cod") {
+       // Handle COD like before
+       await newOrder.save();
+       for (const item of embeddedItems) {
+         const product = await Product.findById(item.productId);
+         if (!product) continue;
+         if (item.variant?.id) {
+           const variant = await Variant.findById(item.variant.id);
+           if (variant) {
+             variant.stock = Math.max(0, (variant.stock || 0) - item.quantity);
+             await variant.save();
+           }
+         } else {
+           product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+           await product.save();
+         }
+       }
+       cart.items = [];
+       await cart.save();
+       return res.render("user/orderSuccess", { order: newOrder });
+     }
 
-    for (const item of embeddedItems) {
-      const product = await Product.findById(item.productId);
-      if (!product) continue;
 
-      if (item.variant?.id) {
-        const variant = await Variant.findById(item.variant.id);
-        if (variant) {
-          variant.stock = Math.max(0, (variant.stock || 0) - item.quantity);
-          await variant.save();
-        }
-      } else {
-        product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-        await product.save();
-      }
-    }
+       const razorpayOrder = await razorpay.orders.create({
+         amount: total * 100, // in paise
+         currency: "INR",
+         receipt: orderId,
+         payment_capture: 1, // auto capture
+       });
 
-    cart.items = [];
-    await cart.save();
 
-    res.render("user/orderSuccess", { order: newOrder });
+       await newOrder.save(); // save order with Initiated status
+
+       res.json({
+         success: true,
+         razorpayOrder,
+         orderId: newOrder._id,
+         key: process.env.RAZORPAY_KEY_ID,
+       });
   } catch (err) {
     console.error("Error during payment process:", err);
     res.status(500).send("Server error");

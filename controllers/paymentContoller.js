@@ -2,7 +2,7 @@ const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const Address = require("../models/Address");
 const Product = require("../models/Product");
-const Variant = require('../models/ProductVarient')
+const Variant = require('../models/ProductVariant')
 
 const loadPayment = async (req, res) => {
   try {
@@ -105,13 +105,12 @@ const processPayment = async (req, res) => {
 
     const cart = await Cart.findOne({ userId })
       .populate("items.productId")
-      .populate("items.variantId"); // ✅ separate Variant collection
+      .populate("items.variantId"); 
 
     if (!cart || cart.items.length === 0) {
       return res.redirect("/cart?error=Cart is empty");
     }
 
-    // 🧮 Calculate totals and prepare embedded items
     let subtotal = 0;
     const embeddedItems = cart.items.map((item) => {
       const product = item.productId;
@@ -145,13 +144,11 @@ const processPayment = async (req, res) => {
     const deliveryCharge = 50;
     const total = subtotal + deliveryCharge;
 
-    // 🏠 Validate address
     const address = await Address.findById(addressId);
     if (!address) {
       return res.render("user/address", { error: "Address not found" });
     }
 
-    // 🧾 Create order
     const orderId = "ORD" + Date.now();
     const newOrder = new Order({
       orderId,
@@ -169,12 +166,10 @@ const processPayment = async (req, res) => {
 
     await newOrder.save();
 
-    // 🧩 Update stock in Product & Variant collections
     for (const item of embeddedItems) {
       const product = await Product.findById(item.productId);
       if (!product) continue;
 
-      // If variant exists (separate Variant collection)
       if (item.variant?.id) {
         const variant = await Variant.findById(item.variant.id);
         if (variant) {
@@ -182,17 +177,14 @@ const processPayment = async (req, res) => {
           await variant.save();
         }
       } else {
-        // If product has no variant
         product.stock = Math.max(0, (product.stock || 0) - item.quantity);
         await product.save();
       }
     }
 
-    // 🛒 Clear user's cart
     cart.items = [];
     await cart.save();
 
-    // ✅ Success page
     res.render("user/orderSuccess", { order: newOrder });
   } catch (err) {
     console.error("Error during payment process:", err);

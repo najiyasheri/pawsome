@@ -90,7 +90,7 @@ const loadOrderDetail = async (req, res) => {
   try {
     const orderId = req.params.id;
 
-    // Fetch order with embedded items and populated user info
+
     const order = await Order.findById(orderId).populate(
       "userId",
       "name email phone"
@@ -119,8 +119,6 @@ const loadOrderDetail = async (req, res) => {
   }
 };
 
-
-// Cancel a single item in an order
 const cancelSingleItem = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
@@ -132,12 +130,9 @@ const cancelSingleItem = async (req, res) => {
     const item = order.items.find((i) => i._id.toString() === itemId);
     if (!item) return res.status(404).send("Item not found");
 
-    // Skip if already cancelled
     if (item.status === "Cancelled") {
       return res.redirect(`/admin/order/${orderId}`);
     }
-
-    // Restore stock before cancelling
     const product = await Product.findById(item.productId);
     if (product) {
       if (item.variant?._id) {
@@ -151,11 +146,9 @@ const cancelSingleItem = async (req, res) => {
       await product.save();
     }
 
-    // Mark as cancelled
     item.status = "Cancelled";
     item.cancellationReason = reason || "No reason provided";
 
-    // If all items are cancelled, mark order as cancelled too
     const allCancelled = order.items.every(
       (i) => i._id === item._id || i.status === "Cancelled"
     );
@@ -171,8 +164,6 @@ const cancelSingleItem = async (req, res) => {
 };
 
 
-
-// Cancel entire order
 const cancelEntireOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -181,12 +172,10 @@ const cancelEntireOrder = async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
 
-    // Skip if already cancelled
     if (order.status === "Cancelled") {
       return res.redirect(`/admin/order/${orderId}`);
     }
 
-    // Restore stock for all items
     for (const item of order.items) {
       if (item.status !== "Cancelled") {
         const product = await Product.findById(item.productId);
@@ -307,7 +296,6 @@ const loadUserOrderDetail = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.session.user._id;
 
-    // Find order only if it belongs to the logged-in user
     const order = await Order.findOne({ _id: orderId, userId }).populate(
       "userId",
       "name email phone"
@@ -315,7 +303,6 @@ const loadUserOrderDetail = async (req, res) => {
 
     if (!order) return res.status(404).send("Order not found");
 
-    // Map product info and calculate subtotal
     const itemsWithDetails = await Promise.all(
       order.items.map(async (item) => {
         const product = await Product.findById(item.productId).select(
@@ -349,7 +336,6 @@ const loadUserOrderDetail = async (req, res) => {
 
 
 
-// Cancel a single item in user's order
 const userCancelSingleItem = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
@@ -365,7 +351,6 @@ const userCancelSingleItem = async (req, res) => {
     if (item.status === "Cancelled")
       return res.redirect(`/order/${orderId}`);
 
-    // Restore stock
     const product = await Product.findById(item.productId);
     if (product) {
       if (item.variant?._id) {
@@ -379,8 +364,6 @@ const userCancelSingleItem = async (req, res) => {
 
     item.status = "Cancelled";
     item.cancellationReason = reason || "No reason provided";
-
-    // If all items cancelled, mark order as cancelled
     const allCancelled = order.items.every((i) => i.status === "Cancelled");
     if (allCancelled) order.status = "Cancelled";
 
@@ -391,9 +374,6 @@ const userCancelSingleItem = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
-
-
-// Cancel entire order
 const userCancelEntireOrder = async (req, res) => {
   try {
     const { orderId } = req.params;

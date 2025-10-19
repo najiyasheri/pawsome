@@ -1,7 +1,7 @@
 const { default: mongoose } = require("mongoose");
 const Category = require("../models/Category");
 const Product = require("../models/Product");
-const ProductVariant = require("../models/ProductVarient");
+const ProductVariant = require("../models/ProductVariant");
 const fs = require("fs");
 const path = require("path");
 const User = require("../models/User");
@@ -255,15 +255,12 @@ const postEditProduct = async (req, res) => {
     const updatedVariantIds = variantIds.filter((id) =>
       mongoose.Types.ObjectId.isValid(id)
     );
-
-    // Delete variants removed by user
     for (const existingVariant of existingVariants) {
       if (!updatedVariantIds.includes(existingVariant._id.toString())) {
         await ProductVariant.findByIdAndDelete(existingVariant._id);
       }
     }
 
-    // Update or create variants
     for (let i = 0; i < sizes.length; i++) {
       if (stocks[i] < 0) {
         return res
@@ -336,7 +333,6 @@ const userProducts = async (req, res) => {
 
     const userId = req.session?.user?._id;
 
-    // Fetch cart items if user logged in
     let cartItems = [];
     if (userId) {
       const cart = await Cart.findOne({ userId }, "items.variantId").lean();
@@ -369,7 +365,6 @@ const userProducts = async (req, res) => {
           selectedVariant: { $arrayElemAt: ["$variants", 0] },
         },
       },
-      // Calculate oldPrice and finalPrice directly in aggregation
       {
         $addFields: {
           oldPrice: {
@@ -512,7 +507,6 @@ const loadProductDetails = async (req, res) => {
           as: "variants",
         },
       },
-      // ✅ keep only active variants (status true)
       {
         $addFields: {
           variants: {
@@ -524,18 +518,16 @@ const loadProductDetails = async (req, res) => {
           },
         },
       },
-      // ✅ sort variants so that in-stock ones come first
       {
         $addFields: {
           variants: {
             $sortArray: {
               input: "$variants",
-              sortBy: { stock: -1 }, // highest stock first
+              sortBy: { stock: -1 }, 
             },
           },
         },
       },
-      // ✅ pick the first variant (highest stock or next available)
       {
         $addFields: {
           selectedVariant: { $arrayElemAt: ["$variants", 0] },
@@ -692,7 +684,6 @@ const loadProductDetails = async (req, res) => {
       }
     }
 
-    // ✅ mark related products as wishlist or not
 const relatedWithWishlist = updatedRelatedProducts.map((p) => {
   const variantId = p.selectedVariant?._id?.toString();
   const isInCart = variantId && cartItems.includes(variantId);
@@ -706,7 +697,6 @@ const relatedWithWishlist = updatedRelatedProducts.map((p) => {
 });
 
 
-    // ✅ render final
     res.render("user/productDetail", {
       title: "Product Details",
       layout: "layouts/userLayout",

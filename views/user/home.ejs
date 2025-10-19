@@ -176,77 +176,72 @@
       });
     }
   }
+  // Wishlist / Heart button
+  document.querySelectorAll(".favorite-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
 
-   const wishlistButtons = document.querySelectorAll(".favorite-btn");
+      const productId = btn.dataset.productId;
+      const variantId = btn.dataset.variantId;
+      const inWishlist = btn.dataset.inWishlist === "true";
 
-    wishlistButtons.forEach(favBtn => {
-      // Read initial state
-      let inWishlist = favBtn.dataset.inWishlist === 'true';
-
-      const heartIcon = favBtn.querySelector(".heart-icon");
-      // Initialize color based on initial state
-      heartIcon.setAttribute('fill', inWishlist ? 'red' : 'currentColor');
-
-      favBtn.addEventListener("click", async (e) => {
-        e.preventDefault();
-
-        const productId = favBtn.dataset.productId;
-        const variantId = favBtn.dataset.variantId;
-
-        try {
-          const response = await fetch(
-            inWishlist
-              ? `/wishlist/remove/${productId}`
-              : `/wishlist/add/${productId}${variantId ? `/${variantId}` : ''}`,
-            { method: "POST", headers: { "Content-Type": "application/json" } }
-          );
-
-          if (response.status === 401) {
-            Swal.fire({
-              icon: "warning",
-              title: "Login Required",
-              text: "Please login to manage your wishlist.",
-              confirmButtonText: "Go to Login",
-              confirmButtonColor: "#facc15",
-              showCancelButton: true,
-              cancelButtonText: "Cancel",
-            }).then((result) => {
-              if (result.isConfirmed) window.location.href = "/login";
-            });
-            return;
+      try {
+        const response = await fetch(
+          inWishlist
+            ? `/wishlist/remove/${productId}`
+            : `/wishlist/add/${productId}${variantId ? `/${variantId}` : ''}`,
+          {
+            method: "POST",
+            headers: {
+              "Accept": "application/json"
+            }
           }
+        );
 
-          const result = await response.json();
-
-          if (result.success) {
-            // Toggle wishlist state
-            inWishlist = !inWishlist;
-            favBtn.dataset.inWishlist = inWishlist;
-
-            // Update heart color
-            heartIcon.setAttribute('fill', inWishlist ? 'red' : 'currentColor');
-        
-
-
-            Swal.fire({
-              icon: inWishlist ? "success" : "info",
-              title: inWishlist ? "Added to Wishlist!" : "Removed from Wishlist",
-              showConfirmButton: false,
-              timer: 1500,
-            });
-          }
-
-        } catch (error) {
-          console.error("Wishlist error:", error);
+        // If user not logged in
+        if (response.status === 401) {
           Swal.fire({
-            icon: "error",
-            title: "Something went wrong!",
-            text: "Unable to update wishlist. Please try again later.",
-            confirmButtonColor: "#f87171",
+            icon: "warning",
+            title: "Login Required",
+            text: "Please login to manage your wishlist.",
+            confirmButtonText: "Go to Login",
+            confirmButtonColor: "#facc15",
+            showCancelButton: true,
+            cancelButtonText: "Cancel"
+          }).then((res) => {
+            if (res.isConfirmed) window.location.href = "/login";
           });
+          return; // stop here
         }
-      });
+
+        // Toggle wishlist state
+        btn.dataset.inWishlist = (!inWishlist).toString();
+        const heartIcon = btn.querySelector(".heart-icon");
+        heartIcon.style.color = !inWishlist ? "red" : "gray";
+
+        // Show toast message
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 1500
+        });
+
+        Toast.fire({
+          icon: "success",
+          title: !inWishlist ? "Added to wishlist" : "Removed from wishlist"
+        });
+
+      } catch (err) {
+        console.error(err);
+        Swal.fire({
+          icon: "error",
+          title: "Something went wrong!",
+          text: "Please try again later."
+        });
+      }
     });
+  });
 
 
 </script>

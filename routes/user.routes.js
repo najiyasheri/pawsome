@@ -41,7 +41,7 @@ router.get('/products',productController.userProducts)
 router.get('/product/:id',productController.loadProductDetails)
 
 router.get("/cart", isUser,cartController.loadCart);
-router.post("/cart/add",cartController.addToCart);
+router.post("/cart/add", isUser,cartController.addToCart);
 router.post("/cart/update", isUser,cartController.updateCart);
 router.post("/cart/remove", isUser,cartController.removeCart);
 
@@ -67,11 +67,11 @@ router.post("/success", isUser,paymentController.processPayment);
 
 router.get("/orders",isUser, orderController.loadUserOrders);
 
-router.post('/profileOtp',profileOtpController.postProfileOtp)
+router.post("/profileOtp", isUser,profileOtpController.postProfileOtp);
 
-router.post("/profileOtp-verify", profileOtpController.verifyProfileOtp);
+router.post("/profileOtp-verify",isUser, profileOtpController.verifyProfileOtp);
 
-router.post("/profileOtp-resend",profileOtpController.postResendOtp)
+router.post("/profileOtp-resend", isUser,profileOtpController.postResendOtp);
 
 router.get("/myAddress",isUser,addressController.loadMyAddress);
 
@@ -103,4 +103,8 @@ router.post(
   isUser,
   wishlistController.removeFromWishlist
 );
+
+router.post("/wishlist/moveToCart", isUser, wishlistController.moveToCart);
+
+
 module.exports = router;

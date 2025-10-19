@@ -395,7 +395,7 @@
     try {
       const response = await fetch('/cart/add', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',"Accept": "application/json" },
         body: JSON.stringify({ productId, variantId })
       });
 
@@ -414,6 +414,8 @@
             window.location.href = '/login';
           }
         });
+         addToCartBtn.disabled = false;
+        addToCartBtn.textContent = 'Add to Cart';
         return; // stop further execution
       }
 
@@ -521,7 +523,9 @@
               : `/wishlist/add/${productId}${variantId ? `/${variantId}` : ''}`,
             {
               method: "POST",
-              headers: { "Content-Type": "application/json" }
+              headers: { "Content-Type": "application/json",
+                "Accept": "application/json"
+               }
             }
           );
 
@@ -606,9 +610,13 @@
             try {
               const response = await fetch('/cart/add', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json',
+                  "Accept": "application/json"
+                 },
                 body: JSON.stringify({ productId, variantId })
               });
+
+              console.log("response:",response)
 
               if (response.status === 401) {
                 Swal.fire({

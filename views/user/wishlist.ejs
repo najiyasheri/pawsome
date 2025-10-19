@@ -60,15 +60,17 @@
                                             <% } %>
                         </div>
 
+<button class="move-to-cart w-full px-4 py-2 text-white rounded transition
+    <%= product.isOutOfStock 
+          ? 'bg-gray-400 cursor-not-allowed' 
+          : (product.isInCart 
+              ? 'bg-green-500 hover:bg-green-600' 
+              : 'bg-yellow-500 hover:bg-yellow-600') %>" data-product-id="<%= product._id %>"
+    data-variant-id="<%= product.variantId %>" data-is-in-cart="<%= product.isInCart %>" <%=product.isOutOfStock
+    ? 'disabled' : '' %>>
+    <%= product.isOutOfStock ? 'Out of Stock' : (product.isInCart ? 'Go to Cart' : 'Move to Cart' ) %>
+</button>
 
-                            <!-- Move to Cart -->
-                        <form action="/cart/add/<%= product._id %>" method="POST" class="mt-auto">
-                            <button class="w-full px-4 py-2 text-white rounded transition
-                                       <%= product.isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600' %>"
-                                <%=product.isOutOfStock ? 'disabled' : '' %>>
-                                <%= product.isOutOfStock ? 'Out of Stock' : 'Move to Cart' %>
-                            </button>
-                        </form>
                         </div>
                     </div>
                     <% }) %>
@@ -128,4 +130,63 @@
             }
         });
     });
+
+    document.querySelectorAll(".move-to-cart").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                if (btn.innerText === "Go to Cart") {
+                    window.location.href = "/cart"; // redirect
+                    return;
+                }
+                const productId = btn.dataset.productId;
+                const variantId = btn.dataset.variantId;
+
+                try {
+                    const res = await fetch("/wishlist/moveToCart", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ productId, variantId }),
+                    });
+
+                    if (res.status === 401) {
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Login Required",
+                            text: "Please login to move this item to cart.",
+                        }).then(() => (window.location.href = "/login"));
+                        return;
+                    }
+
+                    const data = await res.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Moved to Cart",
+                            text: data.message,
+                            timer: 1500,
+                            showConfirmButton: false,
+                        }).then(() => {
+                            btn.closest(".product-card").remove();
+                            if (document.querySelectorAll(".product-card").length === 0) {
+                                location.reload(); 
+                            }
+                        });
+
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: data.message || "Something went wrong",
+                        });
+                    }
+                } catch (err) {
+                    console.error(err)
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Server error occurred. Try again later.",
+                    });
+                }
+            });
+        });
 </script>

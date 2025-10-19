@@ -1,6 +1,6 @@
 const Cart = require("../models/Cart");
 const Product = require("../models/Product");
-const Variant = require('../models/ProductVarient')
+const Variant = require('../models/ProductVariant')
 
 const loadCart = async (req, res) => {
   try {
@@ -19,17 +19,14 @@ const loadCart = async (req, res) => {
 
     if (!variant) continue;
 
-    // If stock is 0, mark it out-of-stock
     if (variant.stock <= 0) {
       item.quantity = 0;
       continue;
     }
 
-    // If cart quantity > available stock → reduce
     if (item.quantity > variant.stock) {
       item.quantity = variant.stock;
 
-      // Update the DB to reflect new quantity
       await Cart.updateOne(
         {
           userId,
@@ -131,7 +128,6 @@ const addToCart = async (req, res) => {
     const userId = req.session.user._id;
     const quantity = 1;
 
-    // Fetch product and variant from their own collections
     const product = await Product.findById(productId);
     if (!product)
       return res
@@ -149,12 +145,10 @@ const addToCart = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Variant not found" });
 
-    // Check stock availability
     if (variant.stock < quantity) {
       return res.status(400).json({ success: false, message: "Out of stock" });
     }
 
-    // Fetch or create user cart
     let cart = await Cart.findOne({ userId });
     if (!cart) {
       cart = new Cart({ userId, items: [] });
@@ -251,7 +245,7 @@ const removeCart = async (req, res) => {
       return res.redirect("/login");
     }
 
-    const { productId, variantId } = req.body; // include variantId
+    const { productId, variantId } = req.body; 
     const userId = req.session.user._id;
     const cart = await Cart.findOne({ userId });
 
@@ -259,7 +253,6 @@ const removeCart = async (req, res) => {
       return res.redirect("/cart?error=Cart not found");
     }
 
-    // Remove item matching both productId and variantId
     cart.items = cart.items.filter(
       (item) =>
         item.productId.toString() !== productId ||

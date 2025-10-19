@@ -13,7 +13,6 @@ const loadShipping = async (req, res) => {
     ];
     shippingOptions.forEach((opt) => (opt.date = getFutureDate(opt.daysAhead)));
     const address = await Address.findById(req.query.addressId);
-    console.log("addrss", address);
     if (!address) {
       res.render("user/address", { error: "please enter address" });
     }

@@ -70,7 +70,6 @@ const loadOrder = async (req, res) => {
       },
     ]);
 
-    console.log(orders);
    
     res.render("admin/orderManagement", {
       title: "Order-Management",
@@ -278,7 +277,6 @@ const loadUserOrders = async (req, res) => {
      { $sort: { createdAt: -1 } },
    ]);
 
-    console.log(orders)
 
     res.render("user/myOrder", {
       title: "MyOrders",

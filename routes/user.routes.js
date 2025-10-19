@@ -106,5 +106,6 @@ router.post(
 
 router.post("/wishlist/moveToCart", isUser, wishlistController.moveToCart);
 
+router.post("/verify-payment",isUser,paymentController.verifyPayment);
 
 module.exports = router;

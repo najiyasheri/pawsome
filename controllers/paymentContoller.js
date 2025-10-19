@@ -4,6 +4,8 @@ const Address = require("../models/Address");
 const Product = require("../models/Product");
 const Variant = require('../models/ProductVariant');
 const { razorpay } = require("../config/razorpay");
+const crypto = require("crypto");
+
 
 const loadPayment = async (req, res) => {
   try {
@@ -205,8 +207,58 @@ const processPayment = async (req, res) => {
   }
 };
 
+const verifyPayment=async(req,res)=>{
+  try {
+      const {
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        orderId,
+      } = req.body;
+
+      const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
+      hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
+      const generatedSignature = hmac.digest("hex");
+
+      if (generatedSignature === razorpay_signature) {
+        const order = await Order.findById(orderId);
+        order.status = "Confirmed";
+        await order.save();
+
+        // reduce stock & empty cart
+        for (const item of order.items) {
+          const product = await Product.findById(item.productId);
+          if (!product) continue;
+          if (item.variant?.id) {
+            const variant = await Variant.findById(item.variant.id);
+            if (variant) {
+              variant.stock = Math.max(0, (variant.stock || 0) - item.quantity);
+              await variant.save();
+            }
+          } else {
+            product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+            await product.save();
+          }
+        }
+
+        await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
+
+        res.json({ success: true, message: "Payment successful!" });
+      } else {
+        res
+          .status(400)
+          .json({ success: false, message: "Payment verification failed!" });
+      }
+
+  } catch (error) {
+     console.error("Error during payment process:", error);
+     res.status(500).send("Server error");
+  }
+}
+
 
 module.exports = {
   loadPayment,
   processPayment,
+  verifyPayment
 };

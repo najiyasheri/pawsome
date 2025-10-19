@@ -1,12 +1,12 @@
 const { default: mongoose } = require("mongoose");
 const Category = require("../models/Category");
 const Product = require("../models/Product");
-const ProductVariant = require("../models/ProductVarient");
+const ProductVariant = require("../models/ProductVariant");
 const fs = require("fs");
 const path = require("path");
 const User = require("../models/User");
 const Cart = require("../models/Cart");
-const { log } = require("console");
+const Wishlist = require("../models/Wishlist");
 
 const loadProductManagement = async (req, res) => {
   try {
@@ -255,15 +255,12 @@ const postEditProduct = async (req, res) => {
     const updatedVariantIds = variantIds.filter((id) =>
       mongoose.Types.ObjectId.isValid(id)
     );
-
-    // Delete variants removed by user
     for (const existingVariant of existingVariants) {
       if (!updatedVariantIds.includes(existingVariant._id.toString())) {
         await ProductVariant.findByIdAndDelete(existingVariant._id);
       }
     }
 
-    // Update or create variants
     for (let i = 0; i < sizes.length; i++) {
       if (stocks[i] < 0) {
         return res
@@ -336,7 +333,6 @@ const userProducts = async (req, res) => {
 
     const userId = req.session?.user?._id;
 
-    // Fetch cart items if user logged in
     let cartItems = [];
     if (userId) {
       const cart = await Cart.findOne({ userId }, "items.variantId").lean();
@@ -359,12 +355,7 @@ const userProducts = async (req, res) => {
             $filter: {
               input: "$variants",
               as: "variant",
-              cond: {
-                $and: [
-                  { $eq: ["$$variant.status", true] },
-                  { $gt: ["$$variant.stock", 0] },
-                ],
-              },
+              cond: { $eq: ["$$variant.status", true] },
             },
           },
         },
@@ -374,7 +365,6 @@ const userProducts = async (req, res) => {
           selectedVariant: { $arrayElemAt: ["$variants", 0] },
         },
       },
-      // Calculate oldPrice and finalPrice directly in aggregation
       {
         $addFields: {
           oldPrice: {
@@ -428,6 +418,13 @@ const userProducts = async (req, res) => {
       { $limit: limit },
     ]).exec();
 
+    let wishlistItems = [];
+    if (userId) {
+      const wishlist = await Wishlist.findOne({ userId }).lean();
+      wishlistItems =
+        wishlist?.products?.map((item) => item.variantId.toString()) || [];
+    }
+    
     const count = await Product.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
     const categories = await Category.find({ isBlocked: false }).lean();
@@ -438,6 +435,7 @@ const userProducts = async (req, res) => {
       const basePrice = parseFloat(product.basePrice || 0);
       const discountPercentage = parseFloat(product.discountPercentage || 0);
       const oldPrice = basePrice + additionalPrice;
+    
 
       return {
         ...product,
@@ -451,12 +449,12 @@ const userProducts = async (req, res) => {
         isExistingInCart: !!(
           variant && cartItems.includes(variant._id.toString())
         ),
+        isFavourite: !!(variant && wishlistItems.includes(variant._id.toString())),
         variants: undefined,
         category: undefined,
       };
     });
 
-    console.log(updatedProducts);
 
     if (req.xhr || req.headers.accept.includes("application/json")) {
       return res.json({
@@ -509,7 +507,6 @@ const loadProductDetails = async (req, res) => {
           as: "variants",
         },
       },
-      // ✅ keep only active variants (status true)
       {
         $addFields: {
           variants: {
@@ -521,18 +518,16 @@ const loadProductDetails = async (req, res) => {
           },
         },
       },
-      // ✅ sort variants so that in-stock ones come first
       {
         $addFields: {
           variants: {
             $sortArray: {
               input: "$variants",
-              sortBy: { stock: -1 }, // highest stock first
+              sortBy: { stock: -1 }, 
             },
           },
         },
       },
-      // ✅ pick the first variant (highest stock or next available)
       {
         $addFields: {
           selectedVariant: { $arrayElemAt: ["$variants", 0] },
@@ -606,7 +601,7 @@ const loadProductDetails = async (req, res) => {
       })),
       category: undefined,
     };
-
+     
     const relatedProducts = await Product.aggregate([
       {
         $match: {
@@ -651,7 +646,16 @@ const loadProductDetails = async (req, res) => {
       },
       { $limit: 4 },
     ]).exec();
-
+      
+          let cartItems = [];
+          if (userId) {
+            const cart = await Cart.findOne(
+              { userId },
+              "items.variantId"
+            ).lean();
+            cartItems =
+              cart?.items?.map((item) => item.variantId.toString()) || [];
+          }
     const updatedRelatedProducts = relatedProducts.map((p) => {
       const additionalPrice = parseFloat(
         p.selectedVariant?.additionalPrice || 0
@@ -669,13 +673,40 @@ const loadProductDetails = async (req, res) => {
         selectedVariant: p.selectedVariant,
       };
     });
+     let isInWishlist = false;
+    let wishlistProductIds = [];
+
+    if (userId) {
+      const wishlist = await Wishlist.findOne({ userId }).lean();
+      if (wishlist) {
+        wishlistProductIds = wishlist.products.map((product) => product.productId.toString());
+        isInWishlist = wishlistProductIds.includes(product._id.toString());
+      }
+    }
+
+const relatedWithWishlist = updatedRelatedProducts.map((p) => {
+  const variantId = p.selectedVariant?._id?.toString();
+  const isInCart = variantId && cartItems.includes(variantId);
+  const isInWishlist = wishlistProductIds.includes(p._id.toString());
+
+  return {
+    ...p,
+    isInWishlist,
+    isInCart,
+  };
+});
+
 
     res.render("user/productDetail", {
       title: "Product Details",
       layout: "layouts/userLayout",
       user: req.session.user,
       product: productData,
-      relatedProducts: updatedRelatedProducts,
+      relatedProducts: relatedWithWishlist,
+      isInWishlist,
+      isExistingInCart: !!(
+        variant && cartItems.includes(variant._id.toString())
+      ),
     });
   } catch (error) {
     console.error("Error loading product details:", error);

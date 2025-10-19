@@ -9,8 +9,9 @@ const path = require("path");
 const db = require("./config/db");
 const userRouter = require("./routes/user.routes");
 const adminRouter = require("./routes/admin.routes");
-const sessionCheck = require('./middlewares/authMiddleware').sessionCheck
+const sessionCheck = require("./middlewares/authMiddleware").sessionCheck;
 db();
+const errorController = require("./controllers/errorController");
 
 app.use(
   session({
@@ -52,6 +53,9 @@ app.use((req, res, next) => {
 app.use(sessionCheck);
 app.use("/admin", adminRouter);
 app.use("/", userRouter);
+app.use((req, res) => {
+  errorController.pageNotFound(req, res);
+});
 
 app.listen(process.env.PORT, () => {
   console.log("server is running");

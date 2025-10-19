@@ -290,8 +290,6 @@ document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(input
   }
 });
 
-console.log('Final imageCount:', imageCount); 
-
 if (imageCount < 4) {
   document.getElementById('imageError').textContent = 'Please upload at least 4 images';
   isValid = false;
@@ -540,14 +538,47 @@ cropBtn.addEventListener('click', () => {
     const tbody = document.querySelector('#variantsTable');
 
     addVariantBtn.addEventListener('click', function () {
-      const newRow = tbody.querySelector('tr').cloneNode(true);
-      newRow.querySelectorAll('input').forEach(input => {
-        input.value = '';
-        input.classList.remove('border-error');
-      });
-      newRow.querySelectorAll('.error').forEach(error => error.textContent = '');
-      tbody.appendChild(newRow);
-      validateForm(); 
+      // Check if there's an existing row to clone
+      const existingRow = tbody.querySelector('tr');
+
+      if (existingRow) {
+        // Clone the first row if it exists
+        const newRow = existingRow.cloneNode(true);
+        newRow.querySelectorAll('input').forEach(input => {
+          input.value = ''; // Clear input values
+          input.classList.remove('border-error'); // Remove error styling
+        });
+        newRow.querySelectorAll('.error').forEach(error => error.textContent = ''); // Clear error messages
+        tbody.appendChild(newRow);
+      } else {
+        // Create a new row from scratch if no rows exist
+        const newRow = document.createElement('tr');
+        newRow.classList.add('border-b', 'border-gray-100');
+        newRow.innerHTML = `
+        <td class="py-4 px-4">
+          <input name="size[]" placeholder="Nil" type="text" value=""
+            class="w-full px-3 py-2 border rounded-md">
+          <input type="hidden" name="variantId[]" value="">
+          <div class="error"></div>
+        </td>
+        <td class="py-4 px-4">
+          <input name="additionalPrice[]" type="number" value="0"
+            class="w-full px-3 py-2 border rounded-md">
+          <div class="error"></div>
+        </td>
+        <td class="py-4 px-4">
+          <input name="stock[]" type="number" value="0"
+            class="w-full px-3 py-2 border rounded-md">
+          <div class="error"></div>
+        </td>
+        <td class="py-4 px-4">
+          <button type="button" class="remove-variant text-red-500 hover:text-red-700">Remove</button>
+        </td>
+      `;
+        tbody.appendChild(newRow);
+      }
+
+      validateForm(); // Re-validate the form after adding the row
     });
 
     tbody.addEventListener('click', function (e) {

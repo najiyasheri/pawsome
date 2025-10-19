@@ -111,15 +111,17 @@
 
   <template id="product-template">
     <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm relative flex flex-col">
-      <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 heart-icon" viewBox="0 0 24 24">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
-                 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
-                 C13.09 3.81 14.76 3 16.5 3 
-                 19.58 3 22 5.42 22 8.5 
-                 c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-        </svg>
-      </button>
+  <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn" data-product-id=""
+    data-in-wishlist="false" data-variant-id="">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 heart-icon" viewBox="0 0 24 24">
+      
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
+               2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
+               C13.09 3.81 14.76 3 16.5 3 
+               19.58 3 22 5.42 22 8.5 
+               c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
+  </button>
       <a class="product-link">
         <img class="p-6 rounded-t-lg h-48 w-full object-contain product-img" alt="Product Image" />
       </a>
@@ -151,6 +153,7 @@
 </section>
 
 <script>
+  
   function updateStockStatus(element, stock) {
     const stockStatus = element.querySelector(".stock-status");
     stockStatus.className = "stock-status";
@@ -192,7 +195,16 @@
         clone.querySelector(".product-name").textContent = p.name;
         clone.querySelector(".product-price").textContent = `₹${p.price}`;
         clone.querySelector(".old-price").textContent = `₹${p.oldPrice}`;
+        clone.querySelector('.favorite-btn').setAttribute("data-product-id",`${p._id}`)
+        clone.querySelector('.favorite-btn').setAttribute("data-variant-id", p.selectedVariant?._id || (p.variants?.[0]?._id || ""))
 
+        const favBtn = clone.querySelector(".favorite-btn");
+        favBtn.dataset.productId = p._id;
+        favBtn.dataset.variantId = p.selectedVariant?._id;
+        favBtn.dataset.inWishlist = p.isFavourite; 
+
+        const heartIcon = favBtn.querySelector(".heart-icon");
+        heartIcon.style.color = p.isFavourite ? "red" : "gray";
         const addCartBtn = clone.querySelector(".add-cart");
         addCartBtn.dataset.productId = p._id;
         addCartBtn.dataset.variantId = p?.selectedVariant?._id;
@@ -301,6 +313,74 @@
         }
       });
     });
+
+
+
+    // Wishlist / Heart button
+      document.querySelectorAll(".favorite-btn").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          e.preventDefault();
+
+          const productId = btn.dataset.productId;
+          const variantId = btn.dataset.variantId
+          const inWishlist = btn.dataset.inWishlist === "true";
+          try {
+            const response = await fetch(
+              inWishlist
+                ? `/wishlist/remove/${productId}`
+                : `/wishlist/add/${productId}${variantId ? `/${variantId}` : ''}`,
+              {
+                method: "POST",
+                headers: {
+                  "Accept": "application/json"
+                }
+              }
+            );
+
+            if (response.status === 401) {
+              Swal.fire({
+                icon: "warning",
+                title: "Login Required",
+                text: "Please login to manage your wishlist.",
+                confirmButtonText: "Go to Login",
+                confirmButtonColor: "#facc15",
+                showCancelButton: true,
+                cancelButtonText: "Cancel"
+              }).then((res) => {
+                if (res.isConfirmed) window.location.href = "/login";
+              });
+              return;
+            }
+
+            // Toggle wishlist state
+            btn.dataset.inWishlist = (!inWishlist).toString();
+            const heartIcon = btn.querySelector(".heart-icon");
+            heartIcon.style.color = !inWishlist ? "red" : "gray";
+
+            // Show toast message
+            const Toast = Swal.mixin({
+              toast: true,
+              position: "top-end",
+              showConfirmButton: false,
+              timer: 1500
+            });
+
+            Toast.fire({
+              icon: "success",
+              title: !inWishlist ? "Added to wishlist" : "Removed from wishlist"
+            });
+
+          } catch (err) {
+            console.error(err);
+            Swal.fire({
+              icon: "error",
+              title: "Something went wrong!",
+              text: "Please try again later."
+            });
+          }
+        });
+      });
+
 
 
     const paginationList = document.querySelector(".pagination ul");

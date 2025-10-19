@@ -65,11 +65,26 @@ const adminAuth = async (req, res, next) => {
 
 const isUser = (req, res, next) => {
   if (!req.session.user) {
+
+    
+    if (req.xhr || req.headers.accept?.includes("application/json")) {
+      console.log('reaching here')
+      return res
+        .status(401)
+        .json({ success: false, message: "Please login to continue" });
+    }
     return res.redirect("/login");
   }
+
   if (req.session.user.isAdmin) {
+    if (req.xhr || req.headers.accept?.includes("application/json")) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Admins cannot access this route" });
+    }
     return res.redirect("/admin/dashboard");
   }
+
   next();
 };
 

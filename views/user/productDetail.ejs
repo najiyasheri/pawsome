@@ -52,6 +52,17 @@
     <!-- Left: Product Images -->
     <div>
       <div class="relative border border-gray-100 rounded-lg overflow-visible group cursor-zoom-in">
+        <button class="absolute top-3 right-3 text-gray-400 favorite-btn"  data-in-wishlist="<%= isInWishlist %>">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+            class="w-6 h-6 heart-icon <%= isInWishlist ? 'text-red-500' : 'text-gray-400 hover:text-red-500' %>"
+            viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
+             2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
+             C13.09 3.81 14.76 3 16.5 3 
+             19.58 3 22 5.42 22 8.5 
+             c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+          </svg>
+        </button>
         <img id="mainImage" src="/Uploads/<%= product.images[0] %>" data-zoom="/Uploads/<%= product.images[0] %>"
           alt="<%= product.name %>" class="w-full h-[400px] object-contain" />
       </div>
@@ -106,8 +117,9 @@
                   <% } else { %>
                     border-gray-300 hover:border-yellow-400
                   <% } %>" data-id="<%= variant._id %>" data-additional-price="<%= variant.additionalPrice %>"
-                 data-is-in-cart="<%= product.variantsInCart.includes(variant._id.toString()) %>" data-final-price="<%= variant.finalPrice %>" data-stock="<%= variant.stock %>" <%=variant.stock
-                <=0 ? 'disabled' : '' %>>
+                data-is-in-cart="<%= product.variantsInCart.includes(variant._id.toString()) %>"
+                data-final-price="<%= variant.finalPrice %>" data-stock="<%= variant.stock %>" <%=variant.stock <=0
+                ? 'disabled' : '' %>>
                 <span class="block font-medium">
                   <%= variant.size %>
                 </span>
@@ -121,104 +133,110 @@
         </div>
 
         <% }else{ %>
-          <button  type="button"  class="variant-box hidden" 
-           <% let variant=product.variants[0]%>
+          <button type="button" class="variant-box hidden" <% let variant=product.variants[0]%>
             data-id="<%= variant._id %>" data-additional-price="<%= variant.additionalPrice %>"
-            data-is-in-cart="<%= product.variantsInCart.includes(variant._id.toString()) %>"
-            data-final-price="<%= variant.finalPrice %>" data-stock="<%= variant.stock %>" <%=variant.stock <=0 ? 'disabled' : ''
-            %>>
+                data-is-in-cart="<%= product.variantsInCart.includes(variant._id.toString()) %>"
+                  data-final-price="<%= variant.finalPrice %>" data-stock="<%= variant.stock %>" <%=variant.stock <=0
+                        ? 'disabled' : '' %>>
           </button>
           <% } %>
 
-          <!-- Product Actions -->
-          <div class="flex gap-4 mb-6">
-           
-                <!-- ✅ Add to cart (dynamic) -->
-                <div id="cartContainer">
-                  <input type="hidden" id="productId" value="<%= product._id %>">
-                  <input type="hidden" id="variantId" value="<%= product.variants[0]?._id %>">
+            <!-- Product Actions -->
+            <div class="flex gap-4 mb-6">
 
-                  <button type="button" id="addToCartBtn" class="px-6 py-3 rounded-xl w-40 transition-all
+              <!-- ✅ Add to cart (dynamic) -->
+              <div id="cartContainer">
+                <input type="hidden" id="productId" value="<%= product._id %>">
+                <input type="hidden" id="variantId" value="<%= product.variants[0]?._id %>">
+
+                <button type="button" id="addToCartBtn" class="px-6 py-3 rounded-xl w-40 transition-all
                   <%= product.variants[0]?.stock <= 0
                     ? 'bg-red-200 text-red-500 cursor-not-allowed'
                     : 'bg-yellow-500 hover:bg-yellow-600 shadow-md' %>" data-stock="<%= product.variants[0]?.stock %>"
-                    <%=product.variants[0]?.stock <=0 ? 'disabled' : '' %>>
-                    <%= product.variants[0]?.stock <=0 ? 'Out of Stock' : 'Add to Cart' %>
-                  </button>
-                </div>
-              
-          </div>
+                  <%=product.variants[0]?.stock <=0 ? 'disabled' : '' %>>
+                  <%= product.variants[0]?.stock <=0 ? 'Out of Stock' : 'Add to Cart' %>
+                </button>
+              </div>
+
+
+            </div>
 
 
 
-          <!-- Description -->
-          <div class="prose max-w-none text-gray">
-            <h2 class="font-bold text-lg mb-2">About this item</h2>
-            <p>
-              <%= product.description %>
-            </p>
-          </div>
+            <!-- Description -->
+            <div class="prose max-w-none text-gray">
+              <h2 class="font-bold text-lg mb-2">About this item</h2>
+              <p>
+                <%= product.description %>
+              </p>
+            </div>
     </div>
   </div>
 
   <!-- Related Products -->
-  <div class="mt-12">
-    <% if (relatedProducts.length> 0) { %>
-      <h2 class="text-xl font-bold mb-4">Related Products</h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <% relatedProducts.forEach(rp=> { %>
-          <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm relative flex flex-col">
-            <!-- Favorite Button -->
-            <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 heart-icon"
-                viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
-                       2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
-                       C13.09 3.81 14.76 3 16.5 3 
-                       19.58 3 22 5.42 22 8.5 
-                       c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-              </svg>
-            </button>
-            <!-- Product Image -->
+<!-- Related Products -->
+<div class="mt-12">
+  <% if (relatedProducts.length> 0) { %>
+    <h2 class="text-xl font-bold mb-4">Related Products</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <% relatedProducts.forEach(rp=> { %>
+        <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm relative flex flex-col">
+          <!-- Favorite Button -->
+          <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn"
+            data-in-wishlist="<%= rp.isInWishlist %>" data-product-id="<%= rp._id %>"
+            data-variant-id="<%= rp.selectedVariant._id %>">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+              class="w-6 h-6 heart-icon <%= rp.isInWishlist ? 'text-red-500' : 'text-gray-400 hover:text-red-500' %>"
+              viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
+                     2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
+                     C13.09 3.81 14.76 3 16.5 3 
+                     19.58 3 22 5.42 22 8.5 
+                     c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
+          </button>
+          <!-- Product Image -->
+          <a href="/product/<%= rp._id %>">
+            <img class="p-6 rounded-t-lg h-40 w-full object-contain"
+              src="/Uploads/<%= (rp.images && rp.images.length > 0) ? rp.images[0] : '/default.jpg' %>"
+              alt="<%= rp.name %>" />
+          </a>
+          <!-- Content -->
+          <div class="px-5 pb-5 flex flex-col flex-1">
+            <!-- Product Name -->
             <a href="/product/<%= rp._id %>">
-              <img class="p-6 rounded-t-lg h-40 w-full object-contain"
-                src="/Uploads/<%= (rp.images && rp.images.length > 0) ? rp.images[0] : '/default.jpg' %>"
-                alt="<%= rp.name %>" />
+              <h5 class="text-sm font-semibold tracking-tight text-gray-900 line-clamp-2 h-12 leading-relaxed">
+                <%= rp.name %>
+              </h5>
             </a>
-            <!-- Content -->
-            <div class="px-5 pb-5 flex flex-col flex-1">
-              <!-- Product Name -->
-              <a href="/product/<%= rp._id %>">
-                <h5 class="text-sm font-semibold tracking-tight text-gray-900 line-clamp-2 h-12 leading-relaxed">
-                  <%= rp.name %>
-                </h5>
-              </a>
-              <!-- Rating -->
-              <div class="flex items-center mt-2 mb-2">
-                <span class="text-yellow-400 text-sm">★</span>
-                <span class="text-gray-800 text-xs font-semibold px-2 py-0.5 rounded-sm">5.0</span>
+            <!-- Rating -->
+            <div class="flex items-center mt-2 mb-2">
+              <span class="text-yellow-400 text-sm">★</span>
+              <span class="text-gray-800 text-xs font-semibold px-2 py-0.5 rounded-sm">5.0</span>
+            </div>
+            <!-- Price & Add to Cart / Go to Cart -->
+            <div class="mt-auto flex items-center justify-between">
+              <div>
+                <span class="text-xl font-bold text-black-600">₹<%= rp.price %></span>
+                <span class="line-through text-gray-400">₹<%= rp.oldPrice %></span>
               </div>
-              <!-- Price & Add to Cart -->
-              <div class="mt-auto flex items-center justify-between">
-                <div>
-                  <span class="text-xl font-bold text-black-600">₹<%= rp.price %></span>
-                  <span class="line-through text-gray-400">₹<%= rp.oldPrice %></span>
-                </div>
-                <form action="/cart/add" method="POST">
-                  <input type="hidden" name="productId" value="<%= rp._id %>">
-                  <input type="hidden" name="quantity" value="1">
-                  <button type="submit"
-                    class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-xs px-3 py-1.5 text-center">
-                    Add to cart
-                  </button>
-                </form>
+              <div class="cart-container">
+                <input type="hidden" name="productId" value="<%= rp._id %>">
+                <input type="hidden" name="variantId" value="<%= rp.selectedVariant._id %>">
+                <button type="button"
+                  class="cart-btn text-gray-900 font-medium rounded-lg text-xs px-3 py-1.5 text-center <%= rp.isInCart ? 'bg-green-500 text-white hover:bg-green-600' : rp.stock <= 0 ? 'bg-red-200 text-red-500 cursor-not-allowed' : 'bg-yellow-400 hover:bg-yellow-500' %> focus:ring-4 focus:outline-none focus:ring-yellow-300"
+                  data-product-id="<%= rp._id %>" data-variant-id="<%= rp.selectedVariant._id %>"
+                  data-in-cart="<%= rp.isInCart %>" data-stock="<%= rp.stock %>" <%=rp.stock <=0 ? 'disabled' : '' %>>
+                  <%= rp.isInCart ? 'Go to Cart' : rp.stock <=0 ? 'Out of Stock' : 'Add to Cart' %>
+                </button>
               </div>
             </div>
           </div>
-          <% }) %>
-      </div>
-      <% } %>
-  </div>
+        </div>
+        <% }) %>
+    </div>
+    <% } %>
+</div>
 
   <!-- Reviews -->
   <section class="bg-gray-50 max-w-[90%] mx-auto rounded-lg">
@@ -278,171 +296,173 @@
 </div>
 
 <script>
- 
-  
-    const variantButtons = document.querySelectorAll('.variant-box');
-    const productPrice = document.getElementById('productPrice');
-    const productOldPrice = document.getElementById('productOldPrice');
-    const productDiscount = document.getElementById('productDiscount');
-    const stockStatus = document.getElementById('stockStatus');
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    const variantIdInput = document.getElementById('variantId');
-    const productIdInput = document.getElementById('productId');
 
-    const basePrice = parseFloat('<%= product.basePrice %>');
-    const discount = parseFloat('<%= product.discount %>');
 
-    function setAddToCartState(isInCart, stock) {
-        isCartMode = isInCart;
+  const variantButtons = document.querySelectorAll('.variant-box');
+  const productPrice = document.getElementById('productPrice');
+  const productOldPrice = document.getElementById('productOldPrice');
+  const productDiscount = document.getElementById('productDiscount');
+  const stockStatus = document.getElementById('stockStatus');
+  const addToCartBtn = document.getElementById('addToCartBtn');
+  const variantIdInput = document.getElementById('variantId');
+  const productIdInput = document.getElementById('productId');
 
-        if (isInCart) {
-          addToCartBtn.textContent = 'Go to Cart';
-          addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-green-500 text-white hover:bg-green-600 cursor-pointer';
-          addToCartBtn.disabled = false;
-        } else {
-          updateAddToCartButton(stock);
-        }
-      }
+  const basePrice = parseFloat('<%= product.basePrice %>');
+  const discount = parseFloat('<%= product.discount %>');
 
-      const firstVariant = variantButtons[0];
-      setAddToCartState(firstVariant?.dataset?.isInCart === 'true', parseInt(firstVariant?.dataset?.stock));
+  function setAddToCartState(isInCart, stock) {
+    isCartMode = isInCart;
 
-      variantButtons?.forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (btn.disabled) return;
+    if (isInCart) {
+      addToCartBtn.textContent = 'Go to Cart';
+      addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-green-500 text-white hover:bg-green-600 cursor-pointer';
+      addToCartBtn.disabled = false;
+    } else {
+      updateAddToCartButton(stock);
+    }
+  }
 
-          variantButtons?.forEach(v => v.classList.remove('selected'));
-          btn.classList.add('selected');
+  const firstVariant = variantButtons[0];
+  setAddToCartState(firstVariant?.dataset?.isInCart === 'true', parseInt(firstVariant?.dataset?.stock));
 
-          const stock = parseInt(btn.dataset.stock);
-          const price = parseFloat(btn.dataset.finalPrice);
-          const variantId = btn?.dataset?.id;
-          const isInCart = btn.dataset.isInCart === 'true';
+  variantButtons?.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
 
-          variantIdInput.value = variantId;
-          productPrice.textContent = `₹${price.toFixed(0)}`;
+      variantButtons?.forEach(v => v.classList.remove('selected'));
+      btn.classList.add('selected');
 
-          updateStockStatus(stock);
-          setAddToCartState(isInCart, stock);
+      const stock = parseInt(btn.dataset.stock);
+      const price = parseFloat(btn.dataset.finalPrice);
+      const variantId = btn?.dataset?.id;
+      const isInCart = btn.dataset.isInCart === 'true';
+
+      variantIdInput.value = variantId;
+      productPrice.textContent = `₹${price.toFixed(0)}`;
+
+      updateStockStatus(stock);
+      setAddToCartState(isInCart, stock);
+    });
+  });
+
+  // Update stock message
+  function updateStockStatus(stock) {
+    stockStatus.className = 'mt-1 block text-sm';
+    if (stock === 0) {
+      stockStatus.textContent = 'Out of Stock';
+      stockStatus.classList.add('text-red-500');
+    } else if (stock <= 5) {
+      stockStatus.textContent = `Only ${stock} left!`;
+      stockStatus.classList.add('text-yellow-500');
+    } else {
+      stockStatus.textContent = '';
+    }
+  }
+
+  // Update Add to Cart button state
+  function updateAddToCartButton(stock) {
+    if (stock <= 0) {
+      addToCartBtn.disabled = true;
+      addToCartBtn.textContent = 'Out of Stock';
+      addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-red-200 text-red-500 cursor-not-allowed';
+    } else {
+      addToCartBtn.disabled = false;
+      addToCartBtn.textContent = 'Add to Cart';
+      addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-yellow-500 hover:bg-yellow-600 shadow-md text-black';
+    }
+  }
+
+
+  // Single event listener that handles both modes
+  addToCartBtn?.addEventListener('click', async () => {
+    if (isCartMode) {
+      window.location.href = '/cart';
+      return;
+    }
+
+    // Otherwise, add to cart
+    const productId = productIdInput.value;
+    const variantId = variantIdInput.value;
+
+    if (!variantId) {
+      alert('Please select a variant!');
+      return;
+    }
+
+    addToCartBtn.disabled = true;
+    addToCartBtn.textContent = 'Adding...';
+
+    try {
+      const response = await fetch('/cart/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json',"Accept": "application/json" },
+        body: JSON.stringify({ productId, variantId })
+      });
+
+      // Handle 401 Unauthorized before reading JSON
+      if (response.status === 401) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Login Required',
+          text: 'Please login to add items to your cart.',
+          confirmButtonText: 'Go to Login',
+          confirmButtonColor: '#facc15', // yellow
+          showCancelButton: true,
+          cancelButtonText: 'Cancel',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = '/login';
+          }
         });
-      });
-
-      // Update stock message
-      function updateStockStatus(stock) {
-        stockStatus.className = 'mt-1 block text-sm';
-        if (stock === 0) {
-          stockStatus.textContent = 'Out of Stock';
-          stockStatus.classList.add('text-red-500');
-        } else if (stock <= 5) {
-          stockStatus.textContent = `Only ${stock} left!`;
-          stockStatus.classList.add('text-yellow-500');
-        } else {
-          stockStatus.textContent = '';
-        }
+         addToCartBtn.disabled = false;
+        addToCartBtn.textContent = 'Add to Cart';
+        return; // stop further execution
       }
 
-      // Update Add to Cart button state
-      function updateAddToCartButton(stock) {
-        if (stock <= 0) {
-          addToCartBtn.disabled = true;
-          addToCartBtn.textContent = 'Out of Stock';
-          addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-red-200 text-red-500 cursor-not-allowed';
-        } else {
-          addToCartBtn.disabled = false;
-          addToCartBtn.textContent = 'Add to Cart';
-          addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-yellow-500 hover:bg-yellow-600 shadow-md text-black';
+      const result = await response.json();
+
+      if (result.success) {
+        setAddToCartState(true, result.stock);
+
+        const currentVariant = document.querySelector(`.variant-box[data-id="${variantId}"]`);
+        if (currentVariant) {
+          currentVariant.dataset.isInCart = 'true';
         }
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Added to Cart!',
+          text: 'The product has been successfully added to your cart.',
+          showConfirmButton: false,
+          timer: 1500
+        });
+      } else {
+        addToCartBtn.disabled = false;
+        addToCartBtn.textContent = 'Add to Cart';
+
+        Swal.fire({
+          icon: 'warning',
+          title: 'Oops!',
+          text: result.message || 'Failed to add to cart.',
+          confirmButtonColor: '#facc15',
+        });
       }
+    } catch (error) {
+      console.error('Add to cart error:', error);
+      addToCartBtn.disabled = false;
+      addToCartBtn.textContent = 'Add to Cart';
 
-
-    // Single event listener that handles both modes
-      addToCartBtn?.addEventListener('click', async () => {
-        if (isCartMode) {
-          window.location.href = '/cart';
-          return;
-        }
-
-        // Otherwise, add to cart
-        const productId = productIdInput.value;
-        const variantId = variantIdInput.value;
-
-        if (!variantId) {
-          alert('Please select a variant!');
-          return;
-        }
-
-        addToCartBtn.disabled = true;
-        addToCartBtn.textContent = 'Adding...';
-
-       try {
-          const response = await fetch('/cart/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId, variantId })
-          });
-
-          // Handle 401 Unauthorized before reading JSON
-          if (response.status === 401) {
-            Swal.fire({
-              icon: 'warning',
-              title: 'Login Required',
-              text: 'Please login to add items to your cart.',
-              confirmButtonText: 'Go to Login',
-              confirmButtonColor: '#facc15', // yellow
-              showCancelButton: true,
-              cancelButtonText: 'Cancel',
-            }).then((result) => {
-              if (result.isConfirmed) {
-                window.location.href = '/login';
-              }
-            });
-            return; // stop further execution
-          }
-
-          const result = await response.json();
-
-          if (result.success) {
-            setAddToCartState(true, result.stock);
-
-            const currentVariant = document.querySelector(`.variant-box[data-id="${variantId}"]`);
-            if (currentVariant) {
-              currentVariant.dataset.isInCart = 'true';
-            }
-
-            Swal.fire({
-              icon: 'success',
-              title: 'Added to Cart!',
-              text: 'The product has been successfully added to your cart.',
-              showConfirmButton: false,
-              timer: 1500
-            });
-          } else {
-            addToCartBtn.disabled = false;
-            addToCartBtn.textContent = 'Add to Cart';
-
-            Swal.fire({
-              icon: 'warning',
-              title: 'Oops!',
-              text: result.message || 'Failed to add to cart.',
-              confirmButtonColor: '#facc15', 
-            });
-          }
-        } catch (error) {
-          console.error('Add to cart error:', error);
-          addToCartBtn.disabled = false;
-          addToCartBtn.textContent = 'Add to Cart';
-
-          Swal.fire({
-            icon: 'error',
-            title: 'Something went wrong!',
-            text: 'Please try again later.',
-            confirmButtonColor: '#f87171', 
-          });
-        }finally{
-           addToCartBtn.disabled = false;
-        }
-
+      Swal.fire({
+        icon: 'error',
+        title: 'Something went wrong!',
+        text: 'Please try again later.',
+        confirmButtonColor: '#f87171',
       });
+    } finally {
+      addToCartBtn.disabled = false;
+    }
+
+  });
 
 
   function updateMainImage(src) {
@@ -480,5 +500,183 @@
   } else {
     mainImg.addEventListener('load', initDrift, { once: true });
   }
+  // WISHLIST BUTTON HANDLER
+  const wishlistButtons = document.querySelectorAll(".favorite-btn");
+
+    wishlistButtons.forEach(favBtn => {
+      // Read initial state
+      let inWishlist = favBtn.dataset.inWishlist === 'true';
+
+      favBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        // Get product and variant IDs dynamically
+        const productId = favBtn.closest('[data-product-id]')?.dataset.productId ||
+          document.getElementById("productId")?.value;
+        const variantId = favBtn.closest('[data-variant-id]')?.dataset.variantId ||
+          document.getElementById("variantId")?.value;
+
+        try {
+          const response = await fetch(
+            inWishlist
+              ? `/wishlist/remove/${productId}`
+              : `/wishlist/add/${productId}${variantId ? `/${variantId}` : ''}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json",
+                "Accept": "application/json"
+               }
+            }
+          );
+
+          if (response.status === 401) {
+            Swal.fire({
+              icon: "warning",
+              title: "Login Required",
+              text: "Please login to manage your wishlist.",
+              confirmButtonText: "Go to Login",
+              confirmButtonColor: "#facc15",
+              showCancelButton: true,
+              cancelButtonText: "Cancel",
+            }).then((result) => {
+              if (result.isConfirmed) window.location.href = "/login";
+            });
+            return;
+          }
+
+          const result = await response.json();
+
+          if (result.success) {
+            inWishlist = !inWishlist;
+            favBtn.dataset.inWishlist = inWishlist;
+
+            const heartIcon = favBtn.querySelector(".heart-icon");
+            if (inWishlist) heartIcon.classList.add("text-red-500");
+            else heartIcon.classList.remove("text-red-500");
+
+            Swal.fire({
+              icon: inWishlist ? "success" : "info",
+              title: inWishlist ? "Added to Wishlist!" : "Removed from Wishlist",
+              showConfirmButton: false,
+              timer: 1500,
+            });
+          }
+
+        } catch (error) {
+          console.error("Wishlist error:", error);
+          Swal.fire({
+            icon: "error",
+            title: "Something went wrong!",
+            text: "Unable to update wishlist. Please try again later.",
+            confirmButtonColor: "#f87171",
+          });
+        }
+      });
+    });
+
+
+  // ... (Existing JavaScript for variant selection, image zoom, wishlist, etc.)
+
+        // Handle Related Products Add to Cart
+        const cartButtons = document.querySelectorAll('.cart-btn');
+
+  cartButtons.forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (btn.disabled) return;
+
+            const productId = btn.getAttribute('data-product-id');
+            const variantId = btn.getAttribute('data-variant-id');
+            const isInCart = btn.getAttribute('data-in-cart') === 'true';
+            const stock = parseInt(btn.getAttribute('data-stock'));
+
+            if (isInCart) {
+              window.location.href = '/cart';
+              return;
+            }
+
+            if (stock <= 0) {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Out of Stock',
+                text: 'This product is currently out of stock.',
+                confirmButtonColor: '#f87171',
+              });
+              return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+
+            try {
+              const response = await fetch('/cart/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json',
+                  "Accept": "application/json"
+                 },
+                body: JSON.stringify({ productId, variantId })
+              });
+
+              console.log("response:",response)
+
+              if (response.status === 401) {
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Login Required',
+                  text: 'Please login to add items to your cart.',
+                  confirmButtonText: 'Go to Login',
+                  confirmButtonColor: '#facc15',
+                  showCancelButton: true,
+                  cancelButtonText: 'Cancel',
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    window.location.href = '/login';
+                  }
+                });
+                btn.disabled = false;
+                btn.textContent = 'Add to Cart';
+                return;
+              }
+
+              const result = await response.json();
+
+              if (result.success) {
+                btn.textContent = 'Go to Cart';
+                btn.classList.remove('bg-yellow-400', 'hover:bg-yellow-500');
+                btn.classList.add('bg-green-500', 'hover:bg-green-600', 'text-white');
+                btn.setAttribute('data-in-cart', 'true');
+                btn.disabled = false;
+
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Added to Cart!',
+                  text: 'The product has been successfully added to your cart.',
+                  showConfirmButton: false,
+                  timer: 1500
+                });
+              } else {
+                btn.disabled = false;
+                btn.textContent = 'Add to Cart';
+                Swal.fire({
+                  icon: 'warning',
+                  title: 'Oops!',
+                  text: result.message || 'Failed to add to cart.',
+                  confirmButtonColor: '#facc15',
+                });
+              }
+            } catch (error) {
+              console.error('Add to cart error:', error);
+              btn.disabled = false;
+              btn.textContent = 'Add to Cart';
+              Swal.fire({
+                icon: 'error',
+                title: 'Something went wrong!',
+                text: 'Please try again later.',
+                confirmButtonColor: '#f87171',
+              });
+            }
+          });
+  });
+
+
 
 </script>

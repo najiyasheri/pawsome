@@ -6,6 +6,8 @@ const Variant = require('../models/ProductVariant');
 const { razorpay } = require("../config/razorpay");
 const crypto = require("crypto");
 const Wallet = require("../models/Wallet");
+const Transaction = require("../models/Transaction");
+
 
 
 
@@ -191,22 +193,37 @@ const processPayment = async (req, res) => {
      }
 
        if (method === "wallet") {
-         const wallet = await Wallet.findOne({ userId });
-         if (!wallet || wallet.balance < total) {
-           return res.json({
-             success: false,
-             message: "Insufficient wallet balance",
-           });
-         }
+         let wallet = await Wallet.findOne({ userId });
+        if (!wallet) {
+          wallet = await Wallet.create({
+            userId,
+            balance: 0,
+            transactions: [],
+          });
+        }
+
+        if (wallet.balance < total) {
+          return res.json({
+            success: false,
+            message: "Insufficient wallet balance",
+          });
+        }
 
          // Deduct amount
          wallet.balance -= total;
-         wallet.transactions.push({
-           type: "DEBIT",
-           amount: total,
-           description: `Payment for order ${orderId}`,
-         });
          await wallet.save();
+
+   await Transaction.create({
+     userId: userId,
+     walletId: wallet._id,
+     type: "order_payment",
+     transactionType: "debit",
+     amount: total,
+     orderId: orderId,
+     description: `Payment for order ${orderId}`,
+     balanceAfter: wallet.balance,
+     status: "completed",
+   });
 
          // Save order as confirmed
          newOrder.status = "Confirmed";

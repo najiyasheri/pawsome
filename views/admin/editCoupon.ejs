@@ -1,0 +1,48 @@
+<main class="max-w-md mx-auto mt-10 bg-white p-8 rounded-2xl shadow">
+    <h2 class="text-2xl font-semibold mb-6 text-center">Edit Coupon</h2>
+
+    <form action="/admin/coupons/update/<%= coupon._id %>" method="POST" class="space-y-4">
+        <!-- Coupon Code -->
+        <input type="text" name="code" placeholder="Coupon Code" value="<%= coupon.code %>" required
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+
+        <!-- Discount Value -->
+        <input type="number" name="discountValue" placeholder="Discount Value (e.g., 10)"
+            value="<%= coupon.discountValue %>" step="0.01" min="0" required
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+
+        <!-- Dates -->
+        <div class="flex gap-3">
+            <input type="date" name="validFrom" value="<%= coupon.validFrom.toISOString().split('T')[0] %>" required
+                class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+            <input type="date" name="validUntil" value="<%= coupon.validUntil.toISOString().split('T')[0] %>" required
+                class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+        </div>
+
+        <!-- Usage Limit -->
+        <input type="number" name="usageLimit" placeholder="Usage Limit" min="1" value="<%= coupon.usageLimit %>"
+            required
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+
+        <!-- Min Purchase -->
+        <input type="number" name="minPurchase" placeholder="Min Purchase Amount" min="0"
+            value="<%= coupon.minPurchase %>"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+
+        <!-- Max Discount -->
+        <input type="number" name="maxDiscount" placeholder="Max Discount Amount" min="0"
+            value="<%= coupon.maxDiscount %>"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+
+        <!-- Submit -->
+        <button type="submit"
+            class="bg-yellow-400 w-full text-white py-2 rounded-lg font-medium hover:bg-yellow-500 transition">
+            Update Coupon
+        </button>
+
+        <!-- Back -->
+        <a href="/admin/coupon" class="block text-center text-gray-500 mt-3 hover:text-yellow-500 transition">
+            Cancel
+        </a>
+    </form>
+</main>

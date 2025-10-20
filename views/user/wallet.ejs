@@ -1,0 +1,106 @@
+<body class="bg-gray-50 min-h-screen">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <div class="w-64">
+            <%- include('../partials/user/profileSidebar') %>
+        </div>
+
+        <!-- Main Content: Wallet Card slightly up -->
+        <div class="flex-1 flex items-start justify-center pt-10">
+            <div class="w-full max-w-xl bg-white border border-gray-200 rounded-xl shadow-md p-6">
+                <h1 class="text-2xl font-semibold mb-6 text-center">Wallet</h1>
+
+                <!-- Wallet Balance Card -->
+                <div class="bg-yellow-400 rounded-xl p-5 text-gray-900 mb-5">
+                    <div class="flex justify-between items-center">
+                        <h2 class="font-semibold text-lg">Wallet Balance</h2>
+                        <span class="text-sm">Validity: 12/25</span>
+                    </div>
+                    <p class="text-4xl font-bold mt-3 text-center">₹<%= walletBalance.toFixed(2) %>
+                    </p>
+                </div>
+
+                <!-- Wallet Limit Info -->
+                <div class="flex items-center justify-center text-gray-500 text-sm mb-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="w-4 h-4 mr-1">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                    </svg>
+                    <span>you can add up to ₹50,000</span>
+                </div>
+
+                <!-- Add Amount Form -->
+                <form id="addMoneyForm" class="flex flex-col space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-gray-700">Add Amount</label>
+                        <input type="number" id="amount" name="amount" placeholder="Enter amount"
+                            class="w-full mt-2 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-400 focus:outline-none"
+                            required />
+                    </div>
+
+                    <div class="flex justify-between gap-3">
+                        <button type="submit"
+                            class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 rounded-md transition">
+                            ADD MONEY
+                        </button>
+                    
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+
+
+  <!-- Razorpay Script -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    document.getElementById("addMoneyForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const amount = document.getElementById("amount").value;
+      try {
+        const res = await fetch("/wallet/add-money", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount }),
+        });
+        const data = await res.json();
+        if (data.success && data.order) {
+          const options = {
+            key: "<%= RAZORPAY_KEY_ID %>",
+            amount: data.order.amount,
+            currency: "INR",
+            name: "Pawsome",
+            description: "Add money to wallet",
+            order_id: data.order.id,
+            handler: async function (response) {
+              const verifyRes = await fetch("/wallet/verify-payment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({...response , amount:data.order.amount}),
+              });
+              const verifyData = await verifyRes.json();
+              if (verifyData.success) {
+                alert("Wallet credited successfully!");
+                location.reload();
+              } else {
+                alert("Payment verification failed!");
+              }
+            },
+            theme: { color: "#facc15" },
+          };
+          const rzp = new Razorpay(options);
+          rzp.open();
+        } else {
+          alert("Error creating order.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong."); 
+      }
+    });
+
+    
+  </script>

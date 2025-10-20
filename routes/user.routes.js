@@ -15,6 +15,7 @@ const orderController=require('../controllers/orderController')
 const profileOtpController=require('../controllers/profileOtpController')
 const { requireCartNotEmpty } = require("../middlewares/checkoutMiddleware");
 const wishlistController=require('../controllers/wishlistController')
+const walletController = require("../controllers/walletController");
 
 
 
@@ -107,5 +108,10 @@ router.post(
 router.post("/wishlist/moveToCart", isUser, wishlistController.moveToCart);
 
 router.post("/verify-payment",isUser,paymentController.verifyPayment);
+
+router.get("/wallet", walletController.loadWallet);
+router.post("/wallet/add-money", walletController.addMoney);
+router.post("/wallet/verify-payment", walletController.verifyWalletPayment);
+router.get("/wallet/transactions", walletController.walletTransactions);
 
 module.exports = router;

@@ -255,7 +255,7 @@ const loadUserOrders = async (req, res) => {
        $addFields: {
          "items.name": "$items.productInfo.name",
          "items.image": { $arrayElemAt: ["$items.productInfo.images", 0] },
-         "items.price": "$items.price", // keep original price if needed
+         "items.price": "$items.price", 
          "items.subtotal": { $multiply: ["$items.price", "$items.quantity"] },
        },
      },
@@ -306,12 +306,13 @@ const loadUserOrderDetail = async (req, res) => {
         const product = await Product.findById(item.productId).select(
           "name price images variants"
         );
+          const price = item.price ?? product?.price ?? 0;
         return {
           ...item.toObject(),
           name: product?.name || "N/A",
-          price: product?.price || 0,
+          price,
           image: product?.images?.[0] || "",
-          subtotal: (item.price || product?.price || 0) * item.quantity,
+          subtotal: price * item.quantity,
         };
       })
     );

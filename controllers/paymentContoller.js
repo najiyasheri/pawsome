@@ -5,6 +5,9 @@ const Product = require("../models/Product");
 const Variant = require('../models/ProductVariant');
 const { razorpay } = require("../config/razorpay");
 const crypto = require("crypto");
+const Wallet = require("../models/Wallet");
+
+
 
 
 const loadPayment = async (req, res) => {
@@ -79,6 +82,8 @@ const loadPayment = async (req, res) => {
     if (!address) {
       address = await Address.findOne({ userId });
     }
+    const wallet = await Wallet.findOne({ userId });
+    const walletBalance = wallet ? wallet.balance : 0;
 
     res.render("user/payment", {
       title: "Payment",
@@ -88,6 +93,7 @@ const loadPayment = async (req, res) => {
       deliveryCharge,
       total,
       address,
+      walletBalance,
     });
   } catch (error) {
     console.error(error);
@@ -184,6 +190,57 @@ const processPayment = async (req, res) => {
        return res.render("user/orderSuccess", { order: newOrder });
      }
 
+       if (method === "wallet") {
+         const wallet = await Wallet.findOne({ userId });
+         if (!wallet || wallet.balance < total) {
+           return res.json({
+             success: false,
+             message: "Insufficient wallet balance",
+           });
+         }
+
+         // Deduct amount
+         wallet.balance -= total;
+         wallet.transactions.push({
+           type: "DEBIT",
+           amount: total,
+           description: `Payment for order ${orderId}`,
+         });
+         await wallet.save();
+
+         // Save order as confirmed
+         newOrder.status = "Confirmed";
+         await newOrder.save();
+
+         // Reduce stock
+         for (const item of embeddedItems) {
+           const product = await Product.findById(item.productId);
+           if (!product) continue;
+           if (item.variant?.id) {
+             const variant = await Variant.findById(item.variant.id);
+             if (variant) {
+               variant.stock = Math.max(
+                 0,
+                 (variant.stock || 0) - item.quantity
+               );
+               await variant.save();
+             }
+           } else {
+             product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+             await product.save();
+           }
+         }
+
+         // Empty cart
+         cart.items = [];
+         await cart.save();
+
+         return res.json({
+           success: true,
+           message: "Payment done using wallet",
+           redirect: "/orders",
+         });
+       }
 
        const razorpayOrder = await razorpay.orders.create({
          amount: total * 100, // in paise
@@ -201,6 +258,8 @@ const processPayment = async (req, res) => {
          orderId: newOrder._id,
          key: process.env.RAZORPAY_KEY_ID,
        });
+
+      
   } catch (err) {
     console.error("Error during payment process:", err);
     res.status(500).send("Server error");

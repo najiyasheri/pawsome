@@ -2,6 +2,8 @@
 const crypto = require("crypto");
 const { razorpay } = require("../config/razorpay");
 const Wallet = require("../models/Wallet");
+const Transaction = require("../models/Transaction");
+
 
 // -------------------- Load Wallet Page --------------------
 const loadWallet = async (req, res) => {
@@ -14,11 +16,16 @@ const loadWallet = async (req, res) => {
       wallet = await Wallet.create({ userId, balance: 0, transactions: [] });
     }
 
+      const transactions = await Transaction.find({ userId })
+        .sort({ createdAt: -1 })
+        .limit(5) // Show latest 5 transactions
+        .lean();
     res.render("user/wallet", {
       walletBalance: wallet.balance,
-       RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID,
-       title:'wallet',
-       layout:'layouts/userLayout'
+      RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID,
+      transactions,
+      title: "wallet",
+      layout: "layouts/userLayout",
     });
   } catch (err) {
     console.error(err);
@@ -39,9 +46,8 @@ const addMoney = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Invalid amount" });
-        // Create Razorpay order
         const orderOptions = {
-          amount: amount * 100, // in paise
+          amount: amount * 100, 
           currency: "INR",
           receipt: `wallet_${Date.now()}`,
           payment_capture: 1,
@@ -79,20 +85,19 @@ const verifyWalletPayment = async (req, res) => {
       );
 
       // Log transaction
-      wallet.transactions.push({ 
-        type: "CREDIT",
-        amount: amount / 100,
-        description: "Wallet Top-up via Razorpay",
-      });
-      await wallet.save();
-
-      return res.json({ success: true, balance: wallet.balance });
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "Payment verification failed!" });
-    }
-  } catch (err) {
+         await Transaction.create({
+           userId,
+           type: "wallet_topup",
+           transactionType: "credit",
+           amount: amount / 100,
+           paymentId: razorpay_payment_id,
+           orderId: razorpay_order_id,
+           description: "Wallet Top-up via Razorpay",
+           balanceAfter: wallet.balance,
+           status: "completed",
+         });
+    return res.json({ success: true, balance: wallet.balance }) }}
+   catch (err) {
     console.error(err);
     res.status(500).send("Server Error");
   }
@@ -104,12 +109,15 @@ const walletTransactions = async (req, res) => {
     const userId = req.session.user?._id;
     if (!userId) return res.redirect("/login");
 
-    const wallet = await Wallet.findOne({ userId });
-    const transactions = wallet
-      ? wallet.transactions.sort((a, b) => b.createdAt - a.createdAt)
-      : [];
+    const transactions = await Transaction.find({ userId })
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.render("wallet-transactions", { transactions });
+    res.render("user/wallet-transactions", {
+      transactions,
+      title: "Wallet Transactions",
+      layout: "layouts/userLayout",
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send("Server Error");

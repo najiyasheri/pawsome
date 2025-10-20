@@ -47,16 +47,28 @@ const orderSchema = new mongoose.Schema(
         oldPrice: { type: Number },
         discount: { type: Number, default: 0 },
         subtotal: { type: Number, required: true },
-        status: { type: String },
-        cancellationReason:{type:String},
+        status: {
+          type: String,
+          enum: [
+            "Cancelled",
+            "Returned",
+          ],
+        },
+        cancellationReason: { type: String },
       },
     ],
     status: {
       type: String,
-      enum: ["Pending", "Confirmed", "Shipped", "Delivered", "Cancelled"],
+      enum: [
+        "Pending",
+        "Confirmed",
+        "Shipped",
+        "Delivered",
+        "Cancelled",
+      ],
       default: "Pending",
     },
-    cancellationReason:{type:String},
+    cancellationReason: { type: String },
   },
   { timestamps: true }
 );

@@ -333,8 +333,10 @@ const verifyPayment=async(req,res)=>{
 }
 
 
+
 module.exports = {
   loadPayment,
   processPayment,
-  verifyPayment
+  verifyPayment,
+
 };

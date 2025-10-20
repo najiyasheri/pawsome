@@ -1,7 +1,9 @@
 const { default: mongoose } = require("mongoose");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
-
+const Wallet = require("../models/Wallet");
+const Transaction = require("../models/Transaction");
+const Variant=require('../models/ProductVariant')
 const loadOrder = async (req, res) => {
   try {
     const search = req.query.search ? req.query.search.trim() : "";
@@ -414,6 +416,87 @@ const userCancelEntireOrder = async (req, res) => {
 
 
 
+const returnSingleItem = async (req, res) => {
+  try {
+    const { orderId, itemId } = req.params;
+    const { reason } = req.body;
+    const userId = req.session.user._id;
+
+    const order = await Order.findOne({ _id: orderId, userId });
+    if (!order)
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+
+    const item = order.items.find((i) => i._id.toString() === itemId);
+    if (!item)
+      return res
+        .status(404)
+        .json({ success: false, message: "Item not found" });
+        console.log(item)
+
+    if (order.status !== "Delivered")
+      return res.status(400).json({
+        success: false,
+        message: "Only delivered items can be returned",
+      });
+
+    // 1️⃣ Update item status
+    item.status = "Returned";
+    item.returnReason = reason || "No reason provided";
+
+    // 2️⃣ Restock product or variant
+    const product = await Product.findById(item.productId);
+    if (product) {
+      if (item.variant?._id) {
+        const variant = await Variant.findById(item.variant._id);
+        if (variant) {
+          variant.stock = (variant.stock || 0) + item.quantity;
+          await variant.save();
+        }
+      } else {
+        product.stock = (product.stock || 0) + item.quantity;
+        await product.save();
+      }
+    }
+
+    // 3️⃣ Refund for prepaid orders
+    if (order.paymentMethod !== "COD") {
+      let wallet = await Wallet.findOne({ userId });
+      if (!wallet) wallet = await Wallet.create({ userId, balance: 0 });
+
+      const refundAmount = item.price * item.quantity;
+      wallet.balance += refundAmount;
+      await wallet.save();
+
+      await Transaction.create({
+        userId,
+        walletId: wallet._id,
+        type: "refund",
+        transactionType: "credit",
+        amount: refundAmount,
+        orderId: order._id,
+        description: `Refund for returned item '${item.name}' from order ${order.orderId}`,
+        balanceAfter: wallet.balance,
+        status: "completed",
+      });
+    }
+
+    await order.save();
+
+    return res.json({ success: true, message: "Item returned successfully" });
+  } catch (err) {
+    console.error("Error returning single item:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to return item" });
+  }
+};
+
+
+
+
+
 
 
 module.exports = {
@@ -425,5 +508,6 @@ module.exports = {
   loadUserOrders,
   loadUserOrderDetail,
   userCancelEntireOrder,
-  userCancelSingleItem
+  userCancelSingleItem,
+  returnSingleItem,
 };

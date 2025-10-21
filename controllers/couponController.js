@@ -1,6 +1,6 @@
 const Coupon = require("../models/Coupon");
 
-// -------------------- Load Coupon Management Page --------------------
+
 const loadCouponPage = async (req, res) => {
   try {
     const search = req.query.search || "";
@@ -45,7 +45,7 @@ const loadCreateCouponPage = async (req, res) => {
   }
 };
 
-// -------------------- Create Coupon --------------------
+
 const createCoupon = async (req, res) => {
   try {
     const {
@@ -93,7 +93,6 @@ const loadEditCoupon = async (req, res) => {
   }
 };
 
-// -------------------- Update Coupon --------------------
 const updateCoupon = async (req, res) => {
   try {
     const { id } = req.params;
@@ -122,7 +121,7 @@ const updateCoupon = async (req, res) => {
   }
 };
 
-// -------------------- Delete Coupon --------------------
+
 const deleteCoupon = async (req, res) => {
   try {
     const { id } = req.params;

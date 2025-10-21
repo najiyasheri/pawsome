@@ -620,7 +620,7 @@ const retryPayment = async (req, res) => {
     const { orderId, totalAmount, addressId, couponCode } = req.body;
     const userId = req.session.user._id;
 
-    // Validate order
+
     const order = await Order.findOne({ _id: orderId, userId });
     if (!order) {
       return res
@@ -628,7 +628,6 @@ const retryPayment = async (req, res) => {
         .json({ success: false, message: "Order not found" });
     }
 
-    // Check if order is eligible for retry (e.g., status is Pending or Cancelled)
     if (order.status !== "Pending" && order.status !== "Cancelled") {
       return res.status(400).json({
         success: false,
@@ -636,7 +635,6 @@ const retryPayment = async (req, res) => {
       });
     }
 
-    // Validate totalAmount matches order's finalAmount
     if (parseFloat(totalAmount) !== order.finalAmount) {
       return res.status(400).json({
         success: false,
@@ -646,7 +644,6 @@ const retryPayment = async (req, res) => {
 
 
 
-    // Validate couponCode if provided
     let finalAmount = order.finalAmount;
     let discountAmount = 0;
     let couponId = null;
@@ -676,29 +673,27 @@ const retryPayment = async (req, res) => {
       couponId = coupon._id;
     }
 
-    // Initialize Razorpay instance
     const razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID,
       key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
-    // Create new Razorpay order
     const razorpayOrder = await razorpay.orders.create({
-      amount: Math.round(finalAmount * 100), // Convert to paise
+      amount: Math.round(finalAmount * 100), 
       currency: "INR",
       receipt: `order_${order.orderId}_${Date.now()}`,
     });
 
-    // Update order with new payment details (optional, depending on your flow)
+ 
     order.paymentMethod = "ONLINE";
     order.discountAmount = discountAmount;
     order.finalAmount = finalAmount;
     order.couponId = couponId;
-    order.status = "Pending"; // Reset status to Pending for retry
-    order.cancellationReason = null; // Clear previous cancellation reason
+    order.status = "Pending"; 
+    order.cancellationReason = null; 
     await order.save();
 
-    // If coupon is applied, mark it as used
+ 
     if (couponId) {
       await Coupon.updateOne(
         { _id: couponId },
@@ -706,7 +701,7 @@ const retryPayment = async (req, res) => {
       );
     }
 
-    // Return response to frontend
+
     return res.json({
       success: true,
       key: process.env.RAZORPAY_KEY_ID,

@@ -1,5 +1,197 @@
 
+<!DOCTYPE html>
+<html lang="en">
 
-  <h1 class="text-3xl font-bold underline text-red-400 ">
-    Hello world!
-  </h1>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales Dashboard</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body>
+  <main class="px-8 py-6 bg-gray-100 min-h-screen">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">📊 Sales Dashboard</h1>
+
+  <% if (typeof error !=='undefined' && error) { %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+      <%= error %>
+    </div>
+    <% } %>
+     
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="bg-white shadow-lg p-6 rounded-2xl">
+            <p class="text-gray-500 text-sm">Total Sales</p>
+            <p class="text-3xl font-bold text-yellow-600">
+              ₹<%= summary?.totalSales?.toLocaleString() ?? '0' %>
+            </p>
+          </div>
+
+          <div class="bg-white shadow-lg p-6 rounded-2xl">
+            <p class="text-gray-500 text-sm">Total Orders</p>
+            <p class="text-3xl font-bold text-blue-600">
+              <%= summary?.totalOrders ?? 0 %>
+            </p>
+          </div>
+
+          <div class="bg-white shadow-lg p-6 rounded-2xl">
+            <p class="text-gray-500 text-sm">Total Discount</p>
+            <p class="text-3xl font-bold text-red-500">
+              ₹<%= summary?.totalDiscount?.toLocaleString() ?? '0' %>
+            </p>
+          </div>
+        </div>
+
+ 
+        <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">Sales Trend</h2>
+          <canvas id="salesTrendChart"></canvas>
+        </div>
+
+      <div class="bg-white p-6 rounded-2xl shadow-lg mb-8 ">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">Payment Method Breakdown</h2>
+        <div class=" justify-items-center w-full h-40 md:h-48">
+          <canvas  id="paymentMethodChart"></canvas>
+        </div>
+      </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+     
+          <div class="bg-white shadow-lg p-6 rounded-2xl">
+            <h2 class="text-lg font-semibold mb-4">Top Products</h2>
+            <% if (topProducts.length===0) { %>
+              <p class="text-gray-500">No products available.</p>
+              <% } else { %>
+                <table class="w-full text-sm text-gray-700">
+                  <thead class="border-b font-medium">
+                    <tr>
+                      <th class="text-left py-2">Product</th>
+                      <th class="text-right">Sold</th>
+                      <th class="text-right">Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% topProducts.forEach(p=> { %>
+                      <tr class="border-b">
+                        <td class="py-2">
+                          <%= p._id ?? 'Unknown' %>
+                        </td>
+                        <td class="text-right">
+                          <%= p.totalSold ?? 0 %>
+                        </td>
+                        <td class="text-right">₹<%= p.totalRevenue?.toLocaleString() ?? '0' %>
+                        </td>
+                      </tr>
+                      <% }) %>
+                  </tbody>
+                </table>
+                <% } %>
+          </div>
+
+       
+          <div class="bg-white shadow-lg p-6 rounded-2xl">
+            <h2 class="text-lg font-semibold mb-4">Top Customers</h2>
+            <% if (topCustomers.length===0) { %>
+              <p class="text-gray-500">No customers available.</p>
+              <% } else { %>
+                <table class="w-full text-sm text-gray-700">
+                  <thead class="border-b font-medium">
+                    <tr>
+                      <th class="text-left py-2">Name</th>
+                      <th class="text-right">Orders</th>
+                      <th class="text-right">Spent</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% topCustomers.forEach(c=> { %>
+                      <tr class="border-b">
+                        <td class="py-2">
+                          <%= c.userName ?? 'Unknown' %>
+                        </td>
+                        <td class="text-right">
+                          <%= c.totalOrders ?? 0 %>
+                        </td>
+                        <td class="text-right">₹<%= c.totalSpent?.toLocaleString() ?? '0' %>
+                        </td>
+                      </tr>
+                      <% }) %>
+                  </tbody>
+                </table>
+                <% } %>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">Daily Sales (Last 7 Days)</h2>
+          <canvas id="salesReportChart"></canvas>
+        </div>
+   
+        <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
+          <h2 class="text-lg font-semibold mb-4 text-gray-700">Sales Report (Last 7 Days)</h2>
+          <% if (salesReport.length===0) { %>
+            <p class="text-gray-500">No sales data available.</p>
+            <% } else { %>
+              <table class="w-full text-sm text-gray-700">
+                <thead class="border-b font-medium">
+                  <tr>
+                    <th class="text-left py-2">Date</th>
+                    <th class="text-right">Orders</th>
+                    <th class="text-right">Total Sales</th>
+                    <th class="text-right">Discount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% salesReport.forEach(r=> { %>
+                    <tr class="border-b">
+                      <td class="py-2">
+                        <%= r._id %>
+                      </td>
+                      <td class="text-right">
+                        <%= r.ordersCount %>
+                      </td>
+                      <td class="text-right">₹<%= r.totalSales?.toLocaleString() ?? 0 %>
+                      </td>
+                      <td class="text-right">₹<%= r.totalDiscount?.toLocaleString() ?? 0 %>
+                      </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+              </table>
+              <% } %>
+        </div>
+
+
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+      <script>
+        const salesReportData = JSON.parse('<%- JSON.stringify(salesReport || []) %>');
+
+        const labels = salesReportData.map(r => r._id);       
+        const sales = salesReportData.map(r => r.totalSales); 
+
+        const ctx = document.getElementById('salesReportChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Total Sales (₹)',
+              data: sales,
+              backgroundColor: 'rgba(34,197,94,0.7)',
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: { beginAtZero: true }
+            }
+          }
+        });
+        const salesTrends = JSON.parse('<%- JSON.stringify(salesTrends || []) %>');
+        const paymentMethods = JSON.parse('<%- JSON.stringify(paymentMethods || []) %>');
+      </script>
+      <script src="/js/dashboardChart.js"></script>
+
+  </main>
+</body>
+
+</html>

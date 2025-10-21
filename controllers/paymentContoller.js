@@ -247,7 +247,7 @@ const processPayment = async (req, res) => {
         });
       }
 
-      // Deduct amount
+  
       wallet.balance -= total;
       await wallet.save();
 

@@ -121,5 +121,6 @@ router.post("/wallet/verify-payment", walletController.verifyWalletPayment);
 router.get("/wallet/transactions", walletController.walletTransactions);
 
 router.post("/apply-coupon",isUser,couponController.applyCoupon);
+router.post("/retry-payment", orderController.retryPayment);
 
 module.exports = router;

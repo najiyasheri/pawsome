@@ -2,15 +2,12 @@ const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const Address = require("../models/Address");
 const Product = require("../models/Product");
-const Variant = require('../models/ProductVariant');
+const Variant = require("../models/ProductVariant");
 const { razorpay } = require("../config/razorpay");
 const crypto = require("crypto");
 const Wallet = require("../models/Wallet");
 const Transaction = require("../models/Transaction");
-
-
-
-
+const Coupon = require("../models/Coupon");
 
 const loadPayment = async (req, res) => {
   try {
@@ -74,6 +71,14 @@ const loadPayment = async (req, res) => {
     const deliveryCharge = 50;
     const total = subtotal + deliveryCharge;
 
+    const currentDate = new Date();
+    const availableCoupons = await Coupon.find({
+      validFrom: { $lte: currentDate },
+      validUntil: { $gte: currentDate },
+      minPurchase: { $lte: subtotal },
+      usedBy:{$nin:userId}
+    }).sort({ createdAt: -1 });
+
     let address;
     if (req.query.addressId) {
       address = await Address.findOne({ _id: req.query.addressId, userId });
@@ -96,6 +101,7 @@ const loadPayment = async (req, res) => {
       total,
       address,
       walletBalance,
+      coupons: availableCoupons,
     });
   } catch (error) {
     console.error(error);
@@ -105,13 +111,13 @@ const loadPayment = async (req, res) => {
 
 const processPayment = async (req, res) => {
   try {
-    const { paymentMethod, addressId } = req.body;
+    const { paymentMethod, addressId, couponCode } = req.body;
     const method = (paymentMethod || "").toLowerCase();
     const userId = req.session.user._id;
 
     const cart = await Cart.findOne({ userId })
       .populate("items.productId")
-      .populate("items.variantId"); 
+      .populate("items.variantId");
 
     if (!cart || cart.items.length === 0) {
       return res.redirect("/cart?error=Cart is empty");
@@ -148,7 +154,32 @@ const processPayment = async (req, res) => {
     });
 
     const deliveryCharge = 50;
-    const total = subtotal + deliveryCharge;
+    let offer = 0;
+    let total = subtotal + deliveryCharge;
+    let coupon;
+    let isCouponApplied=false
+    if (couponCode) {
+      coupon = await Coupon.findOne({
+        code: couponCode.toUpperCase(),
+        isActive: true,
+      });
+
+      const isUsed = coupon.usedBy.includes(userId);
+
+      const now = new Date();
+      if (
+        coupon &&
+        now >= coupon.validFrom &&
+        now <= coupon.validUntil &&
+        subtotal >= coupon.minPurchase &&
+        !isUsed
+      ) {
+        offer = coupon.discountValue;
+        total -= offer;
+        await coupon.save();
+        isCouponApplied=true;
+      }
+    }
 
     const address = await Address.findById(addressId);
     if (!address) {
@@ -166,177 +197,169 @@ const processPayment = async (req, res) => {
       },
       paymentMethod: paymentMethod.toUpperCase(),
       items: embeddedItems,
-      totalAmount: total,
+      discountAmount: offer,
+      totalAmount: total + offer,
+      couponId:coupon?._id ?? null,
+      finalAmount: total,
       status: "Pending",
     });
 
-     if (method === "cod") {
-       // Handle COD like before
-       await newOrder.save();
-       for (const item of embeddedItems) {
-         const product = await Product.findById(item.productId);
-         if (!product) continue;
-         if (item.variant?.id) {
-           const variant = await Variant.findById(item.variant.id);
-           if (variant) {
-             variant.stock = Math.max(0, (variant.stock || 0) - item.quantity);
-             await variant.save();
-           }
-         } else {
-           product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-           await product.save();
-         }
-       }
-       cart.items = [];
-       await cart.save();
-       return res.render("user/orderSuccess", { order: newOrder });
-     }
+    if(isCouponApplied){
+      coupon.usedBy.push(userId)
+      await coupon.save() 
+    }
 
-       if (method === "wallet") {
-         let wallet = await Wallet.findOne({ userId });
-        if (!wallet) {
-          wallet = await Wallet.create({
-            userId,
-            balance: 0,
-            transactions: [],
-          });
+    if (method === "cod") {
+      await newOrder.save();
+      for (const item of embeddedItems) {
+        const product = await Product.findById(item.productId);
+        if (!product) continue;
+        if (item.variant?.id) {
+          const variant = await Variant.findById(item.variant.id);
+          if (variant) {
+            variant.stock = Math.max(0, (variant.stock || 0) - item.quantity);
+            await variant.save();
+          }
+        } else {
+          product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+          await product.save();
         }
+      }
+      cart.items = [];
+      await cart.save();
+      return res.render("user/orderSuccess", { order: newOrder });
+    }
 
-        if (wallet.balance < total) {
-          return res.json({
-            success: false,
-            message: "Insufficient wallet balance",
-          });
+    if (method === "wallet") {
+      let wallet = await Wallet.findOne({ userId });
+      if (!wallet) {
+        wallet = await Wallet.create({
+          userId,
+          balance: 0,
+          transactions: [],
+        });
+      }
+
+      if (wallet.balance < total) {
+        return res.json({
+          success: false,
+          message: "Insufficient wallet balance",
+        });
+      }
+
+      // Deduct amount
+      wallet.balance -= total;
+      await wallet.save();
+
+      await Transaction.create({
+        userId: userId,
+        walletId: wallet._id,
+        type: "order_payment",
+        transactionType: "debit",
+        amount: total,
+        orderId: orderId,
+        description: `Payment for order ${orderId}`,
+        balanceAfter: wallet.balance,
+        status: "completed",
+      });
+
+      newOrder.status = "Confirmed";
+      await newOrder.save();
+
+      for (const item of embeddedItems) {
+        const product = await Product.findById(item.productId);
+        if (!product) continue;
+        if (item.variant?.id) {
+          const variant = await Variant.findById(item.variant.id);
+          if (variant) {
+            variant.stock = Math.max(0, (variant.stock || 0) - item.quantity);
+            await variant.save();
+          }
+        } else {
+          product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+          await product.save();
         }
+      }
 
-         // Deduct amount
-         wallet.balance -= total;
-         await wallet.save();
+      cart.items = [];
+      await cart.save();
 
-   await Transaction.create({
-     userId: userId,
-     walletId: wallet._id,
-     type: "order_payment",
-     transactionType: "debit",
-     amount: total,
-     orderId: orderId,
-     description: `Payment for order ${orderId}`,
-     balanceAfter: wallet.balance,
-     status: "completed",
-   });
+      return res.json({
+        success: true,
+        message: "Payment done using wallet",
+        redirect: "/orders",
+      });
+    }
 
-         // Save order as confirmed
-         newOrder.status = "Confirmed";
-         await newOrder.save();
+    const razorpayOrder = await razorpay.orders.create({
+      amount: total * 100,
+      currency: "INR",
+      receipt: orderId,
+      payment_capture: 1,
+    });
 
-         // Reduce stock
-         for (const item of embeddedItems) {
-           const product = await Product.findById(item.productId);
-           if (!product) continue;
-           if (item.variant?.id) {
-             const variant = await Variant.findById(item.variant.id);
-             if (variant) {
-               variant.stock = Math.max(
-                 0,
-                 (variant.stock || 0) - item.quantity
-               );
-               await variant.save();
-             }
-           } else {
-             product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-             await product.save();
-           }
-         }
+    await newOrder.save();
 
-         // Empty cart
-         cart.items = [];
-         await cart.save();
-
-         return res.json({
-           success: true,
-           message: "Payment done using wallet",
-           redirect: "/orders",
-         });
-       }
-
-       const razorpayOrder = await razorpay.orders.create({
-         amount: total * 100, // in paise
-         currency: "INR",
-         receipt: orderId,
-         payment_capture: 1, // auto capture
-       });
-
-
-       await newOrder.save(); // save order with Initiated status
-
-       res.json({
-         success: true,
-         razorpayOrder,
-         orderId: newOrder._id,
-         key: process.env.RAZORPAY_KEY_ID,
-       });
-
-      
+    res.json({
+      success: true,
+      razorpayOrder,
+      orderId: newOrder._id,
+      key: process.env.RAZORPAY_KEY_ID,
+    });
   } catch (err) {
     console.error("Error during payment process:", err);
     res.status(500).send("Server error");
   }
 };
 
-const verifyPayment=async(req,res)=>{
+const verifyPayment = async (req, res) => {
   try {
-      const {
-        razorpay_order_id,
-        razorpay_payment_id,
-        razorpay_signature,
-        orderId,
-      } = req.body;
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      orderId,
+    } = req.body;
 
-      const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
-      hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
-      const generatedSignature = hmac.digest("hex");
+    const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
+    hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
+    const generatedSignature = hmac.digest("hex");
 
-      if (generatedSignature === razorpay_signature) {
-        const order = await Order.findById(orderId);
-        order.status = "Confirmed";
-        await order.save();
-
-        // reduce stock & empty cart
-        for (const item of order.items) {
-          const product = await Product.findById(item.productId);
-          if (!product) continue;
-          if (item.variant?.id) {
-            const variant = await Variant.findById(item.variant.id);
-            if (variant) {
-              variant.stock = Math.max(0, (variant.stock || 0) - item.quantity);
-              await variant.save();
-            }
-          } else {
-            product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-            await product.save();
+    if (generatedSignature === razorpay_signature) {
+      const order = await Order.findById(orderId);
+      order.status = "Confirmed";
+      await order.save();
+      for (const item of order.items) {
+        const product = await Product.findById(item.productId);
+        if (!product) continue;
+        if (item.variant?.id) {
+          const variant = await Variant.findById(item.variant.id);
+          if (variant) {
+            variant.stock = Math.max(0, (variant.stock || 0) - item.quantity);
+            await variant.save();
           }
+        } else {
+          product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+          await product.save();
         }
-
-        await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
-
-        res.json({ success: true, message: "Payment successful!" });
-      } else {
-        res
-          .status(400)
-          .json({ success: false, message: "Payment verification failed!" });
       }
 
+      await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
+
+      res.json({ success: true, message: "Payment successful!" });
+    } else {
+      res
+        .status(400)
+        .json({ success: false, message: "Payment verification failed!" });
+    }
   } catch (error) {
-     console.error("Error during payment process:", error);
-     res.status(500).send("Server error");
+    console.error("Error during payment process:", error);
+    res.status(500).send("Server error");
   }
-}
-
-
+};
 
 module.exports = {
   loadPayment,
   processPayment,
   verifyPayment,
-
 };

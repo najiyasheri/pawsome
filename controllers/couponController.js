@@ -55,7 +55,6 @@ const createCoupon = async (req, res) => {
       validUntil,
       usageLimit,
       minPurchase,
-      maxDiscount,
     } = req.body;
 
     const existing = await Coupon.findOne({ code });
@@ -70,7 +69,6 @@ const createCoupon = async (req, res) => {
       validUntil,
       usageLimit,
       minPurchase,
-      maxDiscount,
     });
 
     await newCoupon.save();
@@ -84,13 +82,16 @@ const loadEditCoupon = async (req, res) => {
   try {
     const coupon = await Coupon.findById(req.params.id);
     if (!coupon) return res.status(404).send("Coupon not found");
-    res.render("admin/editCoupon", { coupon,title:'editCoupon',layout:'layouts/adminLayout' });
+    res.render("admin/editCoupon", {
+      coupon,
+      title: "editCoupon",
+      layout: "layouts/adminLayout",
+    });
   } catch (error) {
     console.log("Error loading coupon for edit:", error);
     res.status(500).send("Internal Server Error");
   }
 };
-
 
 // -------------------- Update Coupon --------------------
 const updateCoupon = async (req, res) => {
@@ -103,7 +104,6 @@ const updateCoupon = async (req, res) => {
       validUntil,
       usageLimit,
       minPurchase,
-      maxDiscount,
     } = req.body;
 
     await Coupon.findByIdAndUpdate(id, {
@@ -113,7 +113,6 @@ const updateCoupon = async (req, res) => {
       validUntil,
       usageLimit,
       minPurchase,
-      maxDiscount,
     });
 
     res.redirect("/admin/coupon");
@@ -135,6 +134,51 @@ const deleteCoupon = async (req, res) => {
   }
 };
 
+const applyCoupon = async (req, res) => {
+  try {
+    const { code, subtotal } = req.body;
+    const userId = req.session.user._id;
+    const coupon = await Coupon.findOne({
+      code: code.toUpperCase(),
+      isActive: true,
+    });
+    const now = new Date();
+
+    if (!coupon)
+      return res.json({ success: false, message: "Invalid coupon code" });
+
+    if (now < coupon.validFrom || now > coupon.validUntil)
+      return res.json({
+        success: false,
+        message: "Coupon expired or not yet valid",
+      });
+    const amount = parseFloat(subtotal);  
+    if (amount < coupon.minPurchase)
+      return res.json({
+        success: false,
+        message: `Minimum purchase ₹${coupon.minPurchase} required`,
+      });
+
+    let discount = coupon.discountValue;
+
+    if (coupon.usedBy.includes(userId)) {
+      return res.json({
+        success: false,
+        message: "Coupon alrdy used",
+      });
+    }
+
+    res.json({
+      success: true,
+      discount,
+      message: "Coupon applied successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, message: "Error applying coupon" });
+  }
+};
+
 module.exports = {
   loadCouponPage,
   createCoupon,
@@ -142,4 +186,5 @@ module.exports = {
   updateCoupon,
   deleteCoupon,
   loadCreateCouponPage,
+  applyCoupon,
 };

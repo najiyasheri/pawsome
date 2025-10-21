@@ -135,7 +135,7 @@ const cancelSingleItem = async (req, res) => {
     const product = await Product.findById(item.productId);
     if (product) {
       if (item.variant?._id) {
-        const variant = product.variants._id(item.variant._id);
+        const variant = await Variant.findById(item.variant._id);
         if (variant) {
           variant.stock = (variant.stock || 0) + item.quantity;
         }
@@ -177,7 +177,7 @@ const cancelEntireOrder = async (req, res) => {
         const product = await Product.findById(item.productId);
         if (product) {
           if (item.variant?._id) {
-            const variant = product.variants._id(item.variant._id);
+            const variant = await Variant.findById(item.variant._id);
             if (variant) {
               variant.stock = (variant.stock || 0) + item.quantity;
             }
@@ -342,7 +342,7 @@ const userCancelSingleItem = async (req, res) => {
     const product = await Product.findById(item.productId);
     if (product) {
       if (item.variant?._id) {
-        const variant = product.variants._id(item.variant._id);
+        const variant = await Variant.findById(item.variant._id);
         if (variant) variant.stock = (variant.stock || 0) + item.quantity;
       } else {
         product.stock = (product.stock || 0) + item.quantity;
@@ -413,7 +413,7 @@ const userCancelEntireOrder = async (req, res) => {
         const product = await Product.findById(item.productId);
         if (product) {
           if (item.variant?._id) {
-            const variant = product.variants._id(item.variant._id);
+            const variant = await Variant.findById(item.variant._id);
             if (variant) variant.stock = (variant.stock || 0) + item.quantity;
           } else {
             product.stock = (product.stock || 0) + item.quantity;

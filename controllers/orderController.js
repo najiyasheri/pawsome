@@ -3,7 +3,8 @@ const Order = require("../models/Order");
 const Product = require("../models/Product");
 const Wallet = require("../models/Wallet");
 const Transaction = require("../models/Transaction");
-const Variant=require('../models/ProductVariant')
+const Variant=require('../models/ProductVariant');
+const Coupon = require("../models/Coupon");
 const loadOrder = async (req, res) => {
   try {
     const search = req.query.search ? req.query.search.trim() : "";
@@ -405,6 +406,31 @@ const userCancelEntireOrder = async (req, res) => {
 
     order.status = "Cancelled";
     order.cancellationReason = reason || "No reason provided";
+
+
+    const wallet=await Wallet.findOne({userId});
+    const refundAmount = order.finalAmount
+    wallet.balance += refundAmount;
+    await wallet.save();
+
+
+    
+      await Transaction.create({
+        userId,
+        walletId: wallet._id,
+        type: "refund",
+        transactionType: "credit",
+        amount: refundAmount,
+        orderId: order._id,
+        description: `Refund for cancelled order ${order.orderId}`,
+        balanceAfter: wallet.balance,
+        status: "completed",
+      });
+
+      const coupon=await Coupon.updateOne({_id:order.couponId},{$pull:{usedBy:userId}});
+
+     
+      
 
     await order.save();
     res.redirect(`/order/${orderId}`);

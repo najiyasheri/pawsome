@@ -57,12 +57,46 @@
         <div class="mb-6">
             <label class="block text-sm font-medium mb-2">Coupon code / Promo code</label>
             <div class="flex gap-2">
-                <input type="text" placeholder="" disabled
+                <input id="couponInput" type="text" placeholder="Enter coupon code"
                     class="flex-1 border border-gray-300 rounded px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500">
-                <button class="bg-white border border-gray-300 px-6 py-2 rounded text-sm font-medium hover:bg-gray-50">
+                <button id="applyCouponBtn"
+                    class="bg-white border border-gray-300 px-6 py-2 rounded text-sm font-medium hover:bg-gray-50">
                     Apply
                 </button>
             </div>
+        </div>
+
+        <!-- Available Coupons -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium mb-2">Available Coupons</label>
+            <% if (coupons && coupons.length> 0) { %>
+                <div class="space-y-3">
+                    <% coupons.forEach(coupon=> { %>
+                        <div
+                            class="border rounded-lg p-3 flex justify-between items-center bg-gray-50 hover:bg-yellow-50 transition">
+                            <div>
+                                <p class="font-semibold text-yellow-600">
+                                    <%= coupon.code %>
+                                </p>
+                                <p class="text-sm text-gray-600">Min Purchase: ₹<%= coupon.minPurchase %>
+                                </p>
+                                <p class="text-sm text-gray-600">Discount: ₹<%= coupon.discountValue %> (Max ₹<%=
+                                            coupon.maxDiscount %>)</p>
+                                <p class="text-xs text-gray-400">Valid until <%= new
+                                        Date(coupon.validUntil).toLocaleDateString() %>
+                                </p>
+                            </div>
+                            <button
+                                class="bg-yellow-400 px-4 py-2 rounded text-white text-sm font-medium hover:bg-yellow-500 apply-coupon-btn"
+                                data-code="<%= coupon.code %>">
+                                Apply
+                            </button>
+                        </div>
+                        <% }) %>
+                </div>
+                <% } else { %>
+                    <p class="text-sm text-gray-500">No coupons available for your order.</p>
+                    <% } %>
         </div>
 
         <!-- Shipping Address -->
@@ -94,11 +128,11 @@
             </div>
             <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Coupon Applied</span>
-                <span class="font-medium text-green-600">-₹0.00</span>
+                <span id="discountAmount" class="font-medium text-green-600">-₹0.00</span>
             </div>
             <div class="flex justify-between text-lg font-semibold border-t pt-3">
                 <span>Total</span>
-                <span>₹<%= total.toFixed(2) %></span>
+                <span id="totalPrice">₹<%= total.toFixed(2) %></span>
             </div>
         </div>
     </div>
@@ -193,7 +227,7 @@
             <div class="mt-8 bg-gray-50 rounded-lg p-4">
                 <div class="flex justify-between items-center">
                     <span class="text-gray-600">Total Amount</span>
-                    <span class="text-2xl font-bold">₹<%= total.toFixed(2) %></span>
+                    <span id="totalAmount" class="text-2xl font-bold">₹<%= total.toFixed(2) %></span>
                 </div>
             </div>
 
@@ -240,20 +274,38 @@
         }
 
         const method = selectedMethod.toLowerCase();
-        const totalAmount = parseFloat('<%= total %>'); // total amount from EJS
+        const totalAmount = parseFloat(document.querySelector('input[name="totalAmount"]').value);
         const addressId = '<%= address._id %>';
+        const couponCode = appliedCoupon || null; // Get coupon if applied
 
+        // -----------------------------
+        // CASH ON DELIVERY
+        // -----------------------------
         if (method === 'cod') {
-            // Just submit the form for COD
             document.getElementById('paymentMethod').value = 'cod';
+
+            // Add couponCode hidden input if applied
+            if (couponCode) {
+                document.querySelector('input[name="couponCode"]')?.remove();
+                const couponInput = document.createElement('input');
+                couponInput.type = 'hidden';
+                couponInput.name = 'couponCode';
+                couponInput.value = couponCode;
+                document.getElementById('paymentForm').appendChild(couponInput);
+            }
+
             document.getElementById('paymentForm').submit();
             return;
         }
-            if (method === 'wallet') {
+
+        // -----------------------------
+        // WALLET PAYMENT
+        // -----------------------------
+        if (method === 'wallet') {
             const res = await fetch('/success', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ paymentMethod: method, totalAmount, addressId })
+                body: JSON.stringify({ paymentMethod: method, totalAmount, addressId, couponCode })
             });
 
             const data = await res.json();
@@ -270,11 +322,10 @@
         // ONLINE PAYMENT (Razorpay)
         // -----------------------------
         try {
-            // Create order in backend
             const res = await fetch('/success', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ paymentMethod: method, totalAmount, addressId })
+                body: JSON.stringify({ paymentMethod: method, totalAmount, addressId, couponCode })
             });
             const data = await res.json();
 
@@ -284,14 +335,13 @@
             }
 
             const options = {
-                key: data.key, // Razorpay key from backend
-                amount: data.razorpayOrder.amount, // in paise
+                key: data.key,
+                amount: data.razorpayOrder.amount,
                 currency: data.razorpayOrder.currency,
                 name: "Pawsome",
                 description: "Order Payment",
                 order_id: data.razorpayOrder.id,
                 handler: async function (response) {
-                    // Verify payment in backend
                     const verifyRes = await fetch('/verify-payment', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -299,20 +349,21 @@
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_signature: response.razorpay_signature,
-                            orderId: data.orderId
+                            orderId: data.orderId,
+                            couponCode // Include coupon in verification
                         })
                     });
                     const verifyData = await verifyRes.json();
                     alert(verifyData.message);
                     if (verifyData.success) {
-                        window.location.href = '/orders'; // redirect after payment
+                        window.location.href = '/orders';
                     }
                 },
                 prefill: {
                     name: "<%= user.name %>",
                     email: "<%= user.email %>"
                 },
-                theme: { color: "#FBBF24" } // yellow theme
+                theme: { color: "#FBBF24" }
             };
 
             const rzp = new Razorpay(options);
@@ -322,6 +373,68 @@
             alert("Something went wrong with payment. Please try again.");
         }
     });
+    const subtotal = parseFloat('<%= subtotal %>');
+    const deliveryCharge = parseFloat('<%= deliveryCharge %>');
+
+    let appliedDiscount = 0;
+    let appliedCoupon = null;
+
+    // Apply from input field
+    document.getElementById('applyCouponBtn').addEventListener('click', async () => {
+        const code = document.getElementById('couponInput').value.trim();
+        if (!code) return alert('Please enter a coupon code');
+
+        applyCoupon(code);
+    });
+
+    // Apply from Available Coupon Buttons
+    document.querySelectorAll('.apply-coupon-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const code = btn.dataset.code;
+            applyCoupon(code);
+        });
+    });
+
+    async function applyCoupon(code) {
+        try {
+            const res = await fetch('/apply-coupon', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, subtotal })
+            });
+
+            const data = await res.json();
+
+            if (!data.success) {
+                alert(data.message);
+                return;
+            }
+
+            // Coupon applied successfully
+            appliedCoupon = code;
+            appliedDiscount = data.discount;
+
+            // Update UI
+            document.getElementById('discountAmount').textContent = `-₹${appliedDiscount.toFixed(2)}`;
+            const newTotal = subtotal + deliveryCharge - appliedDiscount;
+            document.getElementById('totalAmount').textContent = `₹${newTotal.toFixed(2)}`;
+            document.getElementById('totalPrice').textContent = `₹${newTotal.toFixed(2)}`
+
+            // Update hidden input so it goes to backend
+            document.querySelector('input[name="totalAmount"]').value = newTotal;
+            document.querySelector('input[name="couponCode"]')?.remove();
+            const couponInput = document.createElement('input');
+            couponInput.type = 'hidden';
+            couponInput.name = 'couponCode';
+            couponInput.value = appliedCoupon;
+            document.getElementById('paymentForm').appendChild(couponInput);
+
+            alert(`Coupon ${code} applied successfully!`);
+        } catch (err) {
+            console.error(err);
+            alert('Error applying coupon');
+        }
+    }
 
 
 </script>

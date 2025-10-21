@@ -15,6 +15,13 @@
             </p>
             <p><strong>Total:</strong> ₹<%= order.totalAmount %>
             </p>
+
+            <p><strong>Coupon Discount:</strong> ₹<%= order.discountAmount
+ %>
+            </p>
+            <p><strong>Final Amount:</strong> ₹<%= order.finalAmount
+ %>
+            </p>
             <p><strong>User:</strong>
                 <%= order.userId.name %>
             </p>

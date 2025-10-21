@@ -135,6 +135,57 @@ const deleteCoupon = async (req, res) => {
   }
 };
 
+const applyCoupon = async (req, res) => {
+  try {
+    const { code, subtotal } = req.body;
+    const userId=req.session.user._id
+    const coupon = await Coupon.findOne({
+      code: code.toUpperCase(),
+      isActive: true,
+    });
+    const now = new Date();
+
+    if (!coupon)
+      return res.json({ success: false, message: "Invalid coupon code" });
+
+    if (now < coupon.validFrom || now > coupon.validUntil)
+      return res.json({
+        success: false,
+        message: "Coupon expired or not yet valid",
+      });
+
+    const amount = parseFloat(subtotal);
+
+    if (amount < coupon.minPurchase)
+      return res.json({
+        success: false,
+        message: `Minimum purchase ₹${coupon.minPurchase} required`,
+      });
+   
+
+    let discount = coupon.discountValue;
+    if (discount > coupon.maxDiscount) discount = coupon.maxDiscount;
+
+    if(coupon.usedBy.includes(userId)){
+       return res.json({
+         success: false,
+         message: "Coupon alrdy used",
+       });
+    }
+
+    if (coupon.maxDiscount && amount > coupon.maxDiscount) discount = coupon.maxDiscount;
+      res.json({
+        success: true,
+        discount,
+        message: "Coupon applied successfully",
+      });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, message: "Error applying coupon" });
+  }
+};
+
+
 module.exports = {
   loadCouponPage,
   createCoupon,
@@ -142,4 +193,5 @@ module.exports = {
   updateCoupon,
   deleteCoupon,
   loadCreateCouponPage,
+  applyCoupon,
 };

@@ -21,11 +21,9 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    shippingType: {
-      type: String,
-      enum: ["Express", "Regular"],
-      default: "Regular",
-    },
+    discountAmount: { type: Number, default: 0 },
+    finalAmount: { type: Number, required: true },
+    couponId: { type: mongoose.Schema.Types.ObjectId, ref: "Coupon" },
     address: {
       name: { type: String, required: true },
       phone: { type: String, required: true },
@@ -49,23 +47,14 @@ const orderSchema = new mongoose.Schema(
         subtotal: { type: Number, required: true },
         status: {
           type: String,
-          enum: [
-            "Cancelled",
-            "Returned",
-          ],
+          enum: ["Cancelled", "Returned"],
         },
         cancellationReason: { type: String },
       },
     ],
     status: {
       type: String,
-      enum: [
-        "Pending",
-        "Confirmed",
-        "Shipped",
-        "Delivered",
-        "Cancelled",
-      ],
+      enum: ["Pending", "Confirmed", "Shipped", "Delivered", "Cancelled"],
       default: "Pending",
     },
     cancellationReason: { type: String },

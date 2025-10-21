@@ -174,7 +174,7 @@ const processPayment = async (req, res) => {
         subtotal >= coupon.minPurchase &&
         !isUsed
       ) {
-        offer = Math.min(coupon.discountValue, coupon.maxDiscount);
+        offer = coupon.discountValue;
         total -= offer;
         await coupon.save();
         isCouponApplied=true;

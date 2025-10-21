@@ -19,22 +19,14 @@
                 class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
         </div>
 
-        <!-- Usage Limit -->
-        <input type="number" name="usageLimit" placeholder="Usage Limit" min="1" value="<%= coupon.usageLimit %>"
-            required
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
-
+       
         <!-- Min Purchase -->
         <input type="number" name="minPurchase" placeholder="Min Purchase Amount" min="0"
             value="<%= coupon.minPurchase %>"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
 
         <!-- Max Discount -->
-        <input type="number" name="maxDiscount" placeholder="Max Discount Amount" min="0"
-            value="<%= coupon.maxDiscount %>"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
-
-        <!-- Submit -->
+       
         <button type="submit"
             class="bg-yellow-400 w-full text-white py-2 rounded-lg font-medium hover:bg-yellow-500 transition">
             Update Coupon

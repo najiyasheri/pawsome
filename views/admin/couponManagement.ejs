@@ -1,0 +1,161 @@
+<main class="px-6 py-4">
+
+    <!-- Top: Search + Create Coupon -->
+    <div class="flex justify-between items-center mb-4">
+        <!-- Search Form -->
+    <div class="flex items-center gap-2">
+        <form action="/admin/coupon" method="GET" class="flex items-center gap-2">
+            <input type="text" name="search" placeholder="Search coupons" value="<%= search %>"
+                class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+    
+            <button type="submit"
+                class="bg-yellow-400 text-white px-5 py-2 rounded-lg font-medium hover:bg-yellow-500 transition">
+                Search
+            </button>
+    
+            <% if (search) { %>
+                <a href="/admin/coupon"
+                    class="ml-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                    Clear
+                </a>
+                <% } %>
+        </form>
+    </div>
+
+        <!-- Create Coupon Button -->
+        <a href="/admin/coupons/create"
+            class="bg-yellow-400 text-white px-5 py-2 rounded-lg font-medium hover:bg-yellow-500 transition">
+            Create Coupon
+        </a>
+    </div>
+
+    <!-- Coupon Table -->
+    <div class="overflow-x-auto bg-white p-6 rounded-2xl shadow">
+        <table class="w-full text-sm text-left border border-gray-200 rounded-lg">
+            <thead class="bg-gray-100 text-gray-700">
+                <tr>
+                    <th class="px-4 py-2">Coupon Code</th>
+                    <th class="px-4 py-2">Discount Value</th>
+                    <th class="px-4 py-2">Valid From</th>
+                    <th class="px-4 py-2">Valid Until</th>
+                    <th class="px-4 py-2">Usage Limit</th>
+                    <th class="px-4 py-2">Update</th>
+                    <th class="px-4 py-2">Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (coupons.length===0) { %>
+                    <tr>
+                        <td colspan="7" class="text-center px-4 py-6 text-gray-500">
+                            No coupons found.
+                        </td>
+                    </tr>
+                    <% } %>
+
+                        <% coupons.forEach(coupon=> { %>
+                            <tr class="border-t">
+                                <td class="px-4 py-2">
+                                    <%= coupon.code %>
+                                </td>
+                                <td class="px-4 py-2">
+                                    <%= coupon.discountValue %>
+                                </td>
+                                <td class="px-4 py-2">
+                                    <%= coupon.validFrom.toDateString() %>
+                                </td>
+                                <td class="px-4 py-2">
+                                    <%= coupon.validUntil.toDateString() %>
+                                </td>
+                                <td class="px-4 py-2">
+                                    <%= coupon.usageLimit %>
+                                </td>
+
+                                <!-- Edit / Update Button -->
+                                <td class="px-4 py-2">
+                                    <a  href="/admin/coupons/<%= coupon._id %>/edit"
+                                        class="bg-yellow-400 hover:bg-yellow-500 text-black text-xs font-medium px-4 py-1 rounded-lg">
+                                        Edit
+                                    </a>
+                                </td>
+
+                                <!-- Delete Button -->
+                                <td class="px-4 py-2">
+                            <button type="button" class="delete-btn bg-red-400 hover:bg-red-500 text-white text-xs font-medium px-4 py-1 rounded-lg"
+                                data-id="<%= coupon._id %>">
+                                Delete
+                            </button>
+                                </td>
+                            </tr>
+                            <% }) %>
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+    <!-- Pagination -->
+    <div class="flex justify-center mt-6">
+        <nav aria-label="Page navigation">
+            <ul class="flex items-center -space-x-px h-10 text-base">
+    
+                <!-- Previous Page -->
+                <li>
+                    <a href="/admin/coupons?page=<%= currentPage - 1 %>&search=<%= search %>"
+                        class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 <%= currentPage === 1 ? 'pointer-events-none opacity-50' : '' %>">
+                        &lt;
+                    </a>
+                </li>
+    
+                <!-- Page Numbers -->
+                <% for(let i=1; i <=totalPages; i++) { %>
+                    <li>
+                        <a href="/admin/coupons?page=<%= i %>&search=<%= search %>"
+                            class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 <%= currentPage === i ? 'z-10 text-yellow-600 border-yellow-300 bg-yellow-50' : '' %>">
+                            <%= i %>
+                        </a>
+                    </li>
+                    <% } %>
+    
+                        <!-- Next Page -->
+                        <li>
+                            <a href="/admin/coupons?page=<%= currentPage + 1 %>&search=<%= search %>"
+                                class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 <%= currentPage === totalPages ? 'pointer-events-none opacity-50' : '' %>">
+                                &gt;
+                            </a>
+                        </li>
+    
+            </ul>
+        </nav>
+    </div>
+
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    const deleteButtons = document.querySelectorAll(".delete-btn");
+
+    deleteButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const couponId = btn.dataset.id;
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This coupon will be deleted permanently!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f59e0b', // yellow
+                cancelButtonColor: '#ef4444',  // red
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Create a form and submit it
+                    const form = document.createElement("form");
+                    form.method = "POST";
+                    form.action = `/admin/coupons/delete/${couponId}`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        });
+    });
+</script>

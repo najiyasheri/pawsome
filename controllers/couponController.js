@@ -1,0 +1,145 @@
+const Coupon = require("../models/Coupon");
+
+// -------------------- Load Coupon Management Page --------------------
+const loadCouponPage = async (req, res) => {
+  try {
+    const search = req.query.search || "";
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    const query = search ? { code: { $regex: search, $options: "i" } } : {};
+
+    const totalCoupons = await Coupon.countDocuments(query);
+    const coupons = await Coupon.find(query)
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const totalPages = Math.ceil(totalCoupons / limit);
+
+    res.render("admin/couponManagement", {
+      title: "Coupon Management",
+      layout: "layouts/adminLayout",
+      coupons,
+      currentPage: page,
+      totalPages,
+      search,
+      totalCoupons,
+    });
+  } catch (error) {
+    console.log("Error loading coupon page:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+const loadCreateCouponPage = async (req, res) => {
+  try {
+    res.render("admin/createCoupon", {
+      title: "Create Coupon",
+      layout: "layouts/adminLayout",
+    });
+  } catch (error) {
+    console.log("Error loading create coupon page:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+// -------------------- Create Coupon --------------------
+const createCoupon = async (req, res) => {
+  try {
+    const {
+      code,
+      discountValue,
+      validFrom,
+      validUntil,
+      usageLimit,
+      minPurchase,
+      maxDiscount,
+    } = req.body;
+
+    const existing = await Coupon.findOne({ code });
+    if (existing) {
+      return res.status(400).json({ message: "Coupon code already exists!" });
+    }
+
+    const newCoupon = new Coupon({
+      code,
+      discountValue,
+      validFrom,
+      validUntil,
+      usageLimit,
+      minPurchase,
+      maxDiscount,
+    });
+
+    await newCoupon.save();
+    res.redirect("/admin/coupon");
+  } catch (error) {
+    console.log("Error creating coupon:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+const loadEditCoupon = async (req, res) => {
+  try {
+    const coupon = await Coupon.findById(req.params.id);
+    if (!coupon) return res.status(404).send("Coupon not found");
+    res.render("admin/editCoupon", { coupon,title:'editCoupon',layout:'layouts/adminLayout' });
+  } catch (error) {
+    console.log("Error loading coupon for edit:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+
+// -------------------- Update Coupon --------------------
+const updateCoupon = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      code,
+      discountValue,
+      validFrom,
+      validUntil,
+      usageLimit,
+      minPurchase,
+      maxDiscount,
+    } = req.body;
+
+    await Coupon.findByIdAndUpdate(id, {
+      code,
+      discountValue,
+      validFrom,
+      validUntil,
+      usageLimit,
+      minPurchase,
+      maxDiscount,
+    });
+
+    res.redirect("/admin/coupon");
+  } catch (error) {
+    console.log("Error updating coupon:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+// -------------------- Delete Coupon --------------------
+const deleteCoupon = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Coupon.findByIdAndDelete(id);
+    res.redirect("/admin/coupon");
+  } catch (error) {
+    console.log("Error deleting coupon:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+module.exports = {
+  loadCouponPage,
+  createCoupon,
+  loadEditCoupon,
+  updateCoupon,
+  deleteCoupon,
+  loadCreateCouponPage,
+};

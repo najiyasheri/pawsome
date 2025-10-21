@@ -2,7 +2,15 @@ const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const Address = require("../models/Address");
 const Product = require("../models/Product");
-const Variant = require('../models/ProductVariant')
+const Variant = require('../models/ProductVariant');
+const { razorpay } = require("../config/razorpay");
+const crypto = require("crypto");
+const Wallet = require("../models/Wallet");
+const Transaction = require("../models/Transaction");
+
+
+
+
 
 const loadPayment = async (req, res) => {
   try {
@@ -76,6 +84,8 @@ const loadPayment = async (req, res) => {
     if (!address) {
       address = await Address.findOne({ userId });
     }
+    const wallet = await Wallet.findOne({ userId });
+    const walletBalance = wallet ? wallet.balance : 0;
 
     res.render("user/payment", {
       title: "Payment",
@@ -85,6 +95,7 @@ const loadPayment = async (req, res) => {
       deliveryCharge,
       total,
       address,
+      walletBalance,
     });
   } catch (error) {
     console.error(error);
@@ -96,11 +107,6 @@ const processPayment = async (req, res) => {
   try {
     const { paymentMethod, addressId } = req.body;
     const method = (paymentMethod || "").toLowerCase();
-
-    if (method !== "cod") {
-      return res.status(400).send("Only Cash on Delivery is allowed right now");
-    }
-
     const userId = req.session.user._id;
 
     const cart = await Cart.findOne({ userId })
@@ -164,36 +170,173 @@ const processPayment = async (req, res) => {
       status: "Pending",
     });
 
-    await newOrder.save();
+     if (method === "cod") {
+       // Handle COD like before
+       await newOrder.save();
+       for (const item of embeddedItems) {
+         const product = await Product.findById(item.productId);
+         if (!product) continue;
+         if (item.variant?.id) {
+           const variant = await Variant.findById(item.variant.id);
+           if (variant) {
+             variant.stock = Math.max(0, (variant.stock || 0) - item.quantity);
+             await variant.save();
+           }
+         } else {
+           product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+           await product.save();
+         }
+       }
+       cart.items = [];
+       await cart.save();
+       return res.render("user/orderSuccess", { order: newOrder });
+     }
 
-    for (const item of embeddedItems) {
-      const product = await Product.findById(item.productId);
-      if (!product) continue;
-
-      if (item.variant?.id) {
-        const variant = await Variant.findById(item.variant.id);
-        if (variant) {
-          variant.stock = Math.max(0, (variant.stock || 0) - item.quantity);
-          await variant.save();
+       if (method === "wallet") {
+         let wallet = await Wallet.findOne({ userId });
+        if (!wallet) {
+          wallet = await Wallet.create({
+            userId,
+            balance: 0,
+            transactions: [],
+          });
         }
-      } else {
-        product.stock = Math.max(0, (product.stock || 0) - item.quantity);
-        await product.save();
-      }
-    }
 
-    cart.items = [];
-    await cart.save();
+        if (wallet.balance < total) {
+          return res.json({
+            success: false,
+            message: "Insufficient wallet balance",
+          });
+        }
 
-    res.render("user/orderSuccess", { order: newOrder });
+         // Deduct amount
+         wallet.balance -= total;
+         await wallet.save();
+
+   await Transaction.create({
+     userId: userId,
+     walletId: wallet._id,
+     type: "order_payment",
+     transactionType: "debit",
+     amount: total,
+     orderId: orderId,
+     description: `Payment for order ${orderId}`,
+     balanceAfter: wallet.balance,
+     status: "completed",
+   });
+
+         // Save order as confirmed
+         newOrder.status = "Confirmed";
+         await newOrder.save();
+
+         // Reduce stock
+         for (const item of embeddedItems) {
+           const product = await Product.findById(item.productId);
+           if (!product) continue;
+           if (item.variant?.id) {
+             const variant = await Variant.findById(item.variant.id);
+             if (variant) {
+               variant.stock = Math.max(
+                 0,
+                 (variant.stock || 0) - item.quantity
+               );
+               await variant.save();
+             }
+           } else {
+             product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+             await product.save();
+           }
+         }
+
+         // Empty cart
+         cart.items = [];
+         await cart.save();
+
+         return res.json({
+           success: true,
+           message: "Payment done using wallet",
+           redirect: "/orders",
+         });
+       }
+
+       const razorpayOrder = await razorpay.orders.create({
+         amount: total * 100, // in paise
+         currency: "INR",
+         receipt: orderId,
+         payment_capture: 1, // auto capture
+       });
+
+
+       await newOrder.save(); // save order with Initiated status
+
+       res.json({
+         success: true,
+         razorpayOrder,
+         orderId: newOrder._id,
+         key: process.env.RAZORPAY_KEY_ID,
+       });
+
+      
   } catch (err) {
     console.error("Error during payment process:", err);
     res.status(500).send("Server error");
   }
 };
 
+const verifyPayment=async(req,res)=>{
+  try {
+      const {
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        orderId,
+      } = req.body;
+
+      const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_KEY_SECRET);
+      hmac.update(razorpay_order_id + "|" + razorpay_payment_id);
+      const generatedSignature = hmac.digest("hex");
+
+      if (generatedSignature === razorpay_signature) {
+        const order = await Order.findById(orderId);
+        order.status = "Confirmed";
+        await order.save();
+
+        // reduce stock & empty cart
+        for (const item of order.items) {
+          const product = await Product.findById(item.productId);
+          if (!product) continue;
+          if (item.variant?.id) {
+            const variant = await Variant.findById(item.variant.id);
+            if (variant) {
+              variant.stock = Math.max(0, (variant.stock || 0) - item.quantity);
+              await variant.save();
+            }
+          } else {
+            product.stock = Math.max(0, (product.stock || 0) - item.quantity);
+            await product.save();
+          }
+        }
+
+        await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
+
+        res.json({ success: true, message: "Payment successful!" });
+      } else {
+        res
+          .status(400)
+          .json({ success: false, message: "Payment verification failed!" });
+      }
+
+  } catch (error) {
+     console.error("Error during payment process:", error);
+     res.status(500).send("Server error");
+  }
+}
+
+
 
 module.exports = {
   loadPayment,
   processPayment,
+  verifyPayment,
+
 };

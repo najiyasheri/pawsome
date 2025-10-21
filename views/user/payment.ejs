@@ -1,4 +1,3 @@
-
 <!-- Stepper -->
 <div class="flex items-center justify-center mb-8">
     <div class="flex items-center gap-4">
@@ -25,34 +24,33 @@
         <h2 class="text-xl font-semibold mb-6">Summary</h2>
 
         <!-- Product Items -->
-    <div class="space-y-4 mb-6">
-        <% cart.items.forEach(item=> { %>
-            <div class="flex items-center justify-between border-b pb-4">
-                <div class="flex items-center gap-4">
-                    <img src="/uploads/<%= item.image %>" alt="Product"
-                        class="w-16 h-16 rounded object-cover">
-                    <div>
-                        <h3 class="font-medium text-sm">
-                            <%= item.name %>
-                        </h3>
-    
-                        <!-- Show variant details -->
-                        <% if (item.variantId && item.size!=='Nil') { %>
-                            <p class="text-gray-500 text-sm mt-1">
-                                Size: <%= item.size %>
-                            </p>
-                            <% } %>
-    
-                                <p class="text-gray-600 text-sm mt-1">Quantity: x<%= item.quantity %>
+        <div class="space-y-4 mb-6">
+            <% cart.items.forEach(item=> { %>
+                <div class="flex items-center justify-between border-b pb-4">
+                    <div class="flex items-center gap-4">
+                        <img src="/uploads/<%= item.image %>" alt="Product" class="w-16 h-16 rounded object-cover">
+                        <div>
+                            <h3 class="font-medium text-sm">
+                                <%= item.name %>
+                            </h3>
+
+                            <!-- Show variant details -->
+                            <% if (item.variantId && item.size!=='Nil' ) { %>
+                                <p class="text-gray-500 text-sm mt-1">
+                                    Size: <%= item.size %>
                                 </p>
+                                <% } %>
+
+                                    <p class="text-gray-600 text-sm mt-1">Quantity: x<%= item.quantity %>
+                                    </p>
+                        </div>
                     </div>
+                    <p class="font-semibold text-yellow-500">
+                        ₹<%= item.subtotal %>
+                    </p>
                 </div>
-                <p class="font-semibold text-yellow-500">
-                    ₹<%= item.subtotal %>
-                </p>
-            </div>
-            <% }) %>
-    </div>
+                <% }) %>
+        </div>
 
 
         <!-- Coupon Code -->
@@ -89,7 +87,7 @@
                         items)</span>
                 <span class="font-medium">₹<%= subtotal.toFixed(2) %></span>
             </div>
-            
+
             <div class="flex justify-between text-sm">
                 <span class="text-gray-600">Delivery Charge</span>
                 <span class="font-medium">₹<%= deliveryCharge.toFixed(2) %></span>
@@ -118,8 +116,8 @@
             <!-- Payment Method Options -->
             <div class="space-y-4">
                 <!-- Online Payment -->
-                <button type="button" id="onlinePayment" disabled
-                    class="payment-option w-full border-2 border-gray-300 rounded-lg p-6 cursor-not-allowed text-left transition-all duration-200">
+                <button type="button" id="onlinePayment" onclick="selectPayment('online')"
+                    class="payment-option w-full border-2 border-gray-300 rounded-lg p-6  text-left transition-all duration-200">
                     <div class="flex items-start gap-4">
                         <div class="flex-shrink-0 mt-1">
                             <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
@@ -166,7 +164,7 @@
 
                 <!-- Wallet -->
                 <button type="button" id="walletPayment" onclick="selectPayment('wallet')"
-                    class="payment-option w-full border-2 border-gray-300 rounded-lg p-6 cursor-not-allowed text-left transition-all duration-200">
+                    class="payment-option w-full border-2 border-gray-300 rounded-lg p-6 text-left transition-all duration-200">
                     <div class="flex items-start gap-4">
                         <div class="flex-shrink-0 mt-1">
                             <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
@@ -185,6 +183,9 @@
                             <p class="text-sm text-gray-600">Pay using Paytm, PhonePe, Google Pay, or other wallets</p>
                         </div>
                     </div>
+                    <p class="text-gray-600 text-sm mt-1">Available Balance: ₹<%= walletBalance.toFixed(2) %>
+                    </p>
+
                 </button>
             </div>
 
@@ -211,6 +212,7 @@
         </div>
 </div>
 </form>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     let selectedMethod = null;
 
@@ -222,27 +224,104 @@
             option.querySelector('.radio-dot').classList.add('hidden');
         });
 
-
         const selectedOption = document.getElementById(method + 'Payment');
         selectedOption.classList.remove('border-gray-300');
         selectedOption.classList.add('border-yellow-400', 'bg-yellow-50');
         selectedOption.querySelector('.radio-dot').classList.remove('hidden');
 
-
         document.getElementById('proceedBtn').disabled = false;
         document.getElementById('proceedBtn').textContent = 'PLACE ORDER';
-
     }
 
-    document.getElementById('proceedBtn').addEventListener('click', function () {
+    document.getElementById('proceedBtn').addEventListener('click', async function () {
         if (!selectedMethod) {
             alert("Please select a payment method");
             return;
         }
 
-        document.getElementById('paymentMethod').value = selectedMethod.toLowerCase()
-        console.log("Submitting paymentMethod:", document.getElementById('paymentMethod').value);
+        const method = selectedMethod.toLowerCase();
+        const totalAmount = parseFloat('<%= total %>'); // total amount from EJS
+        const addressId = '<%= address._id %>';
 
-        document.getElementById('paymentForm').submit();
+        if (method === 'cod') {
+            // Just submit the form for COD
+            document.getElementById('paymentMethod').value = 'cod';
+            document.getElementById('paymentForm').submit();
+            return;
+        }
+            if (method === 'wallet') {
+            const res = await fetch('/success', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentMethod: method, totalAmount, addressId })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert('Payment done using wallet!');
+                window.location.href = data.redirect;
+            } else {
+                alert(data.message);
+            }
+            return;
+        }
+
+        // -----------------------------
+        // ONLINE PAYMENT (Razorpay)
+        // -----------------------------
+        try {
+            // Create order in backend
+            const res = await fetch('/success', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentMethod: method, totalAmount, addressId })
+            });
+            const data = await res.json();
+
+            if (!data.success) {
+                alert("Error creating order. Please try again.");
+                return;
+            }
+
+            const options = {
+                key: data.key, // Razorpay key from backend
+                amount: data.razorpayOrder.amount, // in paise
+                currency: data.razorpayOrder.currency,
+                name: "Pawsome",
+                description: "Order Payment",
+                order_id: data.razorpayOrder.id,
+                handler: async function (response) {
+                    // Verify payment in backend
+                    const verifyRes = await fetch('/verify-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                            orderId: data.orderId
+                        })
+                    });
+                    const verifyData = await verifyRes.json();
+                    alert(verifyData.message);
+                    if (verifyData.success) {
+                        window.location.href = '/orders'; // redirect after payment
+                    }
+                },
+                prefill: {
+                    name: "<%= user.name %>",
+                    email: "<%= user.email %>"
+                },
+                theme: { color: "#FBBF24" } // yellow theme
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+        } catch (err) {
+            console.error(err);
+            alert("Something went wrong with payment. Please try again.");
+        }
     });
+
+
 </script>

@@ -8,6 +8,7 @@ const categoryController = require("../controllers/categoryController");
 const productController = require("../controllers/productController");
 const uploadProductImages = require("../middlewares/multer");
 const orderController = require("../controllers/orderController");
+const couponController = require("../controllers/couponController");
 
 router.get("/login", isLogin, authController.loadAdminLogin);
 router.post("/login", isLogin, authController.postAdminLogin);
@@ -61,5 +62,13 @@ router.post(
   adminAuth,
   orderController.updateOrderStatus
 );
+
+router.get("/coupon", adminAuth,couponController.loadCouponPage);
+router.get("/coupons/create", adminAuth, couponController.loadCreateCouponPage);
+router.post("/coupons/create", adminAuth,couponController.createCoupon);
+router.get("/coupons/:id/edit", adminAuth, couponController.loadEditCoupon);
+router.post("/coupons/update/:id", adminAuth, couponController.updateCoupon);
+router.post("/coupons/delete/:id", adminAuth, couponController.deleteCoupon);
+
 
 module.exports = router;

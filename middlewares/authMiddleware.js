@@ -68,7 +68,6 @@ const isUser = (req, res, next) => {
 
     
     if (req.xhr || req.headers.accept?.includes("application/json")) {
-      console.log('reaching here')
       return res
         .status(401)
         .json({ success: false, message: "Please login to continue" });

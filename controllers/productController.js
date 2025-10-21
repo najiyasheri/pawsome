@@ -86,7 +86,6 @@ const addProduct = async (req, res) => {
       discountPercentage: parseFloat(req.body.discount) || 0,
       images,
     });
-    console.log(req.body);
     const savedProduct = await product.save();
     const variants = req.body.size.map((size, index) => ({
       productId: savedProduct._id,

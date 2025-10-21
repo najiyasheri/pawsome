@@ -26,19 +26,16 @@
                     <label for="order-status" class="font-medium text-gray-700">Order Status:</label>
                     <form action="/order/<%= order._id %>/update-status" method="POST"
                         class="flex gap-2 items-center">
-                        <select name="status" id="order-status"
-                            class="border border-gray-300 rounded-md px-4 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                            <%=disableStatus ? "disabled" : "" %>>
-                            <option value="Pending" <%=order.status==="Pending" ? "selected" : "" %>>Pending</option>
-                            <option value="Confirmed" <%=order.status==="Confirmed" ? "selected" : "" %>>Confirmed
-                            </option>
-                            <option value="Shipped" <%=order.status==="Shipped" ? "selected" : "" %>>Shipped</option>
-                            <option value="Delivered" <%=order.status==="Delivered" ? "selected" : "" %>>Delivered
-                            </option>
-                            <option value="Cancelled" <%=order.status==="Cancelled" ? "selected" : "" %>>Cancelled
-                            </option>
+                <span class="px-2 py-1 rounded 
+                  <%= order.status === 'Pending' ? ' text-yellow-800' : '' %>
+                  <%= order.status === 'Confirmed' ? ' text-blue-800' : '' %>
+                  <%= order.status === 'Shipped' ? ' text-purple-800' : '' %>
+                  <%= order.status === 'Delivered' ? ' text-green-800' : '' %>
+                  <%= order.status === 'Cancelled' ? ' text-red-800' : '' %>
+                ">
+                    <%= order.status %>
+                </span>
 
-                        </select>
 
 
 
@@ -88,11 +85,17 @@
                         <p class="font-medium text-gray-700">Subtotal: ₹<%= item.subtotal %>
                         </p>
 
-                        <% if (item.status==="Cancelled" ) { %>
-                            <p class="text-red-600 text-sm font-medium mt-2">
-                                Cancelled<br>
-                                <span class="text-gray-600">Reason: <%= item.cancellationReason || "N/A" %></span>
-                            </p>
+                    <% if (item.status==="Cancelled" ) { %>
+                        <p class="text-red-600 text-sm font-medium mt-2">
+                            Cancelled<br>
+                            <span class="text-gray-600">Reason: <%= item.cancellationReason || "N/A" %></span>
+                        </p>
+                        <% } else if (item.status==="Delivered" || order.status==="Delivered" ) { %>
+                            <button type="button"
+                                class="return-item-btn bg-yellow-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-yellow-600 transition"
+                                data-action="/order/<%= order._id %>/return-item/<%= item._id %>">
+                                Return Item
+                            </button>
                             <% } else { %>
                                 <button type="button"
                                     class="cancel-item-btn bg-red-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-600 transition"
@@ -100,6 +103,7 @@
                                     Cancel Item
                                 </button>
                                 <% } %>
+
                     </div>
 
                 </div>
@@ -178,6 +182,25 @@
         </div>
     </div>
 
+    <!-- Return Item Modal -->
+    <div id="returnModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+            <h3 class="text-lg font-semibold mb-4">Return Item</h3>
+            <form id="returnForm" method="POST">
+                <textarea name="reason" required placeholder="Enter reason for return..."
+                    class="w-full border border-gray-300 rounded-md p-2 mb-4 focus:outline-none focus:ring-1 focus:ring-yellow-500"></textarea>
+                <div class="flex justify-end gap-2">
+                    <button type="button" id="returnCloseBtn"
+                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Close</button>
+                    <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                        Confirm Return
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
@@ -207,6 +230,55 @@
             cancelForm.action = '';
             cancelForm.reset();
         });
+
+        // -------------------- Return Item Modal --------------------
+            const returnModal = document.getElementById('returnModal');
+            const returnForm = document.getElementById('returnForm');
+            const returnCloseBtn = document.getElementById('returnCloseBtn');
+
+            // Open modal when clicking "Return Item"
+            document.querySelectorAll('.return-item-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    returnForm.action = btn.dataset.action; // dynamically set form action URL
+                    returnModal.classList.remove('hidden');
+                });
+            });
+
+            // Close modal
+            returnCloseBtn.addEventListener('click', () => {
+                returnModal.classList.add('hidden');
+                returnForm.action = '';
+                returnForm.reset();
+            });
+
+            // Handle return submit
+            returnForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const action = returnForm.action;
+                const reason = returnForm.querySelector('textarea').value.trim();
+
+                if (!reason) return alert("Please provide a return reason.");
+
+                try {
+                    const response = await fetch(action, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ reason })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        alert('Return processed successfully!');
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Failed to process return.');
+                    }
+                } catch (err) {
+                    console.error('Return error:', err);
+                    alert('Error while processing return.');
+                }
+            });
+
 
 
 

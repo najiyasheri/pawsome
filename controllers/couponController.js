@@ -56,6 +56,34 @@ const createCoupon = async (req, res) => {
       usageLimit,
       minPurchase,
     } = req.body;
+if (!code || !discountValue || !validFrom || !validUntil) {
+  return res
+    .status(400)
+    .json({ success: false, message: "Please fill all required fields" });
+}
+
+const discountPattern = /^(\d{1,2}(\.\d+)?%?|100)$/;
+if (!discountPattern.test(discountValue)) {
+  return res
+    .status(400)
+    .json({ success: false, message: "Invalid discount value" });
+}
+
+if (new Date(validFrom) > new Date(validUntil)) {
+  return res
+    .status(400)
+    .json({
+      success: false,
+      message: "'Valid From' cannot be after 'Valid Until'",
+    });
+}
+
+if (minPurchase < 0) {
+  return res
+    .status(400)
+    .json({ success: false, message: "Minimum purchase cannot be negative" });
+}
+
 
     const existing = await Coupon.findOne({ code });
     if (existing) {
@@ -71,8 +99,8 @@ const createCoupon = async (req, res) => {
       minPurchase,
     });
 
-    await newCoupon.save();
-    res.redirect("/admin/coupon");
+   await newCoupon.save();
+   res.status(200).json({ success: true, redirect: "/admin/coupon" });
   } catch (error) {
     console.log("Error creating coupon:", error);
     res.status(500).send("Internal Server Error");

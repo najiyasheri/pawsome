@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,52 +11,103 @@
 
 <body>
   <main class="px-8 py-6 bg-gray-100 min-h-screen">
-    <h1 class="text-3xl font-bold mb-6 text-gray-800">📊 Sales Dashboard</h1>
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">Sales Dashboard</h1>
 
-  <% if (typeof error !=='undefined' && error) { %>
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-      <%= error %>
+    <!-- Filter Section -->
+    <div
+      class="bg-white p-4 rounded-2xl shadow-md mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <label for="dateFilter" class="font-semibold text-gray-700">Filter:</label>
+        <select id="dateFilter"
+          class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <option value="daily" <%=(filter==='daily' || !filter) ? 'selected' : '' %>>Daily</option>
+          <option value="weekly" <%=filter==='weekly' ? 'selected' : '' %>>Weekly</option>
+          <option value="monthly" <%=filter==='monthly' ? 'selected' : '' %>>Monthly</option>
+          <option value="yearly" <%=filter==='yearly' ? 'selected' : '' %>>Yearly</option>
+          <option value="custom" <%=filter==='custom' ? 'selected' : '' %>>Custom</option>
+        </select>
+      </div>
+
+          <!-- Download Buttons -->
+          <div class="flex items-center gap-3">
+            <button id="downloadPDF"
+              class="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download PDF
+            </button>
+            <button id="downloadExcel"
+              class="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download Excel
+            </button>
+          </div>
+
+      <!-- Custom Date Range -->
+      <div id="customDateContainer" class="<%= filter === 'custom' ? 'flex' : 'hidden' %> items-center gap-3">
+        <label for="startDate" class="text-gray-600 text-sm">From:</label>
+        <input type="date" id="startDate" value="<%= startDate || '' %>"
+          max="<%= new Date().toISOString().split('T')[0] %>" class="border border-gray-300 rounded-lg px-2 py-1">
+        <label for="endDate" class="text-gray-600 text-sm">To:</label>
+        <input type="date" id="endDate" value="<%= endDate || '' %>" max="<%= new Date().toISOString().split('T')[0] %>"
+          class="border border-gray-300 rounded-lg px-2 py-1">
+        <button id="applyCustomFilter"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Apply</button>
+      </div>
     </div>
-    <% } %>
-     
+
+    <% if (typeof error !=='undefined' && error) { %>
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+        <%= error %>
+      </div>
+      <% } %>
+
+        <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div class="bg-white shadow-lg p-6 rounded-2xl">
             <p class="text-gray-500 text-sm">Total Sales</p>
-            <p class="text-3xl font-bold text-yellow-600">
+            <p id="totalSales" class="text-3xl font-bold text-yellow-600">
               ₹<%= summary?.totalSales?.toLocaleString() ?? '0' %>
             </p>
           </div>
 
           <div class="bg-white shadow-lg p-6 rounded-2xl">
             <p class="text-gray-500 text-sm">Total Orders</p>
-            <p class="text-3xl font-bold text-blue-600">
+            <p id="totalOrders" class="text-3xl font-bold text-blue-600">
               <%= summary?.totalOrders ?? 0 %>
             </p>
           </div>
 
           <div class="bg-white shadow-lg p-6 rounded-2xl">
             <p class="text-gray-500 text-sm">Total Discount</p>
-            <p class="text-3xl font-bold text-red-500">
+            <p id="totalDisc" class="text-3xl font-bold text-red-500">
               ₹<%= summary?.totalDiscount?.toLocaleString() ?? '0' %>
             </p>
           </div>
         </div>
 
- 
+        <!-- Sales Trend Chart -->
         <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
           <h2 class="text-xl font-semibold mb-4 text-gray-700">Sales Trend</h2>
           <canvas id="salesTrendChart"></canvas>
         </div>
 
-      <div class="bg-white p-6 rounded-2xl shadow-lg mb-8 ">
-        <h2 class="text-xl font-semibold mb-4 text-gray-700">Payment Method Breakdown</h2>
-        <div class=" justify-items-center w-full h-40 md:h-48">
-          <canvas  id="paymentMethodChart"></canvas>
+        <!-- Payment Method Chart -->
+        <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">Payment Method Breakdown</h2>
+          <div class="justify-items-center w-full h-40 md:h-48">
+            <canvas id="paymentMethodChart"></canvas>
+          </div>
         </div>
-      </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-     
+        <!-- Top Products and Customers -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <!-- Top Products -->
           <div class="bg-white shadow-lg p-6 rounded-2xl">
             <h2 class="text-lg font-semibold mb-4">Top Products</h2>
             <% if (topProducts.length===0) { %>
@@ -89,7 +139,7 @@
                 <% } %>
           </div>
 
-       
+          <!-- Top Customers -->
           <div class="bg-white shadow-lg p-6 rounded-2xl">
             <h2 class="text-lg font-semibold mb-4">Top Customers</h2>
             <% if (topCustomers.length===0) { %>
@@ -121,13 +171,16 @@
                 <% } %>
           </div>
         </div>
+
+        <!-- Daily Sales Chart -->
         <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
-          <h2 class="text-xl font-semibold mb-4 text-gray-700">Daily Sales (Last 7 Days)</h2>
+          <h2 class="text-xl font-semibold mb-4 text-gray-700">Daily Sales</h2>
           <canvas id="salesReportChart"></canvas>
         </div>
-   
+
+        <!-- Sales Report Table -->
         <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
-          <h2 class="text-lg font-semibold mb-4 text-gray-700">Sales Report (Last 7 Days)</h2>
+          <h2 class="text-lg font-semibold mb-4 text-gray-700">Sales Report</h2>
           <% if (salesReport.length===0) { %>
             <p class="text-gray-500">No sales data available.</p>
             <% } else { %>
@@ -160,37 +213,43 @@
               <% } %>
         </div>
 
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+        
+        <!-- SheetJS for Excel generation -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-      <script>
-        const salesReportData = JSON.parse('<%- JSON.stringify(salesReport || []) %>');
+        <script>
+          const salesReportData = JSON.parse('<%- JSON.stringify(salesReport || []) %>');
+          const labels = salesReportData.map(r => r._id);
+          const sales = salesReportData.map(r => r.totalSales);
 
-        const labels = salesReportData.map(r => r._id);       
-        const sales = salesReportData.map(r => r.totalSales); 
-
-        const ctx = document.getElementById('salesReportChart').getContext('2d');
-        new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'Total Sales (₹)',
-              data: sales,
-              backgroundColor: 'rgba(34,197,94,0.7)',
-            }]
-          },
-          options: {
-            responsive: true,
-            scales: {
-              y: { beginAtZero: true }
+          const ctx = document.getElementById('salesReportChart').getContext('2d');
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Total Sales (₹)',
+                data: sales,
+                backgroundColor: 'rgba(34,197,94,0.7)',
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: { beginAtZero: true }
+              }
             }
-          }
-        });
-        const salesTrends = JSON.parse('<%- JSON.stringify(salesTrends || []) %>');
-        const paymentMethods = JSON.parse('<%- JSON.stringify(paymentMethods || []) %>');
-      </script>
-      <script src="/js/dashboardChart.js"></script>
+          });
 
+          const salesTrends = JSON.parse('<%- JSON.stringify(salesTrends || []) %>');
+          const paymentMethods = JSON.parse('<%- JSON.stringify(paymentMethods || []) %>');
+           const salesReport = JSON.parse('<%- JSON.stringify(salesReport || []) %>');
+        </script>
+        
+        <script src="/js/dashboardChart.js"></script>
   </main>
 </body>
 

@@ -628,6 +628,7 @@ const retryPayment = async (req, res) => {
         .json({ success: false, message: "Order not found" });
     }
 
+
     if (order.status !== "Pending" && order.status !== "Cancelled") {
       return res.status(400).json({
         success: false,
@@ -680,20 +681,19 @@ const retryPayment = async (req, res) => {
 
     const razorpayOrder = await razorpay.orders.create({
       amount: Math.round(finalAmount * 100), 
-      currency: "INR",
       receipt: `order_${order.orderId}_${Date.now()}`,
     });
 
- 
+   
     order.paymentMethod = "ONLINE";
     order.discountAmount = discountAmount;
     order.finalAmount = finalAmount;
     order.couponId = couponId;
     order.status = "Pending"; 
-    order.cancellationReason = null; 
+    order.cancellationReason = null;
     await order.save();
 
- 
+
     if (couponId) {
       await Coupon.updateOne(
         { _id: couponId },
@@ -701,7 +701,7 @@ const retryPayment = async (req, res) => {
       );
     }
 
-
+    
     return res.json({
       success: true,
       key: process.env.RAZORPAY_KEY_ID,

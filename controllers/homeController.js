@@ -135,8 +135,21 @@ const loadHomepage = async (req, res) => {
 
 const loadDashboard = async (req, res) => {
   try {
+    const { filter = "daily", startDate, endDate } = req.query;
+
+    const dateRange = calculateDateRange(filter, startDate, endDate);
+
+  
+    const dateMatchCondition = dateRange
+      ? {
+          status: { $nin: ["Cancelled", "Returned"] },
+          createdAt: { $gte: dateRange.start, $lte: dateRange.end },
+        }
+      : { status: { $nin: ["Cancelled", "Returned"] } };
+
+   
     const summaryResult = await Order.aggregate([
-      { $match: { status: { $nin: ["Cancelled", "Returned"] } } },
+      { $match: dateMatchCondition },
       {
         $group: {
           _id: null,
@@ -151,10 +164,9 @@ const loadDashboard = async (req, res) => {
       totalSales: 0,
       totalDiscount: 0,
     };
-    console.log("Summary:", summary);
 
     const paymentMethods = await Order.aggregate([
-      { $match: { status: { $nin: ["Cancelled", "Returned"] } } },
+      { $match: dateMatchCondition },
       {
         $group: {
           _id: "$paymentMethod",
@@ -162,28 +174,24 @@ const loadDashboard = async (req, res) => {
           count: { $sum: 1 },
         },
       },
+      { $sort: { totalSales: -1 } },
     ]);
-    console.log("Payment Methods:", paymentMethods);
 
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const trendFormat = getTrendFormat(filter);
     const salesTrends = await Order.aggregate([
-      {
-        $match: {
-          status: { $nin: ["Cancelled", "Returned"] },
-          createdAt: { $gte: sevenDaysAgo },
-        },
-      },
+      { $match: dateMatchCondition },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          _id: { $dateToString: { format: trendFormat, date: "$createdAt" } },
           totalSales: { $sum: "$finalAmount" },
+          ordersCount: { $sum: 1 },
         },
       },
       { $sort: { _id: 1 } },
     ]);
-    console.log("Sales Trends:", salesTrends);
 
     const topProducts = await Order.aggregate([
+      { $match: dateMatchCondition },
       { $unwind: "$items" },
       { $match: { "items.status": { $ne: "Cancelled" } } },
       {
@@ -196,10 +204,10 @@ const loadDashboard = async (req, res) => {
       { $sort: { totalSold: -1 } },
       { $limit: 5 },
     ]);
-    console.log("Top Products:", topProducts);
+
 
     const topCustomers = await Order.aggregate([
-      { $match: { status: { $nin: ["Cancelled", "Returned"] } } },
+      { $match: dateMatchCondition },
       {
         $group: {
           _id: "$userId",
@@ -227,15 +235,9 @@ const loadDashboard = async (req, res) => {
         },
       },
     ]);
-    console.log("Top Customers:", topCustomers);
 
     const salesReport = await Order.aggregate([
-      {
-        $match: {
-          status: { $nin: ["Cancelled", "Returned"] },
-          createdAt: { $gte: sevenDaysAgo },
-        },
-      },
+      { $match: dateMatchCondition },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
@@ -251,6 +253,9 @@ const loadDashboard = async (req, res) => {
       title: "Sales Dashboard",
       layout: "layouts/adminLayout",
       error: null,
+      filter,
+      startDate: startDate || "",
+      endDate: endDate || "",
       summary,
       paymentMethods: paymentMethods || [],
       salesTrends: salesTrends || [],
@@ -262,17 +267,81 @@ const loadDashboard = async (req, res) => {
     console.error("Dashboard Error:", error);
     res.status(500).render("admin/dashboard", {
       title: "Sales Dashboard",
+      layout: "layouts/adminLayout",
       error: "Failed to load dashboard data",
+      filter: req.query.filter || "daily",
+      startDate: req.query.startDate || "",
+      endDate: req.query.endDate || "",
       summary: { totalOrders: 0, totalSales: 0, totalDiscount: 0 },
       paymentMethods: [],
       salesTrends: [],
       topProducts: [],
       topCustomers: [],
+      salesReport: [],
     });
   }
 };
 
+function calculateDateRange(filter, startDate, endDate) {
+  const now = new Date();
+  let start, end;
 
+  switch (filter) {
+    case "daily":
+
+      start = new Date(now.setHours(0, 0, 0, 0));
+      end = new Date(now.setHours(23, 59, 59, 999));
+      break;
+
+    case "weekly":
+      end = new Date();
+      start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
+      break;
+
+    case "monthly":
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      break;
+
+    case "yearly":
+      start = new Date(now.getFullYear(), 0, 1);
+      end = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+      break;
+
+    case "custom":
+      if (startDate && endDate) {
+        start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+      } else {
+        end = new Date();
+        start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
+      }
+      break;
+
+    default:
+      end = new Date();
+      start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
+  }
+
+  return { start, end };
+}
+
+function getTrendFormat(filter) {
+  switch (filter) {
+    case "daily":
+      return "%Y-%m-%d %H:00"; 
+    case "weekly":
+    case "custom":
+      return "%Y-%m-%d"; 
+      return "%Y-%m-%d"; 
+    case "yearly":
+      return "%Y-%m"; 
+    default:
+      return "%Y-%m-%d";
+  }
+}
 
 
 module.exports = {

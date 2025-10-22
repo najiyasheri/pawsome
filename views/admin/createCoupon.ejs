@@ -4,16 +4,16 @@
         <h2 class="text-2xl font-semibold mb-6 text-center">Create New Coupon</h2>
 
         <form action="/admin/coupons/create" method="POST" class="space-y-4">
-            <input type="text" name="code" placeholder="Coupon Code" required
+            <input type="text" name="code" placeholder="Coupon Code" 
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
 
-            <input type="text" name="discountValue" placeholder="Discount Value (e.g., 10%)" required
+            <input type="text" name="discountValue" placeholder="Discount Value (e.g., 10%)" 
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
 
             <div class="flex gap-3">
-                <input type="date" name="validFrom" placeholder="Valid From" required
+                <input type="date" name="validFrom" placeholder="Valid From" 
                     class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
-                <input type="date" name="validUntil" placeholder="Valid Until" required
+                <input type="date" name="validUntil" placeholder="Valid Until" 
                     class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
             </div>
 
@@ -29,4 +29,92 @@
             </button>
         </form>
     </main>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    const form = document.querySelector("form[action='/admin/coupons/create']");
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const code = form.code.value.trim();
+        const discountValue = form.discountValue.value.trim();
+        const validFrom = form.validFrom.value;
+        const validUntil = form.validUntil.value;
+        const minPurchase = parseFloat(form.minPurchase.value) || 0;
+
+        
+        if (!code || !discountValue || !validFrom || !validUntil) {
+            return Swal.fire({
+                icon: "error",
+                title: "Missing Fields",
+                text: "Please fill all required fields."
+            });
+        }
+
+        const discountPattern = /^(\d{1,2}(\.\d+)?%?|100)$/;
+        if (!discountPattern.test(discountValue)) {
+            return Swal.fire({
+                icon: "error",
+                title: "Invalid Discount",
+                text: "Discount must be a number or percentage (e.g., 10 or 10%)."
+            });
+        }
+
+        if (new Date(validFrom) > new Date(validUntil)) {
+            return Swal.fire({
+                icon: "error",
+                title: "Invalid Dates",
+                text: "'Valid From' cannot be after 'Valid Until'."
+            });
+        }
+
+        if (minPurchase < 0) {
+            return Swal.fire({
+                icon: "error",
+                title: "Invalid Minimum Purchase",
+                text: "Minimum purchase amount cannot be negative."
+            });
+        }
+
+        try {
+            const res = await fetch("/admin/coupons/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code, discountValue, validFrom, validUntil, minPurchase }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                return Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: data.message || "Something went wrong."
+                });
+            }
+
+            if (data.success) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Coupon Created",
+                    text: "The coupon has been created successfully."
+                }).then(() => {
+                    window.location.href = data.redirect;
+                });
+            }
+
+
+        } catch (err) {
+            console.error(err);
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Something went wrong."
+            });
+        }
+    });
+</script>
+
+
 

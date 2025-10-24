@@ -12,18 +12,15 @@
         <ul class="flex space-x-8">
           <li><a href="/" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors duration-300">Home</a></li>
           <li><a href="/products" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors duration-300">Products</a></li>
-          <li><a href="#about_us" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors duration-300 ">About</a></li>
-          <li><a href="#contact" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors duration-300">Contact</a></li>
+          <li><a href="#" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors duration-300 ">About</a></li>
+          <li><a href="#" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors duration-300">Contact</a></li>
         </ul>
       </nav>
 
       <!-- Right Section -->
       <div class="flex items-center space-x-6">
         <% if (user) { %>
-          <!-- Profile -->
-          <a href="/profile" class="text-gray-700 hover:text-[#F9C22A] text-xl">
-            <i class="fas fa-user"></i>
-          </a>
+     
 
           <!-- Favorites -->
           <a href="/wishlist" class="text-gray-700 hover:text-[#F9C22A] text-xl">
@@ -35,6 +32,11 @@
             <i class="fas fa-shopping-cart"></i>
           </a>
 
+              <!-- Profile -->
+              <a href="/profile" class="text-gray-700 hover:text-[#F9C22A] text-xl">
+                <i class="fas fa-user"></i>
+              </a>
+              
           <!-- Logout -->
           <a href="/logout" class="bg-[#F9C22A] text-black py-2 px-4 rounded-full hover:bg-[#d4a81f] transition-colors duration-300 no-underline">
             Logout

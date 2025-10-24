@@ -9,9 +9,9 @@
 
     <!-- Content Area -->
     <main class="flex-1 sm:ml-64 p-2">
-        
+
         <div class="w-full p-6  bg-white shadow rounded-lg mx-auto">
-                <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3 ">My Address</h1>
+            <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3 ">My Address</h1>
             <% if (addresses && addresses.length> 0) { %>
                 <% addresses.forEach((addr)=> { %>
                     <label class="block border rounded-lg  p-4 mb-4 cursor-pointer hover:border-yellow-500 transition">
@@ -61,7 +61,7 @@
 
         <!-- Add New Address Button -->
         <div class="flex justify-center my-6">
-            <button id="showFormBtn" class="flex items-center text-yellow-600 font-medium hover:underline">
+            <button id="showFormBtn" class="flex items-center text-yellow-600 font-medium ">
                 <span
                     class="w-6 h-6 flex items-center justify-center border border-yellow-500 rounded-full text-yellow-500 mr-2">+</span>
                 Add New Address
@@ -102,12 +102,12 @@
                         </label>
                     </div>
 
-                    <div class="flex justify-between mt-3">
+                    <div class="flex gap-2 mt-3">
                         <button type="submit"
-                            class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Save
+                            class="px-4 py-2 bg-yellow-500 text-gray-900 font-medium rounded-lg hover:bg-yellow-600">Save
                             Address</button>
                         <button type="button" id="cancelFormBtn"
-                            class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Cancel</button>
+                            class="px-4 py-2 bg-white text-gray-800 rounded-lg hover:bg-gray-100">Cancel</button>
                     </div>
             </div>
             </form>
@@ -233,7 +233,7 @@
         Swal.fire({
             icon: 'success',
             title: 'Address Updated!',
-            text: 'Your address has been validated successfully.',
+            text: 'Your address has been updated successfully.',
             showConfirmButton: false,
             timer: 1200
         }).then(() => {

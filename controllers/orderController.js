@@ -554,8 +554,9 @@ const returnSingleItem = async (req, res) => {
       });
 
     // 1️⃣ Update item status
-    item.status = "Returned";
-    item.returnReason = reason || "No reason provided";
+item.status = "Returned";
+item.returnStatus = "Returned"; // ✅ Add this line
+item.returnReason = reason || "No reason provided";;
 
     // 2️⃣ Restock product or variant
     const product = await Product.findById(item.productId);

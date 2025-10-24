@@ -39,16 +39,12 @@
                 ">
                             <%= order.status %>
                         </span>
-
-
-
-
                     </form>
                 </div>
 
 
         </div>
-        <button id="downloadInvoiceBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+        <button id="downloadInvoiceBtn" class="bg-yellow-300 text-white px-4 py-2 rounded-md hover:bg-yellow-400"
             data-order='<%- JSON.stringify(order).replace(/' /g, "&apos;" ) %>'>
             Download Invoice
         </button>
@@ -95,21 +91,28 @@
                                 <span class="text-gray-600">Reason: <%= item.cancellationReason || "N/A" %></span>
                             </p>
                             <% } else if (item.status==="Delivered" || order.status==="Delivered" ) { %>
-                                <button type="button"
-                                    class="return-item-btn bg-yellow-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-yellow-600 transition"
-                                    data-action="/order/<%= order._id %>/return-item/<%= item._id %>">
-                                    Return Item
-                                </button>
-                                <% } else { %>
+                                <% if (item.returnStatus==="Returned" || item.status==="Returned" ) { %>
                                     <button type="button"
-                                        class="cancel-item-btn bg-red-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-600 transition"
-                                        data-action="/order/<%= order._id %>/cancel-item/<%= item._id %>">
-                                        Cancel Item
+                                        class="bg-gray-400 text-white px-4 py-1.5 rounded-md text-sm font-medium cursor-not-allowed"
+                                        disabled>
+                                        Returned
                                     </button>
-                                    <% } %>
+                                    <% } else { %>
+                                        <button type="button"
+                                            class="return-item-btn bg-yellow-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-yellow-600 transition"
+                                            data-action="/order/<%= order._id %>/return-item/<%= item._id %>">
+                                            Return Item
+                                        </button>
+                                        <% } %> 
+                                            <% } else { %>
 
+                                                <button type="button"
+                                                    class="cancel-item-btn bg-red-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-600 transition"
+                                                    data-action="/order/<%= order._id %>/cancel-item/<%= item._id %>">
+                                                    Cancel Item
+                                                </button>
+                                                <% } %>
                     </div>
-
                 </div>
                 <% }) %>
         </div>
@@ -141,8 +144,6 @@
         </div>
     </div>
 
-
-    <!-- Cancel Entire Order or Single Items -->
     <!-- Cancel Entire Order Button -->
     <% if (order.status !=="Cancelled" ) { %>
         <div class="mt-8 text-center">
@@ -175,12 +176,6 @@
                         </button>
                     </div>
                     <% } %>
-
-
-
-
-
-
 
                         <!-- Cancellation Modal -->
                         <div id="cancelModal"
@@ -305,7 +300,7 @@
 
 
 
-                          // Enhanced Download Invoice logic
+                            // Enhanced Download Invoice logic
                             const downloadBtn = document.getElementById("downloadInvoiceBtn");
 
                             if (!window.jspdf || !window.jspdf.jsPDF) {
@@ -332,7 +327,7 @@
                                         let y = 20;
 
                                         // Colors
-                                        const primaryColor = [255, 191, 0]; 
+                                        const primaryColor = [255, 191, 0];
                                         const secondaryColor = [52, 73, 94]; // Dark gray
                                         const lightGray = [236, 240, 241];
                                         const successColor = [39, 174, 96];
@@ -551,7 +546,7 @@
                                             body: JSON.stringify({ orderId, totalAmount, addressId, couponCode })
                                         });
                                         const data = await res.json();
-                                        
+
                                         if (!data.success) {
                                             alert("Error initiating retry payment. Please try again.");
                                             return;

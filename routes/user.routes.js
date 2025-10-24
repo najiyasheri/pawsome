@@ -115,12 +115,12 @@ router.post("/wishlist/moveToCart", isUser, wishlistController.moveToCart);
 
 router.post("/verify-payment",isUser,paymentController.verifyPayment);
 
-router.get("/wallet", walletController.loadWallet);
-router.post("/wallet/add-money", walletController.addMoney);
-router.post("/wallet/verify-payment", walletController.verifyWalletPayment);
-router.get("/wallet/transactions", walletController.walletTransactions);
+router.get("/wallet",isUser, walletController.loadWallet);
+router.post("/wallet/add-money",isUser, walletController.addMoney);
+router.post("/wallet/verify-payment",isUser, walletController.verifyWalletPayment);
+router.get("/wallet/transactions",isUser, walletController.walletTransactions);
 
 router.post("/apply-coupon",isUser,couponController.applyCoupon);
-router.post("/retry-payment", orderController.retryPayment);
+router.post("/retry-payment", isUser,orderController.retryPayment);
 
 module.exports = router;

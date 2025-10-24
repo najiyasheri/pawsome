@@ -68,7 +68,7 @@
             <input id="emailInput" name="email" type="email" value="<%= user.email %>" disabled
                class="w-full border rounded-lg px-4 py-2 pr-20 bg-gray-100 text-gray-600 cursor-not-allowed">
             <button id="editEmailBtn" type="button"
-               class="absolute mt-2.5 top-1/2 right-2 transform -translate-y-1/2 bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500 text-sm">
+               class="absolute mt-2.5 top-1/2 right-2 transform -translate-y-1/2 bg-yellow-400 text-white px-3 py-1 rounded-lg hover:bg-yellow-500 text-sm">
                Change
             </button>
          </div>
@@ -106,10 +106,10 @@
 
          <div class="flex justify-end space-x-4 pt-4">
             <button type="button" id="cancelEditBtn"
-               class="px-6 py-2 border border-gray-400 rounded-lg text-gray-600 hover:bg-gray-100">
+               class="px-6 py-2 border border-gray-400 rounded-lg text-gray-800 hover:bg-gray-100">
                Cancel
             </button>
-            <button type="submit" class="px-6 py-2 bg-yellow-400 text-white rounded-lg hover:bg-yellow-500">
+            <button type="submit" class="px-6 py-2 bg-yellow-400 text-black font-medium rounded-lg hover:bg-yellow-500">
                Save Changes
             </button>
          </div>
@@ -134,7 +134,7 @@
          </div>
          <div class="mb-3">
             <button type="button" id="sendOtpBtn"
-               class="w-full bg-yellow-400 text-white py-2 rounded-lg hover:bg-yellow-500">Send OTP</button>
+               class="w-full bg-yellow-400 text-black py-2 rounded-lg hover:bg-yellow-500">Send OTP</button>
          </div>
          <div id="otpSection" class="hidden">
             <label class="block text-sm font-medium text-gray-600">Enter OTP</label>

@@ -109,7 +109,7 @@ const loadPayment = async (req, res) => {
   }
 };
 
-const processPayment = async (req, res) => {
+const   processPayment = async (req, res) => {
   try {
     const { paymentMethod, addressId, couponCode } = req.body;
     const method = (paymentMethod || "").toLowerCase();
@@ -346,7 +346,8 @@ const verifyPayment = async (req, res) => {
 
       await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
 
-      res.json({ success: true, message: "Payment successful!" });
+      // res.json({ success: true, message: "Payment successful!" });
+       res.render('user/orderSuccess')
     } else {
       res
         .status(400)

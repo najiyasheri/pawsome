@@ -86,7 +86,7 @@
         <button 
   type="button"
   onclick=<%= p.existingInCart ? 'window.location.href=\'/cart\'' : 'addToCart(this)' %>
-  class="add-cart text-gray-900 <%= p.existingInCart ? 'bg-yellow-700 hover:bg-yellow-800 text-black' : 'bg-yellow-500 hover:bg-yellow-600' %> focus:ring-4 focus:outline-none focus:ring-yellow-300
+  class="add-cart text-gray-900 <%= p.existingInCart ? 'bg-yellow-600 hover:bg-yellow-700 text-black' : 'bg-yellow-500 hover:bg-yellow-600' %> focus:ring-4 focus:outline-none focus:ring-yellow-300
          font-medium rounded-lg text-sm px-3 py-2.5 text-center"
   data-product-id="<%= p._id %>" 
   data-variant-id="<%= p.selectedVariant?._id %>" 

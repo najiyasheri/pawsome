@@ -13,7 +13,7 @@ const addressController=require('../controllers/addressController')
 const paymentController=require('../controllers/paymentContoller')
 const orderController=require('../controllers/orderController')
 const profileOtpController=require('../controllers/profileOtpController')
-const { requireCartNotEmpty } = require("../middlewares/checkoutMiddleware");
+const { requireCartNotEmpty,isInCheckout } = require("../middlewares/checkoutMiddleware");
 const wishlistController=require('../controllers/wishlistController')
 const walletController = require("../controllers/walletController");
 
@@ -65,8 +65,12 @@ router.post("/myAddress/delete/:id", isUser,addressController.deleteAddress);
 // router.get("/shipping", isUser,shippingController.loadShipping);
 // router.post("/shipping/save",isUser, shippingController.saveShipping);
 
-router.get('/payment',isUser,requireCartNotEmpty,paymentController.loadPayment)
-router.post("/success", isUser,paymentController.processPayment);
+router.get("/payment",isUser,requireCartNotEmpty,isInCheckout,paymentController.loadPayment);
+router.post("/payment", isUser,isInCheckout,paymentController.processPayment);
+
+router.get("/success/:orderId",isUser,isInCheckout,paymentController.loadSuccessPage);
+router.post("/payment-failed", paymentController.markPaymentFailed);
+
 
 router.get("/orders",isUser, orderController.loadUserOrders);
 

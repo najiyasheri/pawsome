@@ -42,6 +42,17 @@
                         <%= order.status %>
                       </span>
                     </p>
+                    <p>
+                      <strong>Payment Status:</strong>
+                      <span class="
+                        <%= order.paymentStatus === 'Failed' ? 'text-red-600' : '' %>
+                        <%= order.paymentStatus === 'Pending' ? 'text-yellow-600' : '' %>
+                        <%= order.paymentStatus === 'Paid' ? 'text-green-600' : '' %>
+                      ">
+                        <%= order.paymentStatus %>
+                      </span>
+                    </p>
+
 
                     <!-- ✅ Order Status Badge -->
 

@@ -13,6 +13,19 @@
             <p><strong>Payment Method:</strong>
                 <%= order.paymentMethod %>
             </p>
+
+            <p>
+                <strong>Payment Status:</strong>
+                <span class="
+                <%= order.paymentStatus === 'Failed' ? 'text-red-600' : '' %>
+                <%= order.paymentStatus === 'Pending' ? 'text-yellow-600' : '' %>
+                <%= order.paymentStatus === 'Paid' ? 'text-green-600' : '' %>
+              ">
+                    <%= order.paymentStatus %>
+                </span>
+            </p>
+
+
             <p><strong>Total:</strong> ₹<%= order.totalAmount %>
             </p>
 
@@ -103,15 +116,15 @@
                                             data-action="/order/<%= order._id %>/return-item/<%= item._id %>">
                                             Return Item
                                         </button>
-                                        <% } %> 
-                                            <% } else { %>
-
+                                        <% } %>
+                                            <% } else if (order.paymentStatus !=="Failed" ) { %>
                                                 <button type="button"
                                                     class="cancel-item-btn bg-red-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-600 transition"
                                                     data-action="/order/<%= order._id %>/cancel-item/<%= item._id %>">
                                                     Cancel Item
                                                 </button>
                                                 <% } %>
+
                     </div>
                 </div>
                 <% }) %>
@@ -145,7 +158,7 @@
     </div>
 
     <!-- Cancel Entire Order Button -->
-    <% if (order.status !=="Cancelled" ) { %>
+    <% if (order.status !=="Cancelled" && order.paymentStatus !=="Failed" ) { %>
         <div class="mt-8 text-center">
             <button type="button"
                 class="cancel-order-btn bg-red-600 text-white px-5 py-2 rounded-md font-medium hover:bg-red-700 transition"
@@ -153,7 +166,7 @@
                 Cancel Entire Order
             </button>
         </div>
-        <% } else { %>
+        <% } else if (order.status==="Cancelled" ) { %>
             <div class="mt-8 text-center">
                 <p class="text-red-600 font-semibold">
                     Entire Order Cancelled
@@ -163,6 +176,7 @@
                 </p>
             </div>
             <% } %>
+
 
 
                 <% if ( order.status==="Pending" && order.paymentMethod !=='COD' ) { %>

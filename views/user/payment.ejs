@@ -333,7 +333,7 @@
         // ONLINE PAYMENT (Razorpay)
         // -----------------------------
         try {
-            const res = await fetch('/success', {
+            const res = await fetch('/payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ paymentMethod: method, totalAmount, addressId, couponCode })
@@ -352,6 +352,7 @@
                 name: "Pawsome",
                 description: "Order Payment",
                 order_id: data.razorpayOrder.id,
+                retry: false,
                 handler: async function (response) {
                     const verifyRes = await fetch('/verify-payment', {
                         method: 'POST',
@@ -361,13 +362,12 @@
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_signature: response.razorpay_signature,
                             orderId: data.orderId,
-                            couponCode // Include coupon in verification
+                            couponCode 
                         })
                     });
                     const verifyData = await verifyRes.json();
-                    alert(verifyData.message);
                     if (verifyData.success) {
-                        window.location.href = '/orders';
+                        window.location.href = `/success/${verifyData.orderId}`
                     }
                 },
                 prefill: {
@@ -379,11 +379,29 @@
 
             const rzp = new Razorpay(options);
             rzp.open();
+
+            rzp.on('payment.failed', async function (response) {
+                console.error("Payment failed:", response.error);
+
+               
+                await fetch('/payment-failed', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId: data.orderId })
+                });
+
+               
+                window.location.href = "/orders";
+            });
+
+            rzp.open();
+
         } catch (err) {
             console.error(err);
             alert("Something went wrong with payment. Please try again.");
         }
     });
+
     const subtotal = parseFloat('<%= subtotal %>');
     const deliveryCharge = parseFloat('<%= deliveryCharge %>');
 
@@ -497,11 +515,11 @@
 
     const clearCoupon = document.getElementById('clearCoupon');
     clearCoupon.addEventListener('click', () => {
-  
+
         couponInput.value = '';
         couponInput.focus();
 
-      
+
         applyCouponBtn.textContent = 'Apply';
         applyCouponBtn.disabled = false;
         applyCouponBtn.classList.remove('cursor-not-allowed');
@@ -515,18 +533,18 @@
         document.getElementById('totalAmount').textContent = `₹${resetTotal.toFixed(2)}`;
         document.getElementById('totalPrice').textContent = `₹${resetTotal.toFixed(2)}`;
 
-     
+
         document.querySelectorAll('.apply-coupon-btn').forEach(btn => {
             btn.textContent = 'Apply';
             btn.disabled = false;
             btn.classList.remove('cursor-not-allowed');
         });
 
-      
+
         const hiddenCoupon = document.querySelector('input[name="couponCode"]');
         if (hiddenCoupon) hiddenCoupon.remove();
 
-       
+
         Swal.fire({
             icon: 'info',
             title: 'Coupon Cleared',

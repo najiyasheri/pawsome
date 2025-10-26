@@ -220,6 +220,8 @@ const processPayment = async (req, res) => {
     }
 
     if (method === "cod") {
+      newOrder.paymentStatus = "Pending";
+      newOrder.status = "Confirmed"; 
       await newOrder.save();
       for (const item of embeddedItems) {
         const product = await Product.findById(item.productId);
@@ -237,7 +239,8 @@ const processPayment = async (req, res) => {
       }
       cart.items = [];
       await cart.save();
-      return res.redirect(`/success/:${newOrder._id}`);
+      console.log('reaching',newOrder)
+      return res.status(200).json({ success:true,orderId:newOrder._id});
     }
 
     if (method === "wallet") {
@@ -267,12 +270,13 @@ const processPayment = async (req, res) => {
         transactionType: "debit",
         amount: total,
         orderId: newOrderId,
-        description: `Payment for order ${orderId}`,
+        description: `Payment for order ${newOrder._id}`,
         balanceAfter: wallet.balance,
         status: "completed",
       });
 
       newOrder.status = "Confirmed";
+      newOrder.paymentStatus= "Success"
       await newOrder.save();
 
       for (const item of embeddedItems) {
@@ -292,12 +296,7 @@ const processPayment = async (req, res) => {
 
       cart.items = [];
       await cart.save();
-
-      return res.json({
-        success: true,
-        message: "Payment done using wallet",
-        redirect: "/orders",
-      });
+     return res.status(200).json({ success: true, orderId: newOrder._id });
     }
 
     const razorpayOrder = await razorpay.orders.create({
@@ -357,7 +356,7 @@ const verifyPayment = async (req, res) => {
 
       await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
 
-      // res.json({ success: true, message: "Payment successful!" });
+     
       res.json({
         success: true,
         orderId,
@@ -382,18 +381,14 @@ const verifyPayment = async (req, res) => {
 
 const loadSuccessPage = async (req, res) => {
   const order = await Order.findById(req.params.orderId);
+ console.log(order)
+ if (
+   !order ||
+   (order.paymentMethod !== "COD" && order.paymentStatus !== "Success")
+ ) {
+   return res.redirect("/");
+ }
 
-  if (!order || order.paymentStatus !== "Success") {
-    return res.redirect("/");
-  }
-
-  // if (order.isSuccessPageViewed) {
-  //   return res.redirect("/orders");
-  // }
-
-  // Mark as viewed
-  // order.isSuccessPageViewed = true;
-  // await order.save();
   req.session.inCheckout =false
 
   res.render("user/orderSuccess", { order });
@@ -413,7 +408,7 @@ const markPaymentFailed = async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error("Error marking payment failed:", err);
-    res.status(500).json({ success: false });
+    res.status(500).jsonc;
   }
 };
 

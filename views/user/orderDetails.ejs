@@ -17,10 +17,10 @@
             <p>
                 <strong>Payment Status:</strong>
                 <span class="
-                <%= order.paymentStatus === 'Failed' ? 'text-red-600' : '' %>
-                <%= order.paymentStatus === 'Pending' ? 'text-yellow-600' : '' %>
-                <%= order.paymentStatus === 'Paid' ? 'text-green-600' : '' %>
-              ">
+                 <%= order.paymentStatus === 'Failed' ? 'text-red-600' : '' %>
+  <%= order.paymentStatus === 'Pending' ? 'text-yellow-600' : '' %>
+  <%= order.paymentStatus === 'Paid' ? 'text-green-600' : '' %>
+">
                     <%= order.paymentStatus %>
                 </span>
             </p>
@@ -43,21 +43,22 @@
                 <div class="mb-6 flex items-center gap-4">
                     <label for="order-status" class="font-medium text-gray-700">Order Status:</label>
                     <form action="/order/<%= order._id %>/update-status" method="POST" class="flex gap-2 items-center">
-                        <span class="px-2 py-1 rounded 
-                  <%= order.status === 'Pending' ? ' text-yellow-800' : '' %>
-                  <%= order.status === 'Confirmed' ? ' text-blue-800' : '' %>
-                  <%= order.status === 'Shipped' ? ' text-purple-800' : '' %>
-                  <%= order.status === 'Delivered' ? ' text-green-800' : '' %>
-                  <%= order.status === 'Cancelled' ? ' text-red-800' : '' %>
-                ">
+                        <span class="px-2 py-1 rounded <%= 
+                        order.status === 'Pending' ? 'text-yellow-800' :
+                        order.status === 'Confirmed' ? 'text-blue-800' :
+                        order.status === 'Shipped' ? 'text-purple-800' :
+                        order.status === 'Delivered' ? 'text-green-800' :
+                        order.status === 'Cancelled' ? 'text-red-800' : ''
+                    %>">
                             <%= order.status %>
                         </span>
+
                     </form>
                 </div>
 
 
         </div>
-        <button id="downloadInvoiceBtn" class="bg-yellow-300 text-white px-4 py-2 rounded-md hover:bg-yellow-400"
+        <button id="downloadInvoiceBtn" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-400"
             data-order='<%- JSON.stringify(order).replace(/' /g, "&apos;" ) %>'>
             Download Invoice
         </button>
@@ -94,38 +95,43 @@
                                 </div>
                     </div>
 
-                    <div class="mt-3 sm:mt-0 text-right">
-                        <p class="font-medium text-gray-700">Subtotal: ₹<%= item.subtotal %>
-                        </p>
+                    <% const now=new Date(); let showReturnButton=false; if(order.deliveredDate){ const
+                        deliveredDate=new Date(order.deliveredDate); const diffInDays=(now - deliveredDate) / (1000 * 60
+                        * 60 * 24); showReturnButton=diffInDays <=7; } %>
 
-                        <% if (item.status==="Cancelled" ) { %>
-                            <p class="text-red-600 text-sm font-medium mt-2">
-                                Cancelled<br>
-                                <span class="text-gray-600">Reason: <%= item.cancellationReason || "N/A" %></span>
+
+                        <div class="mt-3 sm:mt-0 text-right">
+                            <p class="font-medium text-gray-700">Subtotal: ₹<%= item.subtotal %>
                             </p>
-                            <% } else if (item.status==="Delivered" || order.status==="Delivered" ) { %>
-                                <% if (item.returnStatus==="Returned" || item.status==="Returned" ) { %>
-                                    <button type="button"
-                                        class="bg-gray-400 text-white px-4 py-1.5 rounded-md text-sm font-medium cursor-not-allowed"
-                                        disabled>
-                                        Returned
-                                    </button>
-                                    <% } else { %>
-                                        <button type="button"
-                                            class="return-item-btn bg-yellow-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-yellow-600 transition"
-                                            data-action="/order/<%= order._id %>/return-item/<%= item._id %>">
-                                            Return Item
-                                        </button>
-                                        <% } %>
-                                            <% } else if (order.paymentStatus !=="Failed" ) { %>
-                                                <button type="button"
-                                                    class="cancel-item-btn bg-red-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-600 transition"
-                                                    data-action="/order/<%= order._id %>/cancel-item/<%= item._id %>">
-                                                    Cancel Item
-                                                </button>
-                                                <% } %>
 
-                    </div>
+                            <% if (item.status==="Cancelled" ) { %>
+                                <p class="text-red-600 text-sm font-medium mt-2">
+                                    Cancelled<br>
+                                    <span class="text-gray-600">Reason: <%= item.cancellationReason || "N/A" %></span>
+                                </p>
+                                <% } else if ((item.status==="Delivered" || order.status==="Delivered" ) &&
+                                    showReturnButton) { %>
+                                    <% if (item.returnStatus==="Returned" || item.status==="Returned" ) { %>
+                                        <button type="button"
+                                            class="bg-gray-400 text-white px-4 py-1.5 rounded-md text-sm font-medium cursor-not-allowed"
+                                            disabled>
+                                            Returned
+                                        </button>
+                                        <% } else { %>
+                                            <button type="button"
+                                                class="return-item-btn bg-yellow-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-yellow-600 transition"
+                                                data-action="/order/<%= order._id %>/return-item/<%= item._id %>">
+                                                Return Item
+                                            </button>
+                                            <% } %>
+                                                <% } else if (order.paymentStatus !=="Failed" ) { %>
+                                                    <button type="button"
+                                                        class="cancel-item-btn bg-red-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-600 transition"
+                                                        data-action="/order/<%= order._id %>/cancel-item/<%= item._id %>">
+                                                        Cancel Item
+                                                    </button>
+                                                    <% } %>
+                        </div>
                 </div>
                 <% }) %>
         </div>
@@ -182,7 +188,7 @@
                 <% if ( order.status==="Pending" && order.paymentMethod !=='COD' ) { %>
                     <div class="mt-8 text-center">
                         <button type="button"
-                            class="retry-payment-btn bg-yellow-600 text-white px-5 py-2 rounded-md font-medium hover:bg-yellow-700 transition"
+                            class="retry-payment-btn bg-red-600 text-white px-5 py-2 rounded-md font-medium hover:bg-yellow-700 transition"
                             data-order-id="<%= order._id %>" data-total-amount="<%= order.finalAmount%>"
                             data-coupon-code="<%= order.couponCode || '' %>"
                             data-address-id="<%= order.address?._id || '' %>">

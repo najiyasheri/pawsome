@@ -293,36 +293,54 @@
         // CASH ON DELIVERY
         // -----------------------------
         if (method === 'cod') {
-            document.getElementById('paymentMethod').value = 'cod';
 
-            // Add couponCode hidden input if applied
-            if (couponCode) {
-                document.querySelector('input[name="couponCode"]')?.remove();
-                const hiddenCouponInput = document.createElement('input');
-                hiddenCouponInput.type = 'hidden';
-                hiddenCouponInput.name = 'couponCode';
-                hiddenCouponInput.value = couponCode;
-                document.getElementById('paymentForm').appendChild(hiddenCouponInput);
+            console.log('reaching')
+            // document.getElementById('paymentMethod').value = 'cod';
+                const res = await fetch('/payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentMethod: method, totalAmount, addressId, couponCode })
+            });
+            const data = await res.json();
+
+            if (!data.success) {
+                alert("Error creating order. Please try again.");
+                return;
             }
+            else if(data.orderId){
+                window.location.href=`/success/${data.orderId}`
+            }
+            return
 
-            document.getElementById('paymentForm').submit();
-            return;
+            // // Add couponCode hidden input if applied
+            // if (couponCode) {
+            //     document.querySelector('input[name="couponCode"]')?.remove();
+            //     const hiddenCouponInput = document.createElement('input');
+            //     hiddenCouponInput.type = 'hidden';
+            //     hiddenCouponInput.name = 'couponCode';
+            //     hiddenCouponInput.value = couponCode;
+            //     document.getElementById('paymentForm').appendChild(hiddenCouponInput);
+            // }
+
+            // document.getElementById('paymentForm').submit();
+            // return;
         }
 
         // -----------------------------
         // WALLET PAYMENT
         // -----------------------------
         if (method === 'wallet') {
-            const res = await fetch('/success', {
+            const res = await fetch('/payment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ paymentMethod: method, totalAmount, addressId, couponCode })
             });
 
             const data = await res.json();
-            if (data.success) {
-                alert('Payment done using wallet!');
-                window.location.href = data.redirect;
+            console.log(data);
+            if (data.success && data.orderId) {
+                console.log(data.orderId)
+                    window.location.href = `/success/${data.orderId}`
             } else {
                 alert(data.message);
             }

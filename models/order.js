@@ -63,6 +63,9 @@ const orderSchema = new mongoose.Schema(
       default: "Pending",
     },
     cancellationReason: { type: String },
+    deliveredDate:{
+      type:Date
+    }
   },
   { timestamps: true }
 );

@@ -8,7 +8,6 @@ const Coupon = require("../models/Coupon");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 
-
 const loadOrder = async (req, res) => {
   try {
     const search = req.query.search ? req.query.search.trim() : "";
@@ -143,21 +142,19 @@ const cancelSingleItem = async (req, res) => {
         if (variant) {
           variant.stock = (variant.stock || 0) + item.quantity;
         }
-      } 
+      }
       await product.save();
     }
 
     item.status = "Cancelled";
     item.cancellationReason = reason || "No reason provided";
 
-    
-
     const allCancelled = order.items.every(
       (i) => i._id === item._id || i.status === "Cancelled"
     );
     if (allCancelled) order.status = "Cancelled";
 
-    const userId = order.userId
+    const userId = order.userId;
 
     if (order.paymentMethod !== "COD" && order.status !== "Pending") {
       let refundAmount = item.price * item.quantity;
@@ -236,9 +233,8 @@ const cancelEntireOrder = async (req, res) => {
     order.status = "Cancelled";
     order.cancellationReason = reason || "No reason provided";
 
+    const userId = order.userId;
 
-     const userId = order.userId;
-    
     if (order.paymentMethod !== "COD" && order.status !== "Pending") {
       const wallet = await Wallet.findOne({ userId });
       const refundAmount = order.finalAmount;
@@ -276,13 +272,13 @@ const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
-
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
-
     order.status = status;
+    if (order.status === "Delivered" && !order.deliveredDate) {
+      order.deliveredDate = new Date();
+    }
     await order.save();
-
     res.redirect(`/admin/order/${orderId}`);
   } catch (err) {
     console.error(err);
@@ -329,6 +325,7 @@ const loadUserOrders = async (req, res) => {
           paymentMethod: { $first: "$paymentMethod" },
           totalAmount: { $first: "$totalAmount" },
           shippingType: { $first: "$shippingType" },
+          paymentStatus: { $first: "$paymentStatus" },
           address: { $first: "$address" },
           status: { $first: "$status" },
           cancellationReason: { $first: "$cancellationReason" },
@@ -424,40 +421,38 @@ const userCancelSingleItem = async (req, res) => {
     const allCancelled = order.items.every((i) => i.status === "Cancelled");
     if (allCancelled) order.status = "Cancelled";
 
-
-    if(order.paymentMethod !== 'COD' && order.status !== 'Pending') {
-          let refundAmount = item.price * item.quantity;
-          if (order.couponId) {
-            const coupon = await Coupon.findById(order.couponId);
-            if (coupon) {
-              if (coupon.minPurchase > order.finalAmount - refundAmount) {
-                refundAmount -= order.discountAmount;
-                await Coupon.updateOne(
-                  { _id: order.couponId },
-                  { $pull: { usedBy: userId } }
-                );
-                order.couponId = null;
-              }
-            }
+    if (order.paymentMethod !== "COD" && order.status !== "Pending") {
+      let refundAmount = item.price * item.quantity;
+      if (order.couponId) {
+        const coupon = await Coupon.findById(order.couponId);
+        if (coupon) {
+          if (coupon.minPurchase > order.finalAmount - refundAmount) {
+            refundAmount -= order.discountAmount;
+            await Coupon.updateOne(
+              { _id: order.couponId },
+              { $pull: { usedBy: userId } }
+            );
+            order.couponId = null;
           }
+        }
+      }
 
-          let wallet = await Wallet.findOne({ userId });
-          if (!wallet) wallet = await Wallet.create({ userId, balance: 0 });
-          wallet.balance += refundAmount;
-          await wallet.save();
+      let wallet = await Wallet.findOne({ userId });
+      if (!wallet) wallet = await Wallet.create({ userId, balance: 0 });
+      wallet.balance += refundAmount;
+      await wallet.save();
 
-          await Transaction.create({
-            userId,
-            walletId: wallet._id,
-            type: "refund",
-            transactionType: "credit",
-            amount: refundAmount,
-            orderId: order._id,
-            description: `Refund for cancelled order ${order.orderId}`,
-            balanceAfter: wallet.balance,
-            status: "completed",
-          });
-
+      await Transaction.create({
+        userId,
+        walletId: wallet._id,
+        type: "refund",
+        transactionType: "credit",
+        amount: refundAmount,
+        orderId: order._id,
+        description: `Refund for cancelled order ${order.orderId}`,
+        balanceAfter: wallet.balance,
+        status: "completed",
+      });
     }
     await order.save();
     res.redirect(`/order/${orderId}`);
@@ -497,28 +492,28 @@ const userCancelEntireOrder = async (req, res) => {
     order.status = "Cancelled";
     order.cancellationReason = reason || "No reason provided";
 
-    if(order.paymentMethod !== 'COD' && order.status !== 'Pending') {
-       const wallet = await Wallet.findOne({ userId });
-       const refundAmount = order.finalAmount;
-       wallet.balance += refundAmount;
-       await wallet.save();
+    if (order.paymentMethod !== "COD" && order.status !== "Pending") {
+      const wallet = await Wallet.findOne({ userId });
+      const refundAmount = order.finalAmount;
+      wallet.balance += refundAmount;
+      await wallet.save();
 
-       await Transaction.create({
-         userId,
-         walletId: wallet._id,
-         type: "refund",
-         transactionType: "credit",
-         amount: refundAmount,
-         orderId: order._id,
-         description: `Refund for cancelled order ${order.orderId}`,
-         balanceAfter: wallet.balance,
-         status: "completed",
-       });
+      await Transaction.create({
+        userId,
+        walletId: wallet._id,
+        type: "refund",
+        transactionType: "credit",
+        amount: refundAmount,
+        orderId: order._id,
+        description: `Refund for cancelled order ${order.orderId}`,
+        balanceAfter: wallet.balance,
+        status: "completed",
+      });
 
-       await Coupon.updateOne(
-         { _id: order.couponId },
-         { $pull: { usedBy: userId } }
-       );
+      await Coupon.updateOne(
+        { _id: order.couponId },
+        { $pull: { usedBy: userId } }
+      );
     }
 
     await order.save();
@@ -552,13 +547,26 @@ const returnSingleItem = async (req, res) => {
         success: false,
         message: "Only delivered items can be returned",
       });
+     const now = new Date();
+     const deliveredDate = order.deliveredDate;
 
-    // 1️⃣ Update item status
-item.status = "Returned";
-item.returnStatus = "Returned"; // ✅ Add this line
-item.returnReason = reason || "No reason provided";;
+     if (deliveredDate) {
+       const diffInMs = now - deliveredDate; 
+       const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+       if (diffInDays > 7) {
+         return res.status(400).json({
+           success: false,
+           message: "order can not be returned after 7 days",
+         });
+       } 
+     }
 
-    // 2️⃣ Restock product or variant
+    
+    item.status = "Returned";
+    item.returnStatus = "Returned";
+    item.returnReason = reason || "No reason provided";
+
+   
     const product = await Product.findById(item.productId);
     if (product) {
       if (item.variant?._id) {
@@ -573,35 +581,35 @@ item.returnReason = reason || "No reason provided";;
       }
     }
 
-      let wallet = await Wallet.findOne({ userId });
-      if (!wallet) wallet = await Wallet.create({ userId, balance: 0 });
+    let wallet = await Wallet.findOne({ userId });
+    if (!wallet) wallet = await Wallet.create({ userId, balance: 0 });
 
-      const refundAmount = item.price * item.quantity;
-      if(order.couponId) {
-        const coupon = await Coupon.findById(order.couponId);
-        if (coupon.minPurchase > order.finalAmount - refundAmount && coupon) {
-          refundAmount -= order.discountAmount;
-          await Coupon.updateOne(
-            { _id: order.couponId },
-            { $pull: { usedBy: userId } }
-          );
-           order.couponId = null;
-        }
+    const refundAmount = item.price * item.quantity;
+    if (order.couponId) {
+      const coupon = await Coupon.findById(order.couponId);
+      if (coupon.minPurchase > order.finalAmount - refundAmount && coupon) {
+        refundAmount -= order.discountAmount;
+        await Coupon.updateOne(
+          { _id: order.couponId },
+          { $pull: { usedBy: userId } }
+        );
+        order.couponId = null;
       }
-      wallet.balance += refundAmount;
-      await wallet.save();
+    }
+    wallet.balance += refundAmount;
+    await wallet.save();
 
-      await Transaction.create({
-        userId,
-        walletId: wallet._id,
-        type: "refund",
-        transactionType: "credit",
-        amount: refundAmount,
-        orderId: order._id,
-        description: `Refund for returned item '${item.name}' from order ${order.orderId}`,
-        balanceAfter: wallet.balance,
-        status: "completed",
-      });
+    await Transaction.create({
+      userId,
+      walletId: wallet._id,
+      type: "refund",
+      transactionType: "credit",
+      amount: refundAmount,
+      orderId: order._id,
+      description: `Refund for returned item '${item.name}' from order ${order.orderId}`,
+      balanceAfter: wallet.balance,
+      status: "completed",
+    });
 
     await order.save();
 
@@ -614,13 +622,10 @@ item.returnReason = reason || "No reason provided";;
   }
 };
 
-
-
 const retryPayment = async (req, res) => {
   try {
     const { orderId, totalAmount, addressId, couponCode } = req.body;
     const userId = req.session.user._id;
-
 
     const order = await Order.findOne({ _id: orderId, userId });
     if (!order) {
@@ -628,7 +633,6 @@ const retryPayment = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Order not found" });
     }
-
 
     if (order.status !== "Pending" && order.status !== "Cancelled") {
       return res.status(400).json({
@@ -643,8 +647,6 @@ const retryPayment = async (req, res) => {
         message: "Invalid total amount",
       });
     }
-
-
 
     let finalAmount = order.finalAmount;
     let discountAmount = 0;
@@ -681,19 +683,17 @@ const retryPayment = async (req, res) => {
     });
 
     const razorpayOrder = await razorpay.orders.create({
-      amount: Math.round(finalAmount * 100), 
+      amount: Math.round(finalAmount * 100),
       receipt: `order_${order.orderId}_${Date.now()}`,
     });
 
-   
     order.paymentMethod = "ONLINE";
     order.discountAmount = discountAmount;
     order.finalAmount = finalAmount;
     order.couponId = couponId;
-    order.status = "Pending"; 
+    order.status = "Pending";
     order.cancellationReason = null;
     await order.save();
-
 
     if (couponId) {
       await Coupon.updateOne(
@@ -702,7 +702,6 @@ const retryPayment = async (req, res) => {
       );
     }
 
-    
     return res.json({
       success: true,
       key: process.env.RAZORPAY_KEY_ID,

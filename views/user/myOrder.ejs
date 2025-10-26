@@ -45,10 +45,10 @@
                     <p>
                       <strong>Payment Status:</strong>
                       <span class="
-                        <%= order.paymentStatus === 'Failed' ? 'text-red-600' : '' %>
-                        <%= order.paymentStatus === 'Pending' ? 'text-yellow-600' : '' %>
-                        <%= order.paymentStatus === 'Paid' ? 'text-green-600' : '' %>
-                      ">
+                                         <%= order.paymentStatus === 'Failed' ? 'text-red-600' : '' %>
+                          <%= order.paymentStatus === 'Pending' ? 'text-yellow-600' : '' %>
+                          <%= order.paymentStatus === 'Paid' ? 'text-green-600' : '' %>
+                        ">
                         <%= order.paymentStatus %>
                       </span>
                     </p>
@@ -80,18 +80,20 @@
                           </p>
                           <p class="text-sm text-gray-600">Quantity: <%= item.quantity %>
                           </p>
-                        
+
 
                           <p class="text-sm font-medium mt-1">
                             Status:
-                            <span class="<%= 
-                              order.status === 'Cancelled' ? 'text-red-500' :
-                              order.status === 'Delivered' ? 'text-green-600' :
-                              order.status === 'Pending' ? 'text-yellow-500' :
-                              order.status === 'Shipped' ? 'text-blue-500' :
-                              'text-gray-500' %>">
+                            <span class="px-2 py-1 rounded <%= 
+                            order.status === 'Pending' ? 'text-yellow-800' :
+                            order.status === 'Confirmed' ? 'text-blue-800' :
+                            order.status === 'Shipped' ? 'text-purple-800' :
+                            order.status === 'Delivered' ? 'text-green-800' :
+                            order.status === 'Cancelled' ? 'text-red-800' : ''
+                        %>">
                               <%= order.status %>
                             </span>
+
                           </p>
                         </div>
                       </div>

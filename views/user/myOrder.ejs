@@ -85,13 +85,13 @@
                           <p class="text-sm font-medium mt-1">
                             Status:
                             <span class="px-2 py-1 rounded <%= 
-                            order.status === 'Pending' ? 'text-yellow-800' :
-                            order.status === 'Confirmed' ? 'text-blue-800' :
-                            order.status === 'Shipped' ? 'text-purple-800' :
-                            order.status === 'Delivered' ? 'text-green-800' :
-                            order.status === 'Cancelled' ? 'text-red-800' : ''
+                            item.status ?? order.status === 'Pending' ? 'text-yellow-800' :
+                            item.status ?? order.status === 'Confirmed' ? 'text-blue-800' :
+                            item.status ?? order.status === 'Shipped' ? 'text-purple-800' :
+                            item.status ?? order.status === 'Delivered' ? 'text-green-800' :
+                            item.status ?? order.status === 'Cancelled' ? 'text-red-800' : ''
                         %>">
-                              <%= order.status %>
+                              <%= item.status ?? order.status %>
                             </span>
 
                           </p>

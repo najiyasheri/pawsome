@@ -164,7 +164,7 @@
     </div>
 
     <!-- Cancel Entire Order Button -->
-    <% if (order.status !=="Cancelled" && order.paymentStatus !=="Failed" ) { %>
+    <% if (order.status !=="Cancelled" && order.paymentStatus !=="Failed" && order.returnStatus !=="Returned" && order.status !== 'Delivered') { %>
         <div class="mt-8 text-center">
             <button type="button"
                 class="cancel-order-btn bg-red-600 text-white px-5 py-2 rounded-md font-medium hover:bg-red-700 transition"
@@ -172,7 +172,7 @@
                 Cancel Entire Order
             </button>
         </div>
-        <% } else if (order.status==="Cancelled" ) { %>
+        <% } else if (order.status==="Cancelled" || order.returnStatus==="Returned" ) { %>
             <div class="mt-8 text-center">
                 <p class="text-red-600 font-semibold">
                     Entire Order Cancelled

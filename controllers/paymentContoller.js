@@ -16,7 +16,10 @@ const loadPayment = async (req, res) => {
     }
     const userId = req.session.user._id;
     const cart = await Cart.findOne({ userId })
-      .populate("items.productId")
+      .populate({
+        path: "items.productId",
+        populate: { path: "categoryId" },
+      })
       .populate("items.variantId");
 
     if (!cart || cart.items.length === 0) {
@@ -37,11 +40,15 @@ const loadPayment = async (req, res) => {
       .map((item) => {
         const product = item.productId;
         const variant = item.variantId;
+        const category = product?.categoryId;
 
         if (!product || !variant) return null;
 
         const basePrice = parseFloat(product.basePrice || 0);
-        const discountPercentage = parseFloat(product.discountPercentage || 0);
+        const productOffer = parseFloat(product.discountPercentage || 0);
+        const categoryOffer = parseFloat(category?.offerPercentage || 0);
+        const discountPercentage =
+          productOffer > categoryOffer ? productOffer : categoryOffer;
         const oldPrice = basePrice + (variant.additionalPrice || 0);
         const finalPrice = Math.round(
           oldPrice * (1 - discountPercentage / 100)
@@ -75,7 +82,9 @@ const loadPayment = async (req, res) => {
       validUntil: { $gte: currentDate },
       minPurchase: { $lte: subtotal },
       usedBy: { $nin: userId },
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ createdAt: -1 })
+      .limit(3);
 
     let address;
     if (req.query.addressId) {
@@ -126,7 +135,10 @@ const processPayment = async (req, res) => {
     const userId = req.session.user._id;
 
     const cart = await Cart.findOne({ userId })
-      .populate("items.productId")
+      .populate({
+        path: "items.productId",
+        populate: { path: "categoryId" },
+      })
       .populate("items.variantId");
 
     if (!cart || cart.items.length === 0) {
@@ -137,9 +149,13 @@ const processPayment = async (req, res) => {
     const embeddedItems = cart.items.map((item) => {
       const product = item.productId;
       const variant = item.variantId;
+       const category = product?.categoryId;
 
       const basePrice = parseFloat(product.basePrice || 0);
-      const discountPercentage = parseFloat(product.discountPercentage || 0);
+      const productOffer = parseFloat(product.discountPercentage || 0);
+      const categoryOffer = parseFloat(category?.offerPercentage || 0);
+      const discountPercentage =
+        productOffer > categoryOffer ? productOffer : categoryOffer;
       const oldPrice = basePrice + (variant?.additionalPrice || 0);
       const finalPrice = Math.round(oldPrice * (1 - discountPercentage / 100));
 
@@ -313,7 +329,7 @@ const processPayment = async (req, res) => {
     });
 
     await newOrder.save();
-    req.session.inCheckout = false;
+   
 
     res.json({
       success: true,
@@ -386,7 +402,6 @@ const verifyPayment = async (req, res) => {
 
 const loadSuccessPage = async (req, res) => {
   const order = await Order.findById(req.params.orderId);
-  console.log(order);
   if (
     !order ||
     (order.paymentMethod !== "COD" && order.paymentStatus !== "Success")
@@ -412,7 +427,10 @@ const markPaymentFailed = async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error("Error marking payment failed:", err);
-    res.status(500).jsonc;
+    res.status(500).json({
+      success: false,
+      message: "Error making payment failed ",
+    });
   }
 };
 

@@ -5,7 +5,7 @@ const loadCouponPage = async (req, res) => {
   try {
     const search = req.query.search || "";
     const page = parseInt(req.query.page) || 1;
-    const limit = 10;
+    const limit = 5;
     const skip = (page - 1) * limit;
 
     const query = search ? { code: { $regex: search, $options: "i" } } : {};
@@ -19,7 +19,7 @@ const loadCouponPage = async (req, res) => {
     const totalPages = Math.ceil(totalCoupons / limit);
 
     res.render("admin/couponManagement", {
-      title: "Coupon Management",
+      title: "Coupon-Management",
       layout: "layouts/adminLayout",
       coupons,
       currentPage: page,

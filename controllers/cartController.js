@@ -10,7 +10,10 @@ const loadCart = async (req, res) => {
 
     const userId = req.session.user._id;
     const cart = await Cart.findOne({ userId })
-      .populate("items.productId")
+      .populate({
+        path: "items.productId",
+        populate: { path: "categoryId" }, 
+      })
       .populate("items.variantId");
 
       if (cart && cart.items.length > 0) {
@@ -55,15 +58,20 @@ const loadCart = async (req, res) => {
       });
     }
 
+
     const enrichedItems = cart.items
       .map((item) => {
         const product = item.productId;
         const variant = item.variantId;
+        const category = product?.categoryId;
 
         if (!product || !variant) return null;
 
         const basePrice = parseFloat(product.basePrice || 0);
-        const discountPercentage = parseFloat(product.discountPercentage || 0);
+        const productOffer = parseFloat(product.discountPercentage || 0);
+        const categoryOffer = parseFloat(category?.offerPercentage || 0);
+        const discountPercentage =
+          productOffer > categoryOffer ? productOffer : categoryOffer;
         const oldPrice = basePrice + variant.additionalPrice;
         const finalPrice = Math.round(
           oldPrice * (1 - discountPercentage / 100)
@@ -79,6 +87,7 @@ const loadCart = async (req, res) => {
           price: finalPrice,
           quantity: item.quantity,
           subtotal: finalPrice * item.quantity,
+          discount: discountPercentage,
         };
       })
       .filter(Boolean);

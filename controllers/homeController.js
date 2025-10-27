@@ -253,7 +253,7 @@ const loadDashboard = async (req, res) => {
     ]);
 
     res.render("admin/dashboard", {
-      title: "Sales Dashboard",
+      title: "Dashboard",
       layout: "layouts/adminLayout",
       error: null,
       filter,

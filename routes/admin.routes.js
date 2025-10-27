@@ -10,13 +10,12 @@ const uploadProductImages = require("../middlewares/multer");
 const orderController = require("../controllers/orderController");
 const couponController = require("../controllers/couponController");
 
-
 router.get("/login", isLogin, authController.loadAdminLogin);
 router.post("/login", isLogin, authController.postAdminLogin);
 router.get("/users", adminAuth, userController.loadUserManagement);
 router.get("/logout", authController.logoutAdmin);
 router.get("/user/toggleBlock", adminAuth, userController.toggleBlock);
-router.get("/user/:id",adminAuth,userController.viewUserDetails);
+router.get("/user/:id", adminAuth, userController.viewUserDetails);
 
 router
   .route("/category")
@@ -41,7 +40,11 @@ router.post(
   uploadProductImages,
   productController.postEditProduct
 );
-router.get("/product/view/:id", productController.loadProductDetailAdmin);
+router.get(
+  "/product/view/:id",
+  adminAuth,
+  productController.loadProductDetailAdmin
+);
 
 router.get("/order", adminAuth, orderController.loadOrder);
 router.get("/order/:id", adminAuth, orderController.loadOrderDetail);
@@ -63,14 +66,13 @@ router.post(
   orderController.updateOrderStatus
 );
 
-router.get("/coupon", adminAuth,couponController.loadCouponPage);
+router.get("/coupon", adminAuth, couponController.loadCouponPage);
 router.get("/coupons/create", adminAuth, couponController.loadCreateCouponPage);
-router.post("/coupons/create", adminAuth,couponController.createCoupon);
+router.post("/coupons/create", adminAuth, couponController.createCoupon);
 router.get("/coupons/:id/edit", adminAuth, couponController.loadEditCoupon);
 router.post("/coupons/update/:id", adminAuth, couponController.updateCoupon);
 router.post("/coupons/delete/:id", adminAuth, couponController.deleteCoupon);
 
-router.get("/dashboard", adminAuth,homeController.loadDashboard);
-
+router.get("/dashboard", adminAuth, homeController.loadDashboard);
 
 module.exports = router;

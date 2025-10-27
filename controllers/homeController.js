@@ -59,7 +59,6 @@ const loadHomepage = async (req, res) => {
     { $limit: 8 },
   ]).exec();
 
-
   const categories = await Category.aggregate([
     { $match: { isBlocked: false } },
     {
@@ -91,11 +90,15 @@ const loadHomepage = async (req, res) => {
       const variant = product.selectedVariant;
       const additionalPrice = variant?.additionalPrice || 0;
       const basePrice = parseFloat(product.basePrice || 0);
-      const discountPercentage = parseFloat(product.discountPercentage || 0);
+      const discountPercentage = parseFloat(
+        product.discountPercentage > product.category.offerPercentage
+          ? product.discountPercentage
+          : product.category.offerPercentage || 0
+      );
       const oldPrice = basePrice + additionalPrice;
       const finalPrice = Math.round(oldPrice * (1 - discountPercentage / 100));
 
-      // Check if this product + variant combination exists in cart
+    
       const existingInCart = cartItems.some(
         (item) =>
           item.productId.toString() === product._id.toString() &&

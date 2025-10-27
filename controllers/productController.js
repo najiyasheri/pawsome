@@ -431,7 +431,11 @@ const userProducts = async (req, res) => {
       const variant = product.selectedVariant;
       const additionalPrice = parseFloat(variant?.additionalPrice || 0);
       const basePrice = parseFloat(product.basePrice || 0);
-      const discountPercentage = parseFloat(product.discountPercentage || 0);
+      const discountPercentage = parseFloat(
+        product.discountPercentage > product.category.offerPercentage
+          ? product.discountPercentage
+          : product.category.offerPercentage || 0
+      );
       const oldPrice = basePrice + additionalPrice;
 
       return {

@@ -19,11 +19,6 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    offersId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Offer",
-      default: null,
-    },
     images: {
       type: [String],
       default: [],

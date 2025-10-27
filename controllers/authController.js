@@ -74,11 +74,10 @@ const postSignup = async (req, res) => {
       });
     }
 
-    // ✅ Check if user already exists (any user with that email)
     const existingUser = await User.findOne({ email });
 
     if (existingUser && existingUser.isVerified) {
-      // already verified → block signup
+
       return res.render("user/signup", {
         email,
         error: "User already exists and verified. Please login.",
@@ -87,12 +86,8 @@ const postSignup = async (req, res) => {
       });
     }
 
-    // ✅ Hash password
     const hashedPassword = await bcrypt.hash(password, saltRound);
 
-    // ✅ Check if referralCode is valid
-
-    // ✅ If unverified user exists → update instead of creating new
     let newUser;
     if (existingUser && !existingUser.isVerified) {
       newUser = await User.findOneAndUpdate(
@@ -106,7 +101,7 @@ const postSignup = async (req, res) => {
         { new: true }
       );
     } else {
-      // create fresh user (pre-save will generate referral code)
+
       newUser = new User({
         name,
         email,
@@ -163,7 +158,7 @@ const postOtp = async (req, res) => {
   try {
     const otpRecord = await OTP.findOne({ email });
 
-    // Validate OTP
+
     if (
       !otpRecord ||
       otpRecord.expiredAt < new Date() ||
@@ -177,7 +172,7 @@ const postOtp = async (req, res) => {
       });
     }
 
-    // Validate referral code (if provided)
+
     let referrer = null;
     if (referralCode && referralCode.trim() !== "") {
       referrer = await User.findOne({

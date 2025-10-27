@@ -16,7 +16,7 @@
 
 <div class="bg-white p-6 max-w-3xl mx-auto relative">
    <div class="flex space-x-1 mb-6">
-      <h3 class="text-xl font-semibold text-gray-700">Your Profile</h3>
+      <h3 class="text-xl font-semibold text-gray-900">Your Profile</h3>
       <button id="editProfileBtn" class="text-gray-500 hover:text-yellow-500 text-md">
          <i class="fa-solid fa-pen"></i>
       </button>
@@ -42,6 +42,7 @@
             <%= new Date(user.createdAt).toLocaleDateString('en-IN', { day: '2-digit' , month: 'short' , year: 'numeric'
                }) %>
          </p>
+   
 
          <p><span class="font-semibold">Default Address:</span>
             <% if (defaultAddress) { %>
@@ -51,6 +52,21 @@
                         <span class="text-gray-500 italic">No default address set</span>
                         <% } %>
          </p>
+
+         <p>
+            <span class="font-semibold">Referral Code:</span>
+            <% if (user.referralCode) { %>
+               <span id="referralCode" class="ml-2 text-gray-800 bg-amber-100 p-2 rounded-2xl font-mono select-text">
+                  <%= user.referralCode %>
+               </span>
+               <button id="copyReferralBtn" class="ml-3 text-sm text-yellow-600 hover:text-yellow-700 font-medium">
+                  Copy
+               </button>
+               <% } else { %>
+                  <span class="text-gray-500 italic">Not available</span>
+                  <% } %>
+         </p>
+
       </div>
    </div>
 
@@ -397,4 +413,30 @@
          }
       }, 1000);
    }
+
+   const copyReferralBtn = document.getElementById('copyReferralBtn');
+      const referralCodeEl = document.getElementById('referralCode');
+
+      if (copyReferralBtn && referralCodeEl) {
+         copyReferralBtn.addEventListener('click', async () => {
+            try {
+               await navigator.clipboard.writeText(referralCodeEl.textContent.trim());
+               Swal.fire({
+                  icon: 'success',
+                  title: 'Copied!',
+                  text: 'Referral code copied to clipboard.',
+                  timer: 1500,
+                  showConfirmButton: false
+               });
+            } catch (err) {
+               console.error('Copy failed:', err);
+               Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Failed to copy referral code.'
+               });
+            }
+         });
+      }
+
 </script>

@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      lowercase: true, 
+      lowercase: true,
       trim: true,
     },
     password: {
@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
       sparse: true, // Allows multiple null values but enforces uniqueness for non-null values
     },
     referredBy: {
-      type: String, 
+      type: String,
       default: null,
     },
     isBlocked: {

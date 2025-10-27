@@ -80,18 +80,19 @@
                         <p class="font-medium text-gray-700">Subtotal: ₹<%= item.subtotal %>
                         </p>
 
-                        <% if (item.status==="Cancelled" ) { %>
-                            <p class="text-red-600 text-sm font-medium mt-2">
-                                Cancelled<br>
-                                <span class="text-gray-600">Reason: <%= item.cancellationReason || "N/A" %></span>
-                            </p>
-                            <% } else { %>
-                                <button type="button"
-                                    class="cancel-item-btn bg-red-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-600 transition"
-                                    data-action="/admin/order/<%= order._id %>/cancel-item/<%= item._id %>">
-                                    Cancel Item
-                                </button>
-                                <% } %>
+                    <% if (item.status==="Cancelled" ) { %>
+                        <p class="text-red-600 text-sm font-medium mt-2">
+                            Cancelled<br>
+                            <span class="text-gray-600">Reason: <%= item.cancellationReason || "N/A" %></span>
+                        </p>
+                        <% } else if (order.status !=="Delivered" ) { %>
+                            <button type="button"
+                                class="cancel-item-btn bg-red-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-600 transition"
+                                data-action="/admin/order/<%= order._id %>/cancel-item/<%= item._id %>">
+                                Cancel Item
+                            </button>
+                            <% } %>
+
                     </div>
 
                 </div>
@@ -127,23 +128,18 @@
 
     <!-- Cancel Entire Order or Single Items -->
     <div class="mt-8 text-center">
-        <% if (order.status==="Cancelled" ) { %>
-            <p class="text-red-600 font-semibold">
-                Entire Order Cancelled
-            </p>
-            <p class="text-gray-700 mt-1">
-                Reason: <%= order.cancellationReason || "N/A" %>
-            </p>
+    <% if (order.status==="Cancelled" ) { %>
+        <p class="text-red-600 font-semibold">Entire Order Cancelled</p>
+        <p class="text-gray-700 mt-1">Reason: <%= order.cancellationReason || "N/A" %>
+        </p>
+        <% } else if (order.status !=="Delivered" ) { %>
+            <button type="button"
+                class="cancel-order-btn bg-red-600 text-white px-8 py-2.5 rounded-lg text-base font-medium shadow-md hover:bg-red-700 transition"
+                data-action="/admin/order/<%= order._id %>/cancel-all">
+                Cancel Entire Order
+            </button>
+            <% } %>
 
-            <% } else { %>
-               
-                    <!-- Show only Cancel Entire Order if single item -->
-                    <button type="button"
-                        class="cancel-order-btn bg-red-600 text-white px-8 py-2.5 rounded-lg text-base font-medium shadow-md hover:bg-red-700 transition"
-                        data-action="/admin/order/<%= order._id %>/cancel-all">
-                        Cancel Entire Order
-                    </button>
-                            <% } %>
     </div>
 
 

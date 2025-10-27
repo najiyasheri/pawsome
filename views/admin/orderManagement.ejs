@@ -23,7 +23,7 @@
 
             <!-- Search Button -->
             <button type="submit"
-                class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-5 rounded-r-lg transition">
+                class="bg-yellow-400 hover:bg-yellow-500 text-white font-medium px-5 rounded-r-lg transition">
                 Search
             </button>
 
@@ -79,7 +79,8 @@
                                 <%= order.user.name %>
                             </td>
                             <td class="py-3 px-4">
-                                <%= order.items.reduce((acc, item)=> acc + item.quantity, 0) %>
+                                <%= order.items && order.items.length ? order.items.reduce((acc, item)=> acc + (item.quantity || 0), 0)
+                                    : 0 %>
                             </td>
                             <td class="py-3 px-4">
                                 <%= order.createdAt.toLocaleDateString("en-IN", { day: "2-digit" , month: "short" ,
@@ -118,12 +119,12 @@
                             &lt;
                         </a>
                     </li>
-
+                  
 
                     <% for(let i=1; i <=totalPages; i++) { %>
                         <li>
                             <a href="/admin/order?page=<%= i %>&search=<%= search %>"
-                                class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 <%= currentPage === i ? 'z-10 text-yellow-600 border-yellow-300 bg-yellow-50' : '' %>">
+                                class="flex items-center justify-center px-4 h-10 leading-tight text-gray-900 bg-white border border-gray-200 hover:bg-yellow-500 <%= currentPage === i ? 'z-10 text-white border-yellow-300 bg-yellow-500' : '' %>">
                                 <%= i %>
                             </a>
                         </li>

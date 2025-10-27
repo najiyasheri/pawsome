@@ -21,7 +21,7 @@
 
       <!-- Search Button -->
       <button type="submit"
-        class="px-5 py-2.5 bg-yellow-600 text-white font-medium rounded-r-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+        class="px-5 py-2.5 bg-yellow-400 text-white font-medium rounded-r-lg hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500">
         Search
       </button>
 
@@ -33,7 +33,7 @@
     </form>
 
     <a href="/admin/product/add"> <button type="button"
-        class="ml-4 flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-300 focus:ring-4 focus:outline-none focus:ring-yellow-300">
+        class="ml-4 flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-white bg-yellow-400 rounded-lg hover:bg-yellow-500 focus:ring-4 focus:outline-none focus:ring-yellow-300">
         Add Product
       </button></a>
   </div>
@@ -128,7 +128,7 @@
         <% for (let i=1; i <=totalPages; i++) { %>
           <li>
             <a href="/admin/product?page=<%= i %>&limit=<%= limit %>&search=<%= search %>"
-              class="flex items-center justify-center px-4 h-10 leading-tight border <%= i === currentPage ? 'bg-yellow-500 text-white' : 'bg-white hover:bg-gray-100' %>">
+              class="flex items-center justify-center px-4 h-10 border border-gray-200  <%= i === currentPage ? 'bg-yellow-500 text-white' : 'bg-white hover:bg-yellow-500' %>">
               <%= i %>
             </a>
           </li>

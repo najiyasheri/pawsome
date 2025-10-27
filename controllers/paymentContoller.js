@@ -220,7 +220,7 @@ const processPayment = async (req, res) => {
         address: address.address,
       },
       paymentMethod: paymentMethod.toUpperCase(),
-      paymentStatus: "Pending",
+      paymentStatus: "Failed",
       items: embeddedItems,
       discountAmount: offer,
       totalAmount: total + offer,
@@ -418,12 +418,11 @@ const markPaymentFailed = async (req, res) => {
   try {
     const { orderId } = req.body;
     const order = await Order.findById(orderId);
-    console.log(order);
     if (order) {
       order.paymentStatus = "Failed";
-
       await order.save();
     }
+    req.session.inCheckout = false;
     res.json({ success: true });
   } catch (err) {
     console.error("Error marking payment failed:", err);

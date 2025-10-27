@@ -20,7 +20,7 @@
       </div>
 
       <button type="submit"
-        class="px-5 py-2.5 bg-yellow-600 text-white font-medium rounded-r-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+        class="px-5 py-2.5 bg-yellow-400 text-white font-medium rounded-r-lg hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500">
         Search
       </button>
 
@@ -31,10 +31,10 @@
         <% } %>
     </form>
 
-    <a href="/admin/users" class="link ml-2 px-2 py-2 text-gray-700  rounded-lg hover:bg-gray-100">All Users</a>
-    <a href="/admin/users?blocked=true" class="link ml-2 px-2 py-2 text-gray-700 rounded-lg hover:bg-gray-100">Blocked
+    <a href="/admin/users" class="link ml-2 px-2 py-2 text-yellow-500  rounded-lg hover:text-yellow-600">All Users</a>
+    <a href="/admin/users?blocked=true" class="link ml-2 px-2 py-2 text-red-500 rounded-lg hover:text-red-600">Blocked
       Users</a>
-    <a href="/admin/users?active=true" class="link ml-2 px-2 py-2 text-gray-700  rounded-lg hover:bg-gray-100">Active
+    <a href="/admin/users?active=true" class="link ml-2 px-2 py-2 text-blue-500  rounded-lg hover:text-blue-600">Active
       Users</a>
 
     <div id="userList"></div>
@@ -126,7 +126,8 @@
         <% for(let i=1; i <=totalPages; i++) { %>
           <li>
             <a href="/admin/users?page=<%= i %>&limit=<%= limit %>&search=<%= search %>"
-              class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 <%= currentPage === i ? 'z-10 text-yellow-600 border-yellow-300 bg-yellow-50' : '' %>">
+            class="flex items-center justify-center px-4 h-10 border border-gray-200 <%= i===currentPage
+              ? 'bg-yellow-500 text-white' : 'bg-white hover:bg-yellow-500' %>">
               <%= i %>
             </a>
           </li>

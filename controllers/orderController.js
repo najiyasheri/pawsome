@@ -28,52 +28,60 @@ const loadOrder = async (req, res) => {
     const totalOrders = totalOrdersAgg[0]?.total || 0;
     const totalPages = Math.ceil(totalOrders / limit);
 
-    const orders = await Order.aggregate([
-      { $match: matchStage },
-      { $sort: { createdAt: -1 } },
-      { $skip: (page - 1) * limit },
-      { $limit: limit },
-      {
-        $lookup: {
-          from: "users",
-          localField: "userId",
-          foreignField: "_id",
-          as: "user",
-          pipeline: [{ $project: { name: 1, email: 1, phone: 1 } }],
-        },
+  const orders = await Order.aggregate([
+    { $match: matchStage },
+    { $sort: { createdAt: -1 } },
+    { $skip: (page - 1) * limit },
+    { $limit: limit },
+
+    // user info
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "user",
+        pipeline: [{ $project: { name: 1, email: 1, phone: 1 } }],
       },
-      { $unwind: "$user" },
-      {
-        $lookup: {
-          from: "orderitems",
-          localField: "_id",
-          foreignField: "orderId",
-          as: "items",
-          pipeline: [
-            {
-              $lookup: {
-                from: "products",
-                localField: "productId",
-                foreignField: "_id",
-                as: "product",
-                pipeline: [{ $project: { name: 1, price: 1, images: 1 } }],
-              },
-            },
-            { $unwind: { path: "$product", preserveNullAndEmptyArrays: true } },
-            {
-              $project: {
-                _id: 1,
-                quantity: 1,
-                price: 1,
-                "product.name": 1,
-                "product.price": 1,
-                "product.images": 1,
-              },
-            },
-          ],
-        },
+    },
+    { $unwind: "$user" },
+
+    // unwind each item for lookup
+    { $unwind: { path: "$items", preserveNullAndEmptyArrays: true } },
+
+    // lookup product details for each item
+    {
+      $lookup: {
+        from: "products",
+        localField: "items.productId",
+        foreignField: "_id",
+        as: "productDetails",
+        pipeline: [{ $project: { name: 1, price: 1, images: 1 } }],
       },
-    ]);
+    },
+    {
+      $addFields: {
+        "items.product": { $arrayElemAt: ["$productDetails", 0] },
+      },
+    },
+    { $project: { productDetails: 0 } },
+
+    // group back to original order
+    {
+      $group: {
+        _id: "$_id",
+        orderId: { $first: "$orderId" },
+        user: { $first: "$user" },
+        paymentMethod: { $first: "$paymentMethod" },
+        paymentStatus: { $first: "$paymentStatus" },
+        totalAmount: { $first: "$totalAmount" },
+        status: { $first: "$status" },
+        createdAt: { $first: "$createdAt" },
+        items: { $push: "$items" },
+      },
+    },
+  ]);
+
 
     res.render("admin/orderManagement", {
       title: "Order-Management",

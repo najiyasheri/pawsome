@@ -1,75 +1,103 @@
 <section class="p-6">
-  <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3">
+  <!-- Title -->
+  <h1 class="text-2xl font-bold mb-6 text-gray-800 border-gray-200 pb-3">
     User Details
   </h1>
 
-  <div class="max-w-lg bg-white shadow-md rounded-lg p-6 space-y-4">
-    <% if (typeof user !== 'undefined' && user) { %>
-      <p><strong>Name:</strong> <%= user.name || 'N/A' %></p>
-      <p><strong>Email:</strong> <%= user.email || 'N/A' %></p>
-      <p><strong>Status:</strong> 
-        <span class="<%= typeof user.isBlocked === 'boolean' && user.isBlocked ? 'text-red-500' : 'text-green-600' %>">
-          <%= typeof user.isBlocked === 'boolean' && user.isBlocked ? 'Blocked' : 'Active' %>
-        </span>
-      </p>
-      <p><strong>Joined:</strong> 
-        <%= user.createdAt && !isNaN(new Date(user.createdAt)) 
-            ? new Date(user.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: '2-digit', year: 'numeric' }) 
-            : 'N/A' %>
-      </p>
-            <div class="mt-4">
-              <h2 class="font-semibold text-lg mb-2">Default Address</h2>
-              <% if (defaultAddress) { %>
-                <p>
-                  <%= defaultAddress.address || '' %>, <%= defaultAddress.pinCode || '' %>
-                </p>
-    
-                <% } else { %>
-                  <p class="text-gray-500">No default address available.</p>
-                  <% } %>
-            </div>
-            
-            <!-- Recent Orders -->
-            <div class="mt-6">
-              <h2 class="font-semibold text-lg mb-2">Recent Orders</h2>
-              <% if (recentOrders && recentOrders.length>0) { %>
-                <ul class="space-y-2">
-                  <% recentOrders.forEach(order=> { %>
-                    <li class="border border-gray-200 rounded p-3">
-                      <p><strong>Order ID:</strong>
-                        <%= order.orderId %>
-                      </p>
-                      <p><strong>Date:</strong>
-                        <%= new Date(order.createdAt).toLocaleDateString("en-IN") %>
-                      </p>
-                      <p><strong>Total:</strong> ₹<%= order.totalAmount %>
-                      </p>
-                      <p><strong>Status:</strong>
-                        <span class="<%= order.status === 'Cancelled' ? 'text-red-500' :
-                                              order.status === 'Delivered' ? 'text-green-600' :
-                                              order.status === 'Pending' ? 'text-yellow-500' :
-                                              order.status === 'Shipped' ? 'text-blue-500' : 'text-gray-500' %>">
-                          <%= order.status %>
-                        </span>
-                      </p>
-                      <a href="/admin/order/<%= order._id %>" class="text-blue-600 hover:text-blue-800 mt-1 inline-block">
-                        View Order
-                      </a>
-                    </li>
-                    <% }) %>
-                </ul>
-                <% } else { %>
-                  <p class="text-gray-500">No recent orders found.</p>
-                  <% } %>
-            </div>
-            
-            <% } else { %>
-              <p class="text-red-500">User data not available.</p>
-              <% } %>
+  <!-- User Info Card -->
+  <div class="max-w-3xl bg-white shadow-md rounded-2xl p-6 mx-auto space-y-6">
+    <% if (typeof user !=='undefined' && user) { %>
+
+      <!-- Basic Info -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <p><strong class="text-gray-700">Name:</strong>
+          <%= user.name || 'N/A' %>
+        </p>
+        <p><strong class="text-gray-700">Email:</strong>
+          <%= user.email || 'N/A' %>
+        </p>
+
+        <p>
+          <strong class="text-gray-700">Status:</strong>
+          <span
+            class="<%= typeof user.isBlocked === 'boolean' && user.isBlocked ? 'text-red-500 font-medium' : 'text-green-600 font-medium' %>">
+            <%= typeof user.isBlocked==='boolean' && user.isBlocked ? 'Blocked' : 'Active' %>
+          </span>
+        </p>
+
+        <p>
+          <strong class="text-gray-700">Joined:</strong>
+          <%= user.createdAt && !isNaN(new Date(user.createdAt)) ? new Date(user.createdAt).toLocaleDateString("en-IN",
+            { day: '2-digit' , month: '2-digit' , year: 'numeric' }) : 'N/A' %>
+        </p>
+      </div>
+
+      <!-- Default Address -->
+      <div class="border-t border-gray-200 pt-4">
+        <h2 class="font-semibold text-lg text-gray-800 mb-2">Default Address</h2>
+        <% if (defaultAddress) { %>
+          <div class="text-gray-700 leading-relaxed">
+            <%= defaultAddress.address || '' %>,
+              <%= defaultAddress.pinCode || '' %>
+          </div>
+          <% } else { %>
+            <p class="text-gray-500 italic">No default address available.</p>
+            <% } %>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="border-t border-gray-200 pt-4">
+        <h2 class="font-semibold text-lg text-gray-800 mb-3">Recent Orders</h2>
+
+        <% if (recentOrders && recentOrders.length> 0) { %>
+          <ul class="space-y-3">
+            <% recentOrders.forEach(order=> { %>
+              <li class="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                  <div class="space-y-1">
+                    <p><strong>Order ID:</strong>
+                      <%= order.orderId %>
+                    </p>
+                    <p><strong>Date:</strong>
+                      <%= new Date(order.createdAt).toLocaleDateString("en-IN") %>
+                    </p>
+                    <p><strong>Total:</strong> ₹<%= order.totalAmount %>
+                    </p>
+                  </div>
+                  <div class="mt-2 sm:mt-0 text-right">
+                    <p>
+                      <strong>Status:</strong>
+                      <span
+                        class="<%= order.status === 'Cancelled' ? 'text-red-500 font-medium' :
+                                        order.status === 'Delivered' ? 'text-green-600 font-medium' :
+                                        order.status === 'Pending' ? 'text-yellow-500 font-medium' :
+                                        order.status === 'Shipped' ? 'text-blue-500 font-medium' : 'text-gray-500 font-medium' %>">
+                        <%= order.status %>
+                      </span>
+                    </p>
+                    <a href="/admin/order/<%= order._id %>"
+                      class="inline-block mt-1 text-blue-600 hover:text-blue-800 text-sm font-medium underline">
+                      View Order
+                    </a>
+                  </div>
                 </div>
+              </li>
+              <% }) %>
+          </ul>
+          <% } else { %>
+            <p class="text-gray-500 italic">No recent orders found.</p>
+            <% } %>
+      </div>
 
+      <% } else { %>
+        <p class="text-red-500 font-medium">User data not available.</p>
+        <% } %>
+  </div>
 
-  <a href="/admin/users" class="inline-block mt-5 text-yellow-600 hover:text-yellow-800 font-medium">
-    ← Back to Users
-  </a>
+  <!-- Back Button -->
+  <div class="max-w-3xl mx-auto mt-6">
+    <a href="/admin/users" class="inline-block text-yellow-600 hover:text-yellow-800 font-medium transition">
+      ← Back to Users
+    </a>
+  </div>
 </section>

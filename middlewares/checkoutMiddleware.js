@@ -13,4 +13,16 @@ const requireCartNotEmpty = async (req, res, next) => {
   }
 };
 
-module.exports = { requireCartNotEmpty };
+const isInCheckout = async (req,res,next)=>{
+  try {
+    if(req.session.inCheckout){
+      next()
+    }else{
+      res.redirect('/cart')
+    }
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+module.exports = { requireCartNotEmpty, isInCheckout };

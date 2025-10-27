@@ -1,165 +1,207 @@
+<div class="min-h-screen flex">
+  <!-- Sidebar -->
+  <div class="hidden sm:block">
+    <%- include('../partials/user/profileSidebar') %>
+  </div>
 
-    <div class="min-h-screen flex">
-        <!-- Sidebar -->
-        <div  class="hidden sm:block">
-            <%- include('../partials/user/profileSidebar') %>
+  <!-- Main Content: Wallet Card slightly up -->
+  <main class="flex-1 sm:ml-64 p-2">
+    <div class="flex-1  p-2">
+      <div class="w-full p-6  bg-white shadow rounded-lg mx-auto">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3 ">My Wallet</h1>
+
+        <!-- Wallet Balance Card -->
+        <div class="bg-yellow-400 rounded-xl p-5 text-gray-900 mb-5 ">
+          <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-lg">Wallet Balance</h2>
+
+          </div>
+          <p class="text-4xl font-bold mt-3 text-center">₹<%= walletBalance.toFixed(2) %>
+          </p>
         </div>
 
-        <!-- Main Content: Wallet Card slightly up -->
-          <main class="flex-1 sm:ml-64 p-2">
-            <div class="flex-1  p-2">
-              <div class="w-full p-6  bg-white shadow rounded-lg mx-auto">
-                <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3 ">My Wallet</h1>
-            
-                <!-- Wallet Balance Card -->
-                <div class="bg-yellow-400 rounded-xl p-5 text-gray-900 mb-5 ">
-                  <div class="flex justify-between items-center">
-                    <h2 class="font-semibold text-lg">Wallet Balance</h2>
-            
-                  </div>
-                  <p class="text-4xl font-bold mt-3 text-center">₹<%= walletBalance.toFixed(2) %>
-                  </p>
-                </div>
-            
-                <!-- Wallet Limit Info -->
-                <div class="flex items-center justify-center text-gray-500 text-sm mb-5">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                    class="w-4 h-4 mr-1">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                  </svg>
-                  <span>you can add up to ₹50,000</span>
-                </div>
-            
-                <!-- Add Amount Form -->
-                <form id="addMoneyForm" class="flex flex-col space-y-4">
-                  <div>
-                    <label class="text-sm font-medium text-gray-700">Add Amount</label>
-                    <input type="number" id="amount" name="amount" placeholder="Enter amount"
-                      class="w-full mt-2 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-400 focus:outline-none"
-                      required />
-                  </div>
-            
-                  <div class="flex justify-between gap-3">
-                    <button type="submit"
-                      class="flex-1  bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 rounded-md transition">
-                      ADD MONEY
-                    </button>
-            
-                  </div>
-                </form>
-                <!-- Transaction History Section -->
-                <div class="mt-8">
-                  <h2 class="text-lg font-semibold text-gray-800 mb-4 text-center">Recent Transactions</h2>
-            
-                  <% if (transactions.length===0) { %>
-                    <div class="text-center text-gray-500 py-6">
-                      <p>No transactions yet.</p>
-                    </div>
-                    <% } else { %>
-                      <div class="overflow-x-auto">
-                        <table class="w-full border border-gray-200 rounded-md text-sm">
-                          <thead class="bg-gray-100 text-gray-700">
-                            <tr>
-                              <th class="py-3 px-3 text-left">Date</th>
-                              <th class="py-3 px-3 text-left">Description</th>
-                              <th class="py-3 px-3 text-center">Type</th>
-                              <th class="py-3 px-3 text-right">Amount</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <% transactions.forEach(tx=> { %>
-                              <tr class="border-t hover:bg-gray-50 transition">
-                                <td class="py-2 px-3 text-gray-600">
-                                  <%= new Date(tx.createdAt).toLocaleString("en-IN", { day: "2-digit" , month: "short" ,
-                                    year: "numeric" , hour: "2-digit" , minute: "2-digit" , hour12: true }) %>
-                                </td>
-                                <td class="py-2 px-3 text-gray-700">
-                                  <%= tx.description %>
-                                </td>
-                                <td class="py-2 px-3 text-center">
-                                  <% if (tx.transactionType==="credit" ) { %>
-                                    <span class="text-green-600 font-semibold">Credit</span>
-                                    <% } else { %>
-                                      <span class="text-red-600 font-semibold">Debit</span>
-                                      <% } %>
-                                </td>
-                                <td class="py-2 px-3 text-right font-semibold">
-                                  <% if (tx.transactionType==="credit" ) { %>
-                                    <span class="text-green-600">+₹<%= tx.amount.toFixed(2) %></span>
-                                    <% } else { %>
-                                      <span class="text-red-600">-₹<%= tx.amount.toFixed(2) %></span>
-                                      <% } %>
-                                </td>
-                              </tr>
-                              <% }) %>
-                          </tbody>
-                        </table>
-                      </div>
-            
-                      <!-- Optional: View all link -->
-            
-                      <% } %>
-                </div>
-            
-              </div>
-            </div>
-          
-          </main>
+        <!-- Wallet Limit Info -->
+        <div class="flex items-center justify-center text-gray-500 text-sm mb-5">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+            stroke="currentColor" class="w-4 h-4 mr-1">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+          <span>you can add up to ₹50,000</span>
+        </div>
 
-        
+        <!-- Add Amount Form -->
+        <form id="addMoneyForm" class="flex flex-col space-y-4">
+          <div>
+            <label class="text-sm font-medium text-gray-700">Add Amount</label>
+            <input type="number" id="amount" name="amount" placeholder="Enter amount"
+              class="w-full mt-2 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-400 focus:outline-none"
+              required />
+          </div>
+
+          <div class="flex justify-between gap-3">
+            <button type="submit"
+              class="flex-1  bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 rounded-md transition">
+              ADD MONEY
+            </button>
+
+          </div>
+        </form>
+        <!-- Transaction History Section -->
+        <div class="mt-8">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 text-center">Recent Transactions</h2>
+
+          <% if (transactions.length===0) { %>
+            <div class="text-center text-gray-500 py-6">
+              <p>No transactions yet.</p>
+            </div>
+            <% } else { %>
+              <div class="overflow-x-auto">
+                <table class="w-full border border-gray-200 rounded-md text-sm">
+                  <thead class="bg-gray-100 text-gray-700">
+                    <tr>
+                      <th class="py-3 px-3 text-left">Date</th>
+                      <th class="py-3 px-3 text-left">Description</th>
+                      <th class="py-3 px-3 text-center">Type</th>
+                      <th class="py-3 px-3 text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% transactions.forEach(tx=> { %>
+                      <tr class="border-t hover:bg-gray-50 transition">
+                        <td class="py-2 px-3 text-gray-600">
+                          <%= new Date(tx.createdAt).toLocaleString("en-IN", { day: "2-digit" , month: "short" ,
+                            year: "numeric" , hour: "2-digit" , minute: "2-digit" , hour12: true }) %>
+                        </td>
+                        <td class="py-2 px-3 text-gray-700">
+                          <%= tx.description %>
+                        </td>
+                        <td class="py-2 px-3 text-center">
+                          <% if (tx.transactionType==="credit" ) { %>
+                            <span class="text-green-600 font-semibold">Credit</span>
+                            <% } else { %>
+                              <span class="text-red-600 font-semibold">Debit</span>
+                              <% } %>
+                        </td>
+                        <td class="py-2 px-3 text-right font-semibold">
+                          <% if (tx.transactionType==="credit" ) { %>
+                            <span class="text-green-600">+₹<%= tx.amount.toFixed(2) %></span>
+                            <% } else { %>
+                              <span class="text-red-600">-₹<%= tx.amount.toFixed(2) %></span>
+                              <% } %>
+                        </td>
+                      </tr>
+                      <% }) %>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Optional: View all link -->
+
+              <% } %>
+        </div>
+
+      </div>
     </div>
 
+  </main>
+
+
+</div>
 
 
 
-  <!-- Razorpay Script -->
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-  <script>
-    document.getElementById("addMoneyForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const amount = document.getElementById("amount").value;
-      try {
-        const res = await fetch("/wallet/add-money", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount }),
-        });
-        const data = await res.json();
-        if (data.success && data.order) {
-          const options = {
-            key: "<%= RAZORPAY_KEY_ID %>",
-            amount: data.order.amount,
-            currency: "INR",
-            name: "Pawsome",
-            description: "Add money to wallet",
-            order_id: data.order.id,
-            handler: async function (response) {
-              const verifyRes = await fetch("/wallet/verify-payment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({...response , amount:data.order.amount}),
-              });
-              const verifyData = await verifyRes.json();
-              if (verifyData.success) {
-                alert("Wallet credited successfully!");
-                location.reload();
-              } else {
-                alert("Payment verification failed!");
-              }
-            },
-            theme: { color: "#facc15" },
-          };
-          const rzp = new Razorpay(options);
-          rzp.open();
-        } else {
-          alert("Error creating order.");
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Something went wrong."); 
+
+<!-- Razorpay Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  const walletLimit = 50000; // Maximum allowed in wallet
+
+  document.getElementById("addMoneyForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const amountInput = document.getElementById("amount");
+    const amount = parseFloat(amountInput.value);
+    const currentBalance = <%= walletBalance %>;
+
+    // Client-side validation
+    if (isNaN(amount) || amount <= 0) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Invalid Amount',
+        text: 'Please enter a valid positive number.'
+      });
+    }
+
+    if (amount + currentBalance > walletLimit) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Wallet Limit Exceeded',
+        text: `You can only add up to ₹${walletLimit - currentBalance} more.`
+      });
+    }
+
+    try {
+      Swal.fire({ title: 'Creating order...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+      const res = await fetch("/wallet/add-money", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount }),
+      });
+      const data = await res.json();
+      Swal.close();
+
+      if (!data.success || !data.order) {
+        return Swal.fire({ icon: 'error', title: 'Error', text: 'Error creating order.' });
       }
-    });
 
-    
-  </script>
+      const options = {
+        key: "<%= RAZORPAY_KEY_ID %>",
+        amount: data.order.amount,
+        currency: "INR",
+        name: "Pawsome",
+        description: "Add money to wallet",
+        order_id: data.order.id,
+        handler: async function (response) {
+          try {
+            Swal.fire({ title: 'Verifying payment...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            const verifyRes = await fetch("/wallet/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...response, amount: data.order.amount }),
+            });
+            const verifyData = await verifyRes.json();
+            Swal.close();
+
+            if (verifyData.success) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Wallet credited successfully!'
+              }).then(() => location.reload());
+            } else {
+              Swal.fire({ icon: 'error', title: 'Failed', text: 'Payment verification failed!' });
+            }
+          } catch (err) {
+            Swal.close();
+            Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong during verification.' });
+            console.error(err);
+          }
+        },
+        theme: { color: "#facc15" },
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+
+    } catch (err) {
+      Swal.close();
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong while creating the order.' });
+      console.error(err);
+    }
+  });
+</script>

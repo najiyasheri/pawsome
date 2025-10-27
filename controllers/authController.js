@@ -1,6 +1,8 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const OTP = require("../models/Otp");
+const Wallet = require("../models/Wallet");
+const Transaction = require("../models/Transaction");
 const {
   generateOTP,
   generateExpiry,
@@ -37,7 +39,10 @@ const loadSignupPage = async (req, res) => {
 
 const loadForgotpassword = async (req, res) => {
   try {
-    return res.render("user/forgotpassword", { layout:"layouts/userLayout",title:'Forgot Password' });
+    return res.render("user/forgotpassword", {
+      layout: "layouts/userLayout",
+      title: "Forgot Password",
+    });
   } catch (error) {
     console.log("forgotpassword page is loading");
     res.status(500).send("server error loading forgotpassword page");
@@ -47,7 +52,10 @@ const loadForgotpassword = async (req, res) => {
 const loadResetpassword = async (req, res) => {
   try {
     const email = req.session.resetEmail;
-    return res.render("user/resetpassword", { title:'Reset Password',layout:"layouts/userLayout" });
+    return res.render("user/resetpassword", {
+      title: "Reset Password",
+      layout: "layouts/userLayout",
+    });
   } catch (error) {
     console.log("forgotpassword page is loading");
     res.status(500).send("server error loading forgotpassword page");
@@ -56,6 +64,7 @@ const loadResetpassword = async (req, res) => {
 
 const postSignup = async (req, res) => {
   const { name, email, password } = req.body;
+
   try {
     if (!password) {
       return res.render("user/signup", {
@@ -65,32 +74,43 @@ const postSignup = async (req, res) => {
       });
     }
 
-    const verifiedUser = await User.findOne({ email, isVerified: true });
-    if (verifiedUser) {
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser && existingUser.isVerified) {
+
       return res.render("user/signup", {
         email,
-        error: "User already exists",
+        error: "User already exists and verified. Please login.",
         layout: "layouts/userLayout",
-        title:'User Signup'
+        title: "User Signup",
       });
     }
 
     const hashedPassword = await bcrypt.hash(password, saltRound);
 
-    const newUser = await User.findOneAndUpdate(
-      { email },
-      {
-        $setOnInsert: {
-          name,
-          email,
-          password: hashedPassword,
-          isVerified: false,
+    let newUser;
+    if (existingUser && !existingUser.isVerified) {
+      newUser = await User.findOneAndUpdate(
+        { email },
+        {
+          $set: {
+            name,
+            password: hashedPassword,
+          },
         },
-        $set: { updatedAt: new Date() },
-      },
-      { upsert: true, new: true }
-    );
+        { new: true }
+      );
+    } else {
 
+      newUser = new User({
+        name,
+        email,
+        password: hashedPassword,
+      });
+      await newUser.save();
+    }
+
+    
     const otp = generateOTP();
     const expiredAt = generateExpiry(5);
     await OTP.findOneAndUpdate(
@@ -107,8 +127,8 @@ const postSignup = async (req, res) => {
       title: "OTP",
     });
   } catch (error) {
-    console.error("error for save user", error);
-    res.status(500).send("internal server error");
+    console.error("Error saving user:", error);
+    res.status(500).send("Internal server error");
   }
 };
 
@@ -133,10 +153,17 @@ const resendOtp = async (req, res) => {
 };
 
 const postOtp = async (req, res) => {
-  const { email, otp } = req.body;
+  const { email, otp, referralCode } = req.body;
+
   try {
     const otpRecord = await OTP.findOne({ email });
-    if (!otpRecord) {
+
+
+    if (
+      !otpRecord ||
+      otpRecord.expiredAt < new Date() ||
+      otpRecord.otp !== Number(otp)
+    ) {
       return res.render("user/otp", {
         email,
         error: "Invalid or expired OTP",
@@ -144,23 +171,74 @@ const postOtp = async (req, res) => {
         title: "OTP",
       });
     }
-    if (otpRecord.expiredAt < new Date()) {
-      return res.render("user/otp", {
-        email,
-        error: "Invalid or expired OTP",
-        layout: "layouts/userLayout",
-        title: "OTP",
+
+
+    let referrer = null;
+    if (referralCode && referralCode.trim() !== "") {
+      referrer = await User.findOne({
+        referralCode: referralCode.trim().toUpperCase(),
+      });
+      if (!referrer) {
+        return res.render("user/signup", {
+          error: "Invalid referral code",
+          layout: "layouts/userLayout",
+          title: "User Signup",
+        });
+      }
+    }
+
+    // ✅ Mark user as verified and store referredBy
+    const newUser = await User.findOneAndUpdate(
+      { email },
+      {
+        $set: {
+          isVerified: true,
+          referredBy: referrer ? referrer.referralCode : null,
+        },
+      },
+      { new: true }
+    );
+
+    // ✅ Referral bonus only after verification
+    if (referrer) {
+      const referrerWallet = await Wallet.findOneAndUpdate(
+        { userId: referrer._id },
+        { $inc: { balance: 100 } },
+        { upsert: true, new: true }
+      );
+
+      await Transaction.create({
+        userId: referrer._id,
+        walletId: referrerWallet._id,
+        type: "referral_bonus",
+        transactionType: "credit",
+        amount: 100,
+        orderId: null,
+        description: `Your referral bonus credited.`,
+        balanceAfter: referrerWallet.balance,
+        status: "completed",
+      });
+
+      const newUserWallet = await Wallet.findOneAndUpdate(
+        { userId: newUser._id },
+        { $inc: { balance: 50 } },
+        { upsert: true, new: true }
+      );
+
+      await Transaction.create({
+        userId: newUser._id,
+        walletId: newUserWallet._id,
+        type: "referral_bonus",
+        transactionType: "credit",
+        amount: 50,
+        orderId: null,
+        description: `Your referral bonus credited.`,
+        balanceAfter: newUserWallet.balance,
+        status: "completed",
       });
     }
-    if (otpRecord.otp !== Number(otp)) {
-      return res.render("user/otp", {
-        email,
-        error: "Invalid or expired OTP",
-        layout: "layouts/userLayout",
-        title: "OTP",
-      });
-    }
-    await User.updateOne({ email }, { $set: { isVerified: true } });
+
+    // ✅ Clear OTP and redirect
     await OTP.deleteOne({ email });
     return res.redirect("/login");
   } catch (error) {
@@ -168,6 +246,7 @@ const postOtp = async (req, res) => {
     res.status(500).send("Internal server error during OTP verification");
   }
 };
+
 
 const postLogin = async (req, res) => {
   try {
@@ -180,7 +259,7 @@ const postLogin = async (req, res) => {
         email,
         error: "Invalid email or password",
         layout: "layouts/userLayout",
-        title:'login'
+        title: "login",
       });
     }
     if (!userRecord.isVerified) {
@@ -319,7 +398,7 @@ const resetPasswordResendOtp = async (req, res) => {
 
 const loadAdminLogin = async (req, res) => {
   try {
-    return res.render("admin/login", { layout:false,});
+    return res.render("admin/login", { layout: false });
   } catch (error) {
     console.log("login page is loading");
     res.status(500).send("Server error loading login page");

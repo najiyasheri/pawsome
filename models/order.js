@@ -17,6 +17,11 @@ const orderSchema = new mongoose.Schema(
       enum: ["COD", "WALLET", "ONLINE"],
       required: true,
     },
+    paymentStatus: {
+      type: String,
+      enum: ["Pending","Success", "Failed", "Refunded"],
+      required: true,
+    },
     totalAmount: {
       type: Number,
       required: true,
@@ -58,6 +63,9 @@ const orderSchema = new mongoose.Schema(
       default: "Pending",
     },
     cancellationReason: { type: String },
+    deliveredDate:{
+      type:Date
+    }
   },
   { timestamps: true }
 );

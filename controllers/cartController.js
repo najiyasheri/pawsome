@@ -114,7 +114,6 @@ const loadCart = async (req, res) => {
 };
 
 
-
 const addToCart = async (req, res) => {
   try {
     if (!req.session.user) {

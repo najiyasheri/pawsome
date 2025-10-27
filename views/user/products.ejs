@@ -141,7 +141,7 @@
             <span class="line-through text-gray-400 old-price">₹0</span>
           </div>
           <span class="stock-status"></span>
-          <button class="add-cart text-gray-900 bg-yellow-400 hover:bg-gray-600 focus:ring-4 
+          <button class="add-cart text-gray-900 bg-yellow-500 hover:bg-yellow-600 focus:ring-4 
                    focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-3 py-2.5 text-center"
             data-product-id="" data-variant-id="">
             Add to Cart
@@ -213,11 +213,11 @@
         if (p.isExistingInCart === true || p.selectedVariant?.isInCart === true) {
           addCartBtn.textContent = "Go to Cart";
           addCartBtn.classList.remove("bg-yellow-500", "hover:bg-yellow-600");
-          addCartBtn.classList.add("bg-green-500", "hover:bg-green-600", "text-black");
+          addCartBtn.classList.add("bg-yellow-600", "hover:bg-yellow-700", "text-black");
           addCartBtn.onclick = () => window.location.href = "/cart";
         } else {
           addCartBtn.textContent = "Add to Cart";
-          addCartBtn.classList.remove("bg-green-500", "hover:bg-green-600", "text-white");
+          addCartBtn.classList.remove("bg-yellow-500", "hover:bg-yellow-600", "text-black");
           addCartBtn.classList.add("bg-yellow-500", "hover:bg-yellow-600");
         }
 
@@ -290,7 +290,7 @@
 
               newBtn.textContent = 'Go to Cart';
               newBtn.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
-              newBtn.classList.add('bg-green-500', 'hover:bg-green-600', 'text-black');
+              newBtn.classList.add('bg-yellow-600', 'hover:bg-yellow-700', 'text-black');
               newBtn.disabled = false;
 
            

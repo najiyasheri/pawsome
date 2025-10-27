@@ -7,6 +7,7 @@ const loadAddress = async (req, res) => {
     }
 
     const userId = req.session.user._id;
+    req.session.inCheckout = true;
 
     const addresses = await Address.find({ userId });
   
@@ -17,7 +18,7 @@ const loadAddress = async (req, res) => {
       addresses,
     });
   } catch (error) {
-    console.error("error while loading address page", error.message);
+    console.error("error while loading address page", error);
     res.status(500).send("Server Error");
   }
 };

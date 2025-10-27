@@ -4,8 +4,7 @@
     <% if (products.length===0) { %>
         <div id="empty-message" class="flex flex-col items-center justify-center mt-20">
             <img src="/img/wishlist.webp" alt="Empty Wishlist" class="w-64 h-64 mb-6 object-contain">
-            <p class="text-gray-500 text-lg mb-4">Your wishlist is empty.</p>
-            <a href="/products" class="px-6 py-3 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition">
+            <a href="/products" class="px-6 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-600 transition">
                 Go to Shop
             </a>
         </div>
@@ -48,29 +47,32 @@
                             </div>
 
                             <!-- Price -->
-                        <!-- Price / Stock -->
-                        <div class="mt-2 mb-2">
-                            <% if(product.isOutOfStock) { %>
-                                
-                                <% } else { %>
-                                    <span class="text-xl font-bold text-black-600 product-price">₹<%= product.finalPrice %></span>
+                             
+                            <div class="flex items-center gap-6">
+
+                                <div class="mt-2 mb-2">
+                                    <span class="text-md font-bold text-black product-price">
+                                        ₹<%= product.finalPrice %>
+                                    </span>
                                     <% if(product.oldPrice> product.finalPrice) { %>
-                                        <span class="line-through text-gray-400 old-price">₹<%= product.oldPrice %></span>
+                                        <span class="line-through text-gray-400 old-price ml-2">
+                                            ₹<%= product.oldPrice %>
+                                        </span>
                                         <% } %>
-                                            <% } %>
-                        </div>
+                                </div>
 
-<button class="move-to-cart w-full px-4 py-2 text-white rounded transition
+                                <button class="move-to-cart px-2 py-2.5 text-sm font-medium text-black rounded-lg shadow-sm transition
     <%= product.isOutOfStock 
-          ? 'bg-gray-400 cursor-not-allowed' 
-          : (product.isInCart 
-              ? 'bg-green-500 hover:bg-green-600' 
-              : 'bg-yellow-500 hover:bg-yellow-600') %>" data-product-id="<%= product._id %>"
-    data-variant-id="<%= product.variantId %>" data-is-in-cart="<%= product.isInCart %>" <%=product.isOutOfStock
-    ? 'disabled' : '' %>>
-    <%= product.isOutOfStock ? 'Out of Stock' : (product.isInCart ? 'Go to Cart' : 'Move to Cart' ) %>
-</button>
-
+      ? 'bg-red-200 text-red-600 cursor-not-allowed' 
+      : (product.isInCart 
+        ? 'bg-yellow-600 hover:bg-yellow-700' 
+        : 'bg-yellow-500 hover:bg-yellow-600') %>" data-product-id="<%= product._id %>"
+                                    data-variant-id="<%= product.variantId %>" data-is-in-cart="<%= product.isInCart %>"
+                                    <%=product.isOutOfStock ? 'disabled' : '' %>>
+                                    <%= product.isOutOfStock ? 'Out of Stock' : (product.isInCart ? 'Go to Cart'
+                                        : 'Move to Cart' ) %>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <% }) %>
@@ -115,7 +117,7 @@
                         emptyDiv.innerHTML = `
                         <img src="/img/wishlist.webp" alt="Empty Wishlist" class="w-64 h-64 mb-6 object-contain">
                         <p class="text-gray-500 text-lg mb-4">Your wishlist is empty.</p>
-                        <a href="/products" class="px-6 py-3 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition">Go to Shop</a>
+                        <a href="/products" class="px-6 py-3 bg-yellow-500 text-black rounded hover:bg-yellow-600 transition">Go to Shop</a>
                     `;
                         document.querySelector('.max-w-7xl').appendChild(emptyDiv);
                     }
@@ -132,61 +134,61 @@
     });
 
     document.querySelectorAll(".move-to-cart").forEach(btn => {
-            btn.addEventListener("click", async () => {
-                if (btn.innerText === "Go to Cart") {
-                    window.location.href = "/cart"; // redirect
+        btn.addEventListener("click", async () => {
+            if (btn.innerText === "Go to Cart") {
+                window.location.href = "/cart"; // redirect
+                return;
+            }
+            const productId = btn.dataset.productId;
+            const variantId = btn.dataset.variantId;
+
+            try {
+                const res = await fetch("/wishlist/moveToCart", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ productId, variantId }),
+                });
+
+                if (res.status === 401) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Login Required",
+                        text: "Please login to move this item to cart.",
+                    }).then(() => (window.location.href = "/login"));
                     return;
                 }
-                const productId = btn.dataset.productId;
-                const variantId = btn.dataset.variantId;
 
-                try {
-                    const res = await fetch("/wishlist/moveToCart", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ productId, variantId }),
+                const data = await res.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Moved to Cart",
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false,
+                    }).then(() => {
+                        btn.closest(".product-card").remove();
+                        if (document.querySelectorAll(".product-card").length === 0) {
+                            location.reload();
+                        }
                     });
 
-                    if (res.status === 401) {
-                        Swal.fire({
-                            icon: "warning",
-                            title: "Login Required",
-                            text: "Please login to move this item to cart.",
-                        }).then(() => (window.location.href = "/login"));
-                        return;
-                    }
-
-                    const data = await res.json();
-
-                    if (data.success) {
-                        Swal.fire({
-                            icon: "success",
-                            title: "Moved to Cart",
-                            text: data.message,
-                            timer: 1500,
-                            showConfirmButton: false,
-                        }).then(() => {
-                            btn.closest(".product-card").remove();
-                            if (document.querySelectorAll(".product-card").length === 0) {
-                                location.reload(); 
-                            }
-                        });
-
-                    } else {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: data.message || "Something went wrong",
-                        });
-                    }
-                } catch (err) {
-                    console.error(err)
+                } else {
                     Swal.fire({
                         icon: "error",
                         title: "Error",
-                        text: "Server error occurred. Try again later.",
+                        text: data.message || "Something went wrong",
                     });
                 }
-            });
+            } catch (err) {
+                console.error(err)
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Server error occurred. Try again later.",
+                });
+            }
         });
+    });
 </script>

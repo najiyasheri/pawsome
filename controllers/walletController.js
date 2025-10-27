@@ -5,7 +5,6 @@ const Wallet = require("../models/Wallet");
 const Transaction = require("../models/Transaction");
 
 
-// -------------------- Load Wallet Page --------------------
 const loadWallet = async (req, res) => {
   try {
     const userId = req.session.user?._id;
@@ -18,7 +17,7 @@ const loadWallet = async (req, res) => {
 
       const transactions = await Transaction.find({ userId })
         .sort({ createdAt: -1 })
-        .limit(5) // Show latest 5 transactions
+        .limit(5) 
         .lean();
     res.render("user/wallet", {
       walletBalance: wallet.balance,
@@ -33,7 +32,6 @@ const loadWallet = async (req, res) => {
   }
 };
 
-// -------------------- Add Money to Wallet (Razorpay) --------------------
 const addMoney = async (req, res) => {
   try {
     const userId = req.session.user?._id;
@@ -62,7 +60,6 @@ const addMoney = async (req, res) => {
   }
 };
 
-// -------------------- Verify Wallet Top-Up --------------------
 const verifyWalletPayment = async (req, res) => {
   try {
     const {
@@ -80,11 +77,10 @@ const verifyWalletPayment = async (req, res) => {
       
       const wallet = await Wallet.findOneAndUpdate(
         { userId },
-        { $inc: { balance: amount / 100 } }, // convert paise to rupees
+        { $inc: { balance: amount / 100 } }, 
         { new: true, upsert: true }
       );
 
-      // Log transaction
          await Transaction.create({
            userId,
            type: "wallet_topup",
@@ -103,7 +99,6 @@ const verifyWalletPayment = async (req, res) => {
   }
 };
 
-// -------------------- View Wallet Transactions --------------------
 const walletTransactions = async (req, res) => {
   try {
     const userId = req.session.user?._id;

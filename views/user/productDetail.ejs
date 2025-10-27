@@ -124,7 +124,7 @@
                   <%= variant.size %>
                 </span>
                 <% if (variant.stock <=0) { %>
-                  <span class="block text-sm text-red-500 font-semibold">Out of stock</span>
+                  <span class="block text-sm text-red-500 font-medium">Out of stock</span>
                   <% } %>
               </button>
               <% }) %>
@@ -224,7 +224,7 @@
                 <input type="hidden" name="productId" value="<%= rp._id %>">
                 <input type="hidden" name="variantId" value="<%= rp.selectedVariant._id %>">
                 <button type="button"
-                  class="cart-btn text-gray-900 font-medium rounded-lg text-xs px-3 py-1.5 text-center <%= rp.isInCart ? 'bg-green-500 text-white hover:bg-green-600' : rp.stock <= 0 ? 'bg-red-200 text-red-500 cursor-not-allowed' : 'bg-yellow-400 hover:bg-yellow-500' %> focus:ring-4 focus:outline-none focus:ring-yellow-300"
+                  class="cart-btn text-gray-900 font-medium rounded-lg text-xs px-3 py-1.5 text-center <%= rp.isInCart ? 'bg-yellow-600 text-black  hover:bg-yellow-700' : rp.stock <= 0 ? 'bg-red-200 text-red-500 cursor-not-allowed' : 'bg-yellow-400 hover:bg-yellow-500' %> focus:ring-4 focus:outline-none focus:ring-yellow-300"
                   data-product-id="<%= rp._id %>" data-variant-id="<%= rp.selectedVariant._id %>"
                   data-in-cart="<%= rp.isInCart %>" data-stock="<%= rp.stock %>" <%=rp.stock <=0 ? 'disabled' : '' %>>
                   <%= rp.isInCart ? 'Go to Cart' : rp.stock <=0 ? 'Out of Stock' : 'Add to Cart' %>
@@ -315,7 +315,7 @@
 
     if (isInCart) {
       addToCartBtn.textContent = 'Go to Cart';
-      addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-green-500 text-white hover:bg-green-600 cursor-pointer';
+      addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-yellow-600 text-gray-900  hover:bg-yellow-700 cursor-pointer';
       addToCartBtn.disabled = false;
     } else {
       updateAddToCartButton(stock);
@@ -368,7 +368,7 @@
     } else {
       addToCartBtn.disabled = false;
       addToCartBtn.textContent = 'Add to Cart';
-      addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-yellow-500 hover:bg-yellow-600 shadow-md text-black';
+      addToCartBtn.className = 'px-6 py-3 rounded-xl w-40 bg-yellow-500 hover:bg-yellow-600 shadow-md  text-black';
     }
   }
 
@@ -642,7 +642,7 @@
               if (result.success) {
                 btn.textContent = 'Go to Cart';
                 btn.classList.remove('bg-yellow-400', 'hover:bg-yellow-500');
-                btn.classList.add('bg-green-500', 'hover:bg-green-600', 'text-white');
+                btn.classList.add('bg-yellow-600', 'hover:bg-yellow-700', 'text-black');
                 btn.setAttribute('data-in-cart', 'true');
                 btn.disabled = false;
 

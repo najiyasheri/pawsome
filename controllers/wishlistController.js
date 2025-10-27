@@ -139,8 +139,6 @@ const removeFromWishlist = async (req, res) => {
   }
 };
 
-
-
 const moveToCart = async (req, res) => {
   try {
     const userId = req.session.user?._id;

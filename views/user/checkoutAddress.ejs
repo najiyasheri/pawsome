@@ -1,23 +1,23 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <section class="max-w-3xl mx-auto p-6">
 
-<!-- Stepper -->
-<div class="flex items-center justify-center mb-8">
-  <div class="flex items-center gap-4">
-    <div class="flex items-center space-x-2 step" data-step="1">
-      <div class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500 text-white font-bold">1</div>
-      <span class="font-medium text-yellow-600">Address</span>
-    </div>
+  <!-- Stepper -->
+  <div class="flex items-center justify-center mb-8">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center space-x-2 step" data-step="1">
+        <div class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-500 text-white font-bold">1</div>
+        <span class="font-medium text-yellow-600">Address</span>
+      </div>
 
-    <!-- Connecting line -->
-    <div class="w-16 h-0.5 bg-gray-300"></div>
+      <!-- Connecting line -->
+      <div class="w-16 h-0.5 bg-gray-300"></div>
 
-    <div class="flex items-center space-x-2 step" data-step="2">
-      <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 font-bold">2</div>
-      <span class="text-gray-500">Payment</span>
+      <div class="flex items-center space-x-2 step" data-step="2">
+        <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-500 font-bold">2</div>
+        <span class="text-gray-500">Payment</span>
+      </div>
     </div>
   </div>
-</div>
 
   <h2 class="text-xl font-semibold mb-6">Select Address</h2>
 
@@ -85,7 +85,7 @@
             <label class="block text-sm font-medium">Phone</label>
             <input type="text" name="phone" class="w-full border p-2 rounded">
           </div>
-         
+
           <div class="mb-2">
             <label class="block text-sm font-medium">Type</label>
             <select name="type" class="w-full border p-2 rounded">
@@ -106,7 +106,8 @@
               <input type="checkbox" name="default"> Set as default
             </label>
           </div>
-          <button type="submit" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">Save
+          <button type="submit"
+            class="px-4 py-2 bg-yellow-500 text-gray-900 font-medium rounded hover:bg-yellow-600">Save
             Address</button>
         </form>
       </div>
@@ -116,8 +117,8 @@
 
   <!-- Navigation Buttons -->
   <div class="flex justify-between mt-8">
-    <a href="/cart" class="px-6 py-2 border border-gray-400 rounded-lg hover:bg-gray-100">Back</a>
-    <a href="#" id="nextBtn" class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">Next</a>
+    <a href="/cart" class="px-6 py-2  rounded-lg bg-yellow-500 hover:bg-yellow-600">Back</a>
+    <a href="#" id="nextBtn" class="px-6 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-600">Next</a>
   </div>
 
 </section>
@@ -233,7 +234,7 @@
     Swal.fire({
       icon: 'success',
       title: 'Address Saved!',
-      text: 'Your address has been validated successfully.',
+      text: 'Your address has been saved successfully.',
       showConfirmButton: false,
       timer: 1200,
       position: 'top'

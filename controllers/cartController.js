@@ -9,37 +9,54 @@ const loadCart = async (req, res) => {
     }
 
     const userId = req.session.user._id;
+
+     const message = req.query.msg ? decodeURIComponent(req.query.msg) : null;
+
+
     const cart = await Cart.findOne({ userId })
-      .populate("items.productId")
+      .populate({
+        path: "items.productId",
+        populate: { path: "categoryId" },
+      })
       .populate("items.variantId");
 
-      if (cart && cart.items.length > 0) {
-  for (let item of cart.items) {
-    const variant = item.variantId;
+    let stockMessage = ""; // 👈 new variable
+    let stockAdjusted = false; // track if any changes happened
 
-    if (!variant) continue;
+    if (cart && cart.items.length > 0) {
+      for (let item of cart.items) {
+        const variant = item.variantId;
 
-    if (variant.stock <= 0) {
-      item.quantity = 0;
-      continue;
+        if (!variant) continue;
+
+        if (variant.stock <= 0) {
+          item.quantity = 0;
+          stockAdjusted = true;
+          continue;
+        }
+
+        if (item.quantity > variant.stock) {
+          item.quantity = variant.stock;
+          stockAdjusted = true;
+
+          await Cart.updateOne(
+            {
+              userId,
+              "items.productId": item.productId,
+              "items.variantId": item.variantId,
+            },
+            { $set: { "items.$.quantity": variant.stock } }
+          );
+        }
+      }
     }
 
-    if (item.quantity > variant.stock) {
-      item.quantity = variant.stock;
-
-      await Cart.updateOne(
-        {
-          userId,
-          "items.productId": item.productId,
-          "items.variantId": item.variantId,
-        },
-        { $set: { "items.$.quantity": variant.stock } }
-      );
+    if (stockAdjusted) {
+      stockMessage =
+        "Some items in your cart were updated due to limited stock availability.";
     }
-  }
-}
+
     if (!cart || cart.items.length === 0) {
-      
       return res.render("user/cart", {
         title: "Cart",
         layout: "layouts/userLayout",
@@ -59,11 +76,15 @@ const loadCart = async (req, res) => {
       .map((item) => {
         const product = item.productId;
         const variant = item.variantId;
+        const category = product?.categoryId;
 
         if (!product || !variant) return null;
 
         const basePrice = parseFloat(product.basePrice || 0);
-        const discountPercentage = parseFloat(product.discountPercentage || 0);
+        const productOffer = parseFloat(product.discountPercentage || 0);
+        const categoryOffer = parseFloat(category?.offerPercentage || 0);
+        const discountPercentage =
+          productOffer > categoryOffer ? productOffer : categoryOffer;
         const oldPrice = basePrice + variant.additionalPrice;
         const finalPrice = Math.round(
           oldPrice * (1 - discountPercentage / 100)
@@ -79,6 +100,7 @@ const loadCart = async (req, res) => {
           price: finalPrice,
           quantity: item.quantity,
           subtotal: finalPrice * item.quantity,
+          discount: discountPercentage,
         };
       })
       .filter(Boolean);
@@ -93,9 +115,8 @@ const loadCart = async (req, res) => {
       totalPrice: enrichedItems.reduce((sum, item) => sum + item.subtotal, 0),
     };
 
-
     let hasOutOfStock = enrichedItems.some((item) => item.stock === 0);
-    
+
     res.render("user/cart", {
       title: "Cart",
       layout: "layouts/userLayout",
@@ -106,12 +127,15 @@ const loadCart = async (req, res) => {
       },
       summary,
       hasOutOfStock,
+      stockMessage, 
+      message,
     });
   } catch (err) {
     console.error("Error loading cart:", err);
     res.status(500).send("Server error");
   }
 };
+
 
 
 const addToCart = async (req, res) => {
@@ -128,7 +152,7 @@ const addToCart = async (req, res) => {
     const quantity = 1;
 
     const product = await Product.findById(productId);
-    if (!product)
+    if (!product || product.isBlocked)
       return res
         .status(404)
         .json({ success: false, message: "Product not found" });

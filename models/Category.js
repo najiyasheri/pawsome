@@ -5,21 +5,27 @@ const categorySchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      unique:true
+      unique: true,
     },
-    description:{
-        type:String,
-        required:true,
+    description: {
+      type: String,
+      required: true,
     },
-     isBlocked: {
+    isBlocked: {
       type: Boolean,
       default: false,
     },
-
-},
-{
+    offerPercentage: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+  },
+  {
     timestamps: true,
-  })
+  }
+);
 
   module.exports = mongoose.model("Category", categorySchema);
   

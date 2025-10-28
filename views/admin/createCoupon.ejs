@@ -7,7 +7,7 @@
             <input type="text" name="code" placeholder="Coupon Code" 
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
 
-            <input type="text" name="discountValue" placeholder="Discount Value (e.g., 10%)" 
+            <input type="text" name="discountValue" placeholder="Discount Value " 
                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
 
             <div class="flex gap-3">
@@ -57,7 +57,7 @@
             return Swal.fire({
                 icon: "error",
                 title: "Invalid Discount",
-                text: "Discount must be a number or percentage (e.g., 10 or 10%)."
+                text: "Discount must be a number or percentage ."
             });
         }
 

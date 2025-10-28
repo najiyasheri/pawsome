@@ -166,7 +166,6 @@ const postEditProduct = async (req, res) => {
       variantId,
     } = req.body;
 
-
     const product = await Product.findById(id);
     if (!product) {
       return res.status(404).send("Product not found");
@@ -423,7 +422,7 @@ const userProducts = async (req, res) => {
       wishlistItems =
         wishlist?.products?.map((item) => item.variantId.toString()) || [];
     }
-    
+
     const count = await Product.countDocuments(filter);
     const totalPages = Math.ceil(count / limit);
     const categories = await Category.find({ isBlocked: false }).lean();
@@ -432,9 +431,12 @@ const userProducts = async (req, res) => {
       const variant = product.selectedVariant;
       const additionalPrice = parseFloat(variant?.additionalPrice || 0);
       const basePrice = parseFloat(product.basePrice || 0);
-      const discountPercentage = parseFloat(product.discountPercentage || 0);
+      const discountPercentage = parseFloat(
+        product.discountPercentage > product.category.offerPercentage
+          ? product.discountPercentage
+          : product.category.offerPercentage || 0
+      );
       const oldPrice = basePrice + additionalPrice;
-    
 
       return {
         ...product,
@@ -448,12 +450,13 @@ const userProducts = async (req, res) => {
         isExistingInCart: !!(
           variant && cartItems.includes(variant._id.toString())
         ),
-        isFavourite: !!(variant && wishlistItems.includes(variant._id.toString())),
+        isFavourite: !!(
+          variant && wishlistItems.includes(variant._id.toString())
+        ),
         variants: undefined,
         category: undefined,
       };
     });
-
 
     if (req.xhr || req.headers.accept.includes("application/json")) {
       return res.json({
@@ -522,7 +525,7 @@ const loadProductDetails = async (req, res) => {
           variants: {
             $sortArray: {
               input: "$variants",
-              sortBy: { stock: -1 }, 
+              sortBy: { stock: -1 },
             },
           },
         },
@@ -554,7 +557,11 @@ const loadProductDetails = async (req, res) => {
     const variant = product.selectedVariant;
     const basePrice = parseFloat(product.basePrice || 0);
     const additionalPrice = parseFloat(variant?.additionalPrice || 0);
-    const discountPercentage = parseFloat(product.discountPercentage || 0);
+    const discountPercentage = parseFloat(
+      product.discountPercentage > product.category.offerPercentage
+        ? product.discountPercentage
+        : product.category.offerPercentage || 0
+    );
     const oldPrice = basePrice + additionalPrice;
     const price = Math.round(oldPrice * (1 - discountPercentage / 100));
 
@@ -600,7 +607,7 @@ const loadProductDetails = async (req, res) => {
       })),
       category: undefined,
     };
-     
+
     const relatedProducts = await Product.aggregate([
       {
         $match: {
@@ -645,22 +652,24 @@ const loadProductDetails = async (req, res) => {
       },
       { $limit: 4 },
     ]).exec();
-      
-          let cartItems = [];
-          if (userId) {
-            const cart = await Cart.findOne(
-              { userId },
-              "items.variantId"
-            ).lean();
-            cartItems =
-              cart?.items?.map((item) => item.variantId.toString()) || [];
-          }
+
+    let cartItems = [];
+    if (userId) {
+      const cart = await Cart.findOne({ userId }, "items.variantId").lean();
+      cartItems = cart?.items?.map((item) => item.variantId.toString()) || [];
+    }
+
+    const category = await Category.findById(product.categoryId);
     const updatedRelatedProducts = relatedProducts.map((p) => {
       const additionalPrice = parseFloat(
         p.selectedVariant?.additionalPrice || 0
       );
       const basePrice = parseFloat(p.basePrice || 0);
-      const discountPercentage = parseFloat(p.discountPercentage || 0);
+      const discountPercentage = parseFloat(
+        p.discountPercentage > category.offerPercentage
+          ? p.discountPercentage
+          : category.offerPercentage || 0
+      );
       const oldPrice = basePrice + additionalPrice;
 
       return {
@@ -672,29 +681,30 @@ const loadProductDetails = async (req, res) => {
         selectedVariant: p.selectedVariant,
       };
     });
-     let isInWishlist = false;
+    let isInWishlist = false;
     let wishlistProductIds = [];
 
     if (userId) {
       const wishlist = await Wishlist.findOne({ userId }).lean();
       if (wishlist) {
-        wishlistProductIds = wishlist.products.map((product) => product.productId.toString());
+        wishlistProductIds = wishlist.products.map((product) =>
+          product.productId.toString()
+        );
         isInWishlist = wishlistProductIds.includes(product._id.toString());
       }
     }
 
-const relatedWithWishlist = updatedRelatedProducts.map((p) => {
-  const variantId = p.selectedVariant?._id?.toString();
-  const isInCart = variantId && cartItems.includes(variantId);
-  const isInWishlist = wishlistProductIds.includes(p._id.toString());
+    const relatedWithWishlist = updatedRelatedProducts.map((p) => {
+      const variantId = p.selectedVariant?._id?.toString();
+      const isInCart = variantId && cartItems.includes(variantId);
+      const isInWishlist = wishlistProductIds.includes(p._id.toString());
 
-  return {
-    ...p,
-    isInWishlist,
-    isInCart,
-  };
-});
-
+      return {
+        ...p,
+        isInWishlist,
+        isInCart,
+      };
+    });
 
     res.render("user/productDetail", {
       title: "Product Details",

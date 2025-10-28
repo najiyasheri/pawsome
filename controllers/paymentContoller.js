@@ -14,9 +14,12 @@ const loadPayment = async (req, res) => {
     if (!req.session.user) {
       return res.redirect("/login");
     }
-    const userId=req.session.user._id
+    const userId = req.session.user._id;
     const cart = await Cart.findOne({ userId })
-      .populate("items.productId")
+      .populate({
+        path: "items.productId",
+        populate: { path: "categoryId" },
+      })
       .populate("items.variantId");
 
     if (!cart || cart.items.length === 0) {
@@ -32,17 +35,20 @@ const loadPayment = async (req, res) => {
       });
     }
 
-
     let subtotal = 0;
     const enrichedItems = cart.items
       .map((item) => {
         const product = item.productId;
         const variant = item.variantId;
+        const category = product?.categoryId;
 
         if (!product || !variant) return null;
 
         const basePrice = parseFloat(product.basePrice || 0);
-        const discountPercentage = parseFloat(product.discountPercentage || 0);
+        const productOffer = parseFloat(product.discountPercentage || 0);
+        const categoryOffer = parseFloat(category?.offerPercentage || 0);
+        const discountPercentage =
+          productOffer > categoryOffer ? productOffer : categoryOffer;
         const oldPrice = basePrice + (variant.additionalPrice || 0);
         const finalPrice = Math.round(
           oldPrice * (1 - discountPercentage / 100)
@@ -76,7 +82,9 @@ const loadPayment = async (req, res) => {
       validUntil: { $gte: currentDate },
       minPurchase: { $lte: subtotal },
       usedBy: { $nin: userId },
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ createdAt: -1 })
+      .limit(3);
 
     let address;
     if (req.query.addressId) {
@@ -118,7 +126,7 @@ const processPayment = async (req, res) => {
         success: false,
         message: "This order has failed previously. Please create a new order.",
       });
-      newOrderId = orderId; 
+      newOrderId = orderId;
     } else {
       newOrderId = "ORD" + Date.now();
     }
@@ -127,7 +135,10 @@ const processPayment = async (req, res) => {
     const userId = req.session.user._id;
 
     const cart = await Cart.findOne({ userId })
-      .populate("items.productId")
+      .populate({
+        path: "items.productId",
+        populate: { path: "categoryId" },
+      })
       .populate("items.variantId");
 
     if (!cart || cart.items.length === 0) {
@@ -138,9 +149,13 @@ const processPayment = async (req, res) => {
     const embeddedItems = cart.items.map((item) => {
       const product = item.productId;
       const variant = item.variantId;
+       const category = product?.categoryId;
 
       const basePrice = parseFloat(product.basePrice || 0);
-      const discountPercentage = parseFloat(product.discountPercentage || 0);
+      const productOffer = parseFloat(product.discountPercentage || 0);
+      const categoryOffer = parseFloat(category?.offerPercentage || 0);
+      const discountPercentage =
+        productOffer > categoryOffer ? productOffer : categoryOffer;
       const oldPrice = basePrice + (variant?.additionalPrice || 0);
       const finalPrice = Math.round(oldPrice * (1 - discountPercentage / 100));
 
@@ -197,7 +212,7 @@ const processPayment = async (req, res) => {
       return res.render("user/address", { error: "Address not found" });
     }
     const newOrder = new Order({
-      orderId:newOrderId,
+      orderId: newOrderId,
       userId,
       address: {
         name: address.name,
@@ -205,7 +220,7 @@ const processPayment = async (req, res) => {
         address: address.address,
       },
       paymentMethod: paymentMethod.toUpperCase(),
-      paymentStatus: "Pending",
+      paymentStatus: "Failed",
       items: embeddedItems,
       discountAmount: offer,
       totalAmount: total + offer,
@@ -220,8 +235,15 @@ const processPayment = async (req, res) => {
     }
 
     if (method === "cod") {
+      if (total > 1000) {
+        return res.status(400).json({
+          success: false,
+          message: "Cash on Delivery is not available for orders above ₹1000.",
+        });
+      }
+
       newOrder.paymentStatus = "Pending";
-      newOrder.status = "Confirmed"; 
+      newOrder.status = "Confirmed";
       await newOrder.save();
       for (const item of embeddedItems) {
         const product = await Product.findById(item.productId);
@@ -239,8 +261,8 @@ const processPayment = async (req, res) => {
       }
       cart.items = [];
       await cart.save();
-      console.log('reaching',newOrder)
-      return res.status(200).json({ success:true,orderId:newOrder._id});
+      console.log("reaching", newOrder);
+      return res.status(200).json({ success: true, orderId: newOrder._id });
     }
 
     if (method === "wallet") {
@@ -276,7 +298,7 @@ const processPayment = async (req, res) => {
       });
 
       newOrder.status = "Confirmed";
-      newOrder.paymentStatus= "Success"
+      newOrder.paymentStatus = "Success";
       await newOrder.save();
 
       for (const item of embeddedItems) {
@@ -296,7 +318,7 @@ const processPayment = async (req, res) => {
 
       cart.items = [];
       await cart.save();
-     return res.status(200).json({ success: true, orderId: newOrder._id });
+      return res.status(200).json({ success: true, orderId: newOrder._id });
     }
 
     const razorpayOrder = await razorpay.orders.create({
@@ -307,7 +329,7 @@ const processPayment = async (req, res) => {
     });
 
     await newOrder.save();
-    req.session.inCheckout = false;
+   
 
     res.json({
       success: true,
@@ -356,7 +378,6 @@ const verifyPayment = async (req, res) => {
 
       await Cart.findOneAndUpdate({ userId: order.userId }, { items: [] });
 
-     
       res.json({
         success: true,
         orderId,
@@ -381,15 +402,14 @@ const verifyPayment = async (req, res) => {
 
 const loadSuccessPage = async (req, res) => {
   const order = await Order.findById(req.params.orderId);
- console.log(order)
- if (
-   !order ||
-   (order.paymentMethod !== "COD" && order.paymentStatus !== "Success")
- ) {
-   return res.redirect("/");
- }
+  if (
+    !order ||
+    (order.paymentMethod !== "COD" && order.paymentStatus !== "Success")
+  ) {
+    return res.redirect("/");
+  }
 
-  req.session.inCheckout =false
+  req.session.inCheckout = false;
 
   res.render("user/orderSuccess", { order });
 };
@@ -398,17 +418,18 @@ const markPaymentFailed = async (req, res) => {
   try {
     const { orderId } = req.body;
     const order = await Order.findById(orderId);
-    console.log(order)
     if (order) {
-      
       order.paymentStatus = "Failed";
-      
       await order.save();
     }
+    req.session.inCheckout = false;
     res.json({ success: true });
   } catch (err) {
     console.error("Error marking payment failed:", err);
-    res.status(500).jsonc;
+    res.status(500).json({
+      success: false,
+      message: "Error making payment failed ",
+    });
   }
 };
 

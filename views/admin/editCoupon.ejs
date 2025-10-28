@@ -1,40 +1,50 @@
 <main class="max-w-md mx-auto mt-10 bg-white p-8 rounded-2xl shadow">
     <h2 class="text-2xl font-semibold mb-6 text-center">Edit Coupon</h2>
 
-    <form action="/admin/coupons/update/<%= coupon._id %>" method="POST" class="space-y-4">
-        <!-- Coupon Code -->
-        <input type="text" name="code" placeholder="Coupon Code" value="<%= coupon.code %>" required
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+    <% if (error) { %>
+        <p class="text-red-500 text-center mb-3">
+            <%= error %>
+        </p>
+        <% } %>
 
-        <!-- Discount Value -->
-        <input type="number" name="discountValue" placeholder="Discount Value (e.g., 10)"
-            value="<%= coupon.discountValue %>" step="0.01" min="0" required
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+            <% if (success) { %>
+                <p class="text-green-600 text-center mb-3">
+                    <%= success %>
+                </p>
+                <% } %>
 
-        <!-- Dates -->
-        <div class="flex gap-3">
-            <input type="date" name="validFrom" value="<%= coupon.validFrom.toISOString().split('T')[0] %>" required
-                class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
-            <input type="date" name="validUntil" value="<%= coupon.validUntil.toISOString().split('T')[0] %>" required
-                class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
-        </div>
+                    <form action="/admin/coupons/update/<%= coupon._id %>" method="POST" class="space-y-4">
 
-       
-        <!-- Min Purchase -->
-        <input type="number" name="minPurchase" placeholder="Min Purchase Amount" min="0"
-            value="<%= coupon.minPurchase %>"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+                        <input type="text" name="code" placeholder="Coupon Code" value="<%= coupon.code %>" required
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
 
-        <!-- Max Discount -->
-       
-        <button type="submit"
-            class="bg-yellow-400 w-full text-white py-2 rounded-lg font-medium hover:bg-yellow-500 transition">
-            Update Coupon
-        </button>
+                        <input type="number" name="discountValue" placeholder="Discount Value"
+                            value="<%= coupon.discountValue %>" step="0.01" min="0" required
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
 
-        <!-- Back -->
-        <a href="/admin/coupon" class="block text-center text-gray-500 mt-3 hover:text-yellow-500 transition">
-            Cancel
-        </a>
-    </form>
+                        <div class="flex gap-3">
+                            <input type="date" name="validFrom"
+                                value="<%= coupon.validFrom.toISOString().split('T')[0] %>" required
+                                class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+
+                            <input type="date" name="validUntil"
+                                value="<%= coupon.validUntil.toISOString().split('T')[0] %>" required
+                                class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+                        </div>
+
+                        <input type="number" name="minPurchase" placeholder="Min Purchase Amount" min="0"
+                            value="<%= coupon.minPurchase %>"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-yellow-400" />
+
+                      
+                        <button type="submit"
+                            class="bg-yellow-400 w-full text-white py-2 rounded-lg font-medium hover:bg-yellow-500 transition">
+                            Update Coupon
+                        </button>
+
+                        <a href="/admin/coupon"
+                            class="block text-center text-gray-500 mt-3 hover:text-yellow-500 transition">
+                            Cancel
+                        </a>
+                    </form>
 </main>

@@ -22,11 +22,11 @@
             <!-- Order Status for Entire Order -->
     <% disableStatus=order.status==="Cancelled" ; %>
         
-            <div class="mb-6 flex items-center gap-4">
+            <div class=" mb-6 flex items-center gap-4">
                 <label for="order-status" class="font-medium text-gray-700">Order Status:</label>
                 <form action="/admin/order/<%= order._id %>/update-status" method="POST" class="flex gap-2 items-center">
                     <select name="status" id="order-status"
-                        class="border border-gray-300 rounded-md px-4 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        class="border border-gray-300 rounded-md px-7 py-1 focus:outline-none focus:ring-1 focus:ring-yellow-200"
                         <%=disableStatus ? "disabled" : "" %>>
                         <option value="Pending" <%=order.status==="Pending" ? "selected" : "" %>>Pending</option>
                         <option value="Confirmed" <%=order.status==="Confirmed" ? "selected" : "" %>>Confirmed</option>

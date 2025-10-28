@@ -31,6 +31,7 @@ router.get("/forgotpassword",isLogin, authController.loadForgotpassword);
 router.get("/resetpassword",isLogin, authController.loadResetpassword);
 router.post("/signup",isLogin, authController.postSignup);
 router.post("/resend-otp",isLogin, authController.resendOtp);
+router.get("/otp", isLogin, authController.loadOtpPage);
 router.post("/otp",isLogin, authController.postOtp);
 router.post('/login',isLogin,authController.postLogin)
 router.post('/forgotpassword',isLogin,authController.postForgotpassword)

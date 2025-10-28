@@ -2,7 +2,7 @@ const Category = require("../models/Category");
 
 const addCategory = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, offerPercentage } = req.body;
     
     const isExists = await Category.findOne({
       name: { $regex: new RegExp(`^${name}$`, "i") },
@@ -12,7 +12,11 @@ const addCategory = async (req, res) => {
         `/admin/category?error=${encodeURIComponent("Category already exists")}`
       );
     }
-    const newCategory = new Category({ name, description });
+    const newCategory = new Category({
+      name,
+      description,
+      offerPercentage: offerPercentage || 0,
+    });
     await newCategory.save();
     return res.redirect("/admin/category?success=Category added successfully");
   } catch (error) {
@@ -94,7 +98,7 @@ const toggleBlock = async (req, res) => {
 
 const categoryEdit = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, offerPercentage } = req.body;
     const id = req.params.id;
     const category = await Category.findById(id);
     if (!category) {
@@ -112,6 +116,7 @@ const categoryEdit = async (req, res) => {
     }
     category.name = name || category.name;
     category.description = description || category.description;
+    category.offerPercentage = offerPercentage || category.offerPercentage
     await category.save();
     return res.redirect(
       "/admin/category?success=Category updated successfully"

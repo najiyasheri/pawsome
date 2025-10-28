@@ -1,11 +1,10 @@
 const Coupon = require("../models/Coupon");
 
-
 const loadCouponPage = async (req, res) => {
   try {
     const search = req.query.search || "";
     const page = parseInt(req.query.page) || 1;
-    const limit = 10;
+    const limit = 5;
     const skip = (page - 1) * limit;
 
     const query = search ? { code: { $regex: search, $options: "i" } } : {};
@@ -19,7 +18,7 @@ const loadCouponPage = async (req, res) => {
     const totalPages = Math.ceil(totalCoupons / limit);
 
     res.render("admin/couponManagement", {
-      title: "Coupon Management",
+      title: "Coupon-Management",
       layout: "layouts/adminLayout",
       coupons,
       currentPage: page,
@@ -45,7 +44,6 @@ const loadCreateCouponPage = async (req, res) => {
   }
 };
 
-
 const createCoupon = async (req, res) => {
   try {
     const {
@@ -53,71 +51,98 @@ const createCoupon = async (req, res) => {
       discountValue,
       validFrom,
       validUntil,
-      usageLimit,
       minPurchase,
     } = req.body;
-if (!code || !discountValue || !validFrom || !validUntil) {
-  return res
-    .status(400)
-    .json({ success: false, message: "Please fill all required fields" });
-}
 
-const discountPattern = /^(\d{1,2}(\.\d+)?%?|100)$/;
-if (!discountPattern.test(discountValue)) {
-  return res
-    .status(400)
-    .json({ success: false, message: "Invalid discount value" });
-}
+    // ✅ Basic field validation
+    if (!code || !discountValue || !validFrom || !validUntil) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Please fill all required fields" });
+    }
 
-if (new Date(validFrom) > new Date(validUntil)) {
-  return res
-    .status(400)
-    .json({
-      success: false,
-      message: "'Valid From' cannot be after 'Valid Until'",
-    });
-}
+    // ✅ Convert to numbers
+    const discountNum = parseFloat(discountValue);
+    const minPurchaseNum = parseFloat(minPurchase);
 
-if (minPurchase < 0) {
-  return res
-    .status(400)
-    .json({ success: false, message: "Minimum purchase cannot be negative" });
-}
+    if (isNaN(discountNum) || isNaN(minPurchaseNum)) {
+      return res.status(400).json({
+        success: false,
+        message: "Discount value and minimum purchase must be valid numbers",
+      });
+    }
 
+    // ✅ Check date validity
+    if (new Date(validFrom) > new Date(validUntil)) {
+      return res.status(400).json({
+        success: false,
+        message: "'Valid From' cannot be after 'Valid Until'",
+      });
+    }
 
+    // ✅ Check negative values
+    if (minPurchaseNum < 0 || discountNum < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Values cannot be negative",
+      });
+    }
+
+    // ✅ Ensure minPurchase > discount
+    if (minPurchaseNum <= discountNum) {
+      return res.status(400).json({
+        success: false,
+        message: "Minimum purchase amount must be greater than discount value",
+      });
+    }
+
+    // ✅ Check duplicate code
     const existing = await Coupon.findOne({ code });
     if (existing) {
       return res.status(400).json({ message: "Coupon code already exists!" });
     }
 
+    // ✅ Save coupon
     const newCoupon = new Coupon({
       code,
-      discountValue,
+      discountValue: discountNum,
       validFrom,
       validUntil,
-      usageLimit,
-      minPurchase,
+      minPurchase: minPurchaseNum,
     });
 
-   await newCoupon.save();
-   res.status(200).json({ success: true, redirect: "/admin/coupon" });
+    await newCoupon.save();
+    res.status(200).json({ success: true, redirect: "/admin/coupon" });
   } catch (error) {
-    console.log("Error creating coupon:", error);
+    console.error("Error creating coupon:", error);
     res.status(500).send("Internal Server Error");
   }
 };
+
 const loadEditCoupon = async (req, res) => {
   try {
     const coupon = await Coupon.findById(req.params.id);
-    if (!coupon) return res.status(404).send("Coupon not found");
+    if (!coupon) {
+      return res.redirect(
+        `/admin/coupon?error=${encodeURIComponent("Coupon not found")}`
+      );
+    }
+
+    let error = req.query.error;
+    let success = req.query.success;
+
     res.render("admin/editCoupon", {
-      coupon,
-      title: "editCoupon",
+      title: "Edit Coupon",
       layout: "layouts/adminLayout",
+      coupon,
+      error,
+      success,
     });
   } catch (error) {
-    console.log("Error loading coupon for edit:", error);
-    res.status(500).send("Internal Server Error");
+    console.error("Error loading coupon for edit:", error);
+    res.redirect(
+      `/admin/coupon?error=${encodeURIComponent("Something went wrong")}`
+    );
   }
 };
 
@@ -129,25 +154,65 @@ const updateCoupon = async (req, res) => {
       discountValue,
       validFrom,
       validUntil,
-      usageLimit,
       minPurchase,
     } = req.body;
+
+    if (!code || !discountValue || !validFrom || !validUntil) {
+      return res.redirect(
+        `/admin/coupons/${id}/edit?error=${encodeURIComponent(
+          "Please fill all required fields"
+        )}`
+      );
+    }
+
+    if (new Date(validFrom) > new Date(validUntil)) {
+      return res.redirect(
+        `/admin/coupons/${id}/edit?error=${encodeURIComponent(
+          "'Valid From' cannot be after 'Valid Until'"
+        )}`
+      );
+    }
+
+    if (
+      Number(minPurchase) &&
+      Number(discountValue) &&
+      Number(minPurchase) <= Number(discountValue)
+    ) {
+      return res.redirect(
+        `/admin/coupons/${id}/edit?error=${encodeURIComponent(
+          "Minimum purchase must be greater than the discount value"
+        )}`
+      );
+    }
+
+    const existing = await Coupon.findOne({ code, _id: { $ne: id } });
+    if (existing) {
+      return res.redirect(
+        `/admin/coupons/${id}/edit?error=${encodeURIComponent(
+          "Coupon code already exists"
+        )}`
+      );
+    }
 
     await Coupon.findByIdAndUpdate(id, {
       code,
       discountValue,
       validFrom,
       validUntil,
-      usageLimit,
       minPurchase,
     });
 
     res.redirect("/admin/coupon");
   } catch (error) {
-    console.log("Error updating coupon:", error);
-    res.status(500).send("Internal Server Error");
+    console.error("Error updating coupon:", error);
+    res.redirect(
+      `/admin/coupons/${req.params.id}/edit?error=${encodeURIComponent(
+        "Something went wrong, please try again"
+      )}`
+    );
   }
 };
+
 
 
 const deleteCoupon = async (req, res) => {
@@ -179,7 +244,7 @@ const applyCoupon = async (req, res) => {
         success: false,
         message: "Coupon expired or not yet valid",
       });
-    const amount = parseFloat(subtotal);  
+    const amount = parseFloat(subtotal);
     if (amount < coupon.minPurchase)
       return res.json({
         success: false,

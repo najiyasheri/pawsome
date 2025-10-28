@@ -289,9 +289,7 @@
         const addressId = '<%= address._id %>';
         const couponCode = appliedCoupon || null; // Get coupon if applied
 
-        // -----------------------------
         // CASH ON DELIVERY
-        // -----------------------------
         if (method === 'cod') {
 
 
@@ -314,11 +312,7 @@
 
         }
 
-
-
-        // -----------------------------
         // WALLET PAYMENT
-        // -----------------------------
         if (method === 'wallet') {
             const res = await fetch('/payment', {
                 method: 'POST',
@@ -329,17 +323,28 @@
             const data = await res.json();
             console.log(data);
             if (data.success && data.orderId) {
+                 Swal.fire({
+                    icon: 'success',
+                    title: 'Payment Successful!',
+                    text: 'Your wallet payment has been processed successfully.',
+                    confirmButtonColor: '#22c55e'
+                }).then(() => {
                 console.log(data.orderId)
                 window.location.href = `/success/${data.orderId}`
+                });
             } else {
-                alert(data.message);
+                if(data.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Failed',
+                    text: data.message || 'Insufficient wallet balance',
+                    confirmButtonColor: '#ef4444'
+                });
             }
             return;
         }
 
-        // ----------------  -------------
         // ONLINE PAYMENT (Razorpay)
-        // -----------------------------
         try {
             const res = await fetch('/payment', {
                 method: 'POST',
@@ -570,7 +575,7 @@
         codBtn.style.opacity = "0.5";
         codBtn.style.cursor = "not-allowed";
 
-        // Optional: show message
+       
         const msg = document.createElement("p");
         msg.textContent = "Cash on Delivery is not available for orders above ₹1000.";
         msg.style.color = "red";

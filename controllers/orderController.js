@@ -100,6 +100,7 @@ const loadOrder = async (req, res) => {
 const loadOrderDetail = async (req, res) => {
   try {
     const orderId = req.params.id;
+     if (!orderId) return res.status(404).send("OrderId not found");
 
     const order = await Order.findById(orderId).populate(
       "userId",
@@ -133,6 +134,8 @@ const cancelSingleItem = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
     const { reason } = req.body;
+
+    if (!orderId) return res.status(404).send("OrderId not found");
 
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
@@ -212,6 +215,8 @@ const cancelEntireOrder = async (req, res) => {
     const { orderId } = req.params;
     const { reason } = req.body;
 
+    if (!orderId) return res.status(404).send("OrderId not found");
+
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
 
@@ -280,6 +285,7 @@ const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
+     if (!orderId) return res.status(404).send("OrderId not found");
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
     order.status = status;
@@ -360,13 +366,26 @@ const loadUserOrderDetail = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.session.user._id;
 
+    if(!orderId) {
+      return res.render("user/orderDetails", {
+        title: "Order Details",
+        layout: "layouts/userLayout",
+        error: 'invalid params',
+      });
+    }
+
     const order = await Order.findOne({ _id: orderId, userId }).populate(
       "userId",
       "name email phone"
     );
 
-    if (!order) return res.status(404).send("Order not found");
-
+    if (!order) {
+      return res.render("user/orderDetails", {
+        title: "Order Details",
+        layout: "layouts/userLayout",
+        error: 'invalid params',
+      });
+    }
     const itemsWithDetails = await Promise.all(
       order.items.map(async (item) => {
         const product = await Product.findById(item.productId).select(
@@ -383,10 +402,25 @@ const loadUserOrderDetail = async (req, res) => {
       })
     );
 
-    const fullOrder = {
-      ...order.toObject(),
-      items: itemsWithDetails,
-    };
+     let cancellationReason = order.cancellationReason || "";
+
+     if (!cancellationReason) {
+       const itemReasons = order.items
+         .filter(
+           (item) => item.status === "Cancelled" && item.cancellationReason
+         )
+         .map((item) => `${item.name}: ${item.cancellationReason}`);
+
+       if (itemReasons.length > 0) {
+         cancellationReason = itemReasons.join(", ");
+       }
+     }
+
+     const fullOrder = {
+       ...order.toObject(),
+       items: itemsWithDetails,
+       cancellationReason,
+     };
 
     res.render("user/orderDetails", {
       title: "Order Details",
@@ -404,6 +438,7 @@ const userCancelSingleItem = async (req, res) => {
     const { orderId, itemId } = req.params;
     const { reason } = req.body;
     const userId = req.session.user._id;
+     if (!orderId || !itemId) return res.status(404).send("OrderId or itemId not found");
 
     const order = await Order.findOne({ _id: orderId, userId });
     if (!order) return res.status(404).send("Order not found");
@@ -474,6 +509,7 @@ const userCancelEntireOrder = async (req, res) => {
     const { orderId } = req.params;
     const { reason } = req.body;
     const userId = req.session.user._id;
+     if (!orderId) return res.status(404).send("OrderId not found");
 
     const order = await Order.findOne({ _id: orderId, userId });
     if (!order) return res.status(404).send("Order not found");
@@ -537,6 +573,7 @@ const returnSingleItem = async (req, res) => {
     const { orderId, itemId } = req.params;
     const { reason } = req.body;
     const userId = req.session.user._id;
+     if (!orderId || !itemId) return res.status(404).send("OrderId or itemId not found");
 
     const order = await Order.findOne({ _id: orderId, userId });
     if (!order)

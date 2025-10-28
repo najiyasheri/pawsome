@@ -37,76 +37,77 @@
         Add Product
       </button></a>
   </div>
-  <div class="relative overflow-x-auto shadow-md sm:rounded-lg mb-6">
-    <table class="w-full text-sm text-left text-gray-500">
+  <div class="overflow-hidden shadow-md sm:rounded-lg mb-6">
+    <table class="min-w-full text-sm text-left text-gray-500 table-fixed">
       <thead class="text-xs text-gray-700 uppercase bg-gray-50">
         <tr>
-          <th scope="col" class="px-6 py-3">S.No</th>
-          <th scope="col" class="px-6 py-3">Image</th>
-          <th scope="col" class="px-6 py-3">Product Name</th>
-          <th scope="col" class="px-6 py-3">Description</th>
-          <th scope="col" class="px-6 py-3">Status</th>
-          <th scope="col" class="px-6 py-3">Added Date</th>
-          <th scope="col" class="px-6 py-3">Action</th>
+          <th scope="col" class="px-4 py-3 w-16">S.No</th>
+          <th scope="col" class="px-4 py-3 w-24">Image</th>
+          <th scope="col" class="px-4 py-3 w-48">Product Name</th>
+          <th scope="col" class="px-4 py-3 w-64">Description</th>
+          <th scope="col" class="px-4 py-3 w-24">Status</th>
+          <th scope="col" class="px-4 py-3 w-28">Added Date</th>
+          <th scope="col" class="px-4 py-3 w-28">Action</th>
         </tr>
       </thead>
       <tbody>
         <% if (products && products.length> 0) { %>
           <% products.forEach((product, index)=> { %>
             <tr class="bg-white border-b" id="product-<%= product._id %>">
-              <td class="px-6 py-4">
+              <td class="px-4 py-4 text-center">
                 <%= (currentPage - 1) * limit + index + 1 %>
               </td>
-              <td class="px-6 py-4">
-                <img src="/uploads/<%= product.images[0]  %>" alt="image is not supporting"
-                  class="max-w-16 object-contain">
-              </td >
-              <th scope="row" class=" font-medium text-gray-600  uppercase px-6 py-4 max-w-xs truncate">
+  
+              <td class="px-4 py-4">
+                <img src="/uploads/<%= product.images[0] %>" alt="No Image" class="w-16 h-16 object-cover rounded">
+              </td>
+  
+              <td
+                class="px-4 py-4 text-gray-700 font-medium uppercase truncate whitespace-nowrap overflow-hidden text-ellipsis max-w-[10rem]">
                 <%= product.name %>
-              </th>
-              <td class="px-6 py-4 max-w-xs truncate">
+              </td>
+  
+              <td class="px-4 py-4 text-gray-600 truncate whitespace-nowrap overflow-hidden text-ellipsis max-w-[15rem]">
                 <%= product.description %>
               </td>
-              <td class="px-6 py-4">
+  
+              <td class="px-4 py-4">
                 <%= product.isBlocked ? "Blocked" : "Active" %>
               </td>
-              <td class="px-6 py-4">
-                <%= product.createdAt.toLocaleDateString("en-IN",{year:'numeric',month:'short',day:'numeric'}) %>
+  
+              <td class="px-4 py-4">
+                <%= product.createdAt.toLocaleDateString("en-IN", { year: 'numeric' , month: 'short' , day: 'numeric' })
+                  %>
               </td>
-              <td class="px-6 py-4">
-                <div>
-                  <a href="/admin/product/edit/<%= product._id %>"> <button type="button"
-                      class="text-blue-600 hover:text-yellow-600 edit-btn" data-id="<%= product._id %>"
-                      data-name="<%= product.name %>" data-description="<%= product.description %>">
-                      Edit
-                    </button></a>
-                </div>
-                  <div>
-                    <a href="/admin/product/view/<%= product._id %>"> <button type="button"
-                        class="text-blue-600 hover:text-yellow-600 view-btn" data-id="<%= product._id %>" data-name="<%= product.name %>"
-                        data-description="<%= product.description %>">
-                        View
-                      </button></a>
-                  </div>
-                <div>
-                  <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
-                    class="text-yellow-600 hover:text-<%= product.is_Blocked ? 'green-500' : 'red-500' %> confirm-action cursor-pointer"
-                    data-url="/admin/product/block?id=<%= product._id %>&search=<%= search %>&page=<%= currentPage %>">
-                    <%= product.isBlocked ? "Unblock" : "Block" %>
-                  </button>
-                </div>
+  
+              <td class="px-4 py-4 space-y-1">
+                <a href="/admin/product/edit/<%= product._id %>">
+                  <button type="button" class="text-blue-600 hover:text-yellow-600">Edit</button>
+                </a>
+                <br>
+                <a href="/admin/product/view/<%= product._id %>">
+                  <button type="button" class="text-blue-600 hover:text-yellow-600">View</button>
+                </a>
+                <br>
+                <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
+                  class="text-yellow-600 hover:text-<%= product.isBlocked ? 'green-500' : 'red-500' %> confirm-action cursor-pointer"
+                  data-url="/admin/product/block?id=<%= product._id %>&search=<%= search %>&page=<%= currentPage %>">
+                  <%= product.isBlocked ? "Unblock" : "Block" %>
+                </button>
               </td>
             </tr>
             <% }) %>
               <% } else { %>
                 <tr>
-                  <td colspan="6" class="px-6 py-4 text-center text-gray-500">No products found</td>
+                  <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                    No products found
+                  </td>
                 </tr>
                 <% } %>
       </tbody>
-
     </table>
   </div>
+
 
   <!-- Pagination -->
   <div class="flex justify-center">

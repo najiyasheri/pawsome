@@ -12,37 +12,47 @@ const loadCart = async (req, res) => {
     const cart = await Cart.findOne({ userId })
       .populate({
         path: "items.productId",
-        populate: { path: "categoryId" }, 
+        populate: { path: "categoryId" },
       })
       .populate("items.variantId");
 
-      if (cart && cart.items.length > 0) {
-  for (let item of cart.items) {
-    const variant = item.variantId;
+    let stockMessage = ""; // 👈 new variable
+    let stockAdjusted = false; // track if any changes happened
 
-    if (!variant) continue;
+    if (cart && cart.items.length > 0) {
+      for (let item of cart.items) {
+        const variant = item.variantId;
 
-    if (variant.stock <= 0) {
-      item.quantity = 0;
-      continue;
+        if (!variant) continue;
+
+        if (variant.stock <= 0) {
+          item.quantity = 0;
+          stockAdjusted = true;
+          continue;
+        }
+
+        if (item.quantity > variant.stock) {
+          item.quantity = variant.stock;
+          stockAdjusted = true;
+
+          await Cart.updateOne(
+            {
+              userId,
+              "items.productId": item.productId,
+              "items.variantId": item.variantId,
+            },
+            { $set: { "items.$.quantity": variant.stock } }
+          );
+        }
+      }
     }
 
-    if (item.quantity > variant.stock) {
-      item.quantity = variant.stock;
-
-      await Cart.updateOne(
-        {
-          userId,
-          "items.productId": item.productId,
-          "items.variantId": item.variantId,
-        },
-        { $set: { "items.$.quantity": variant.stock } }
-      );
+    if (stockAdjusted) {
+      stockMessage =
+        "Some items in your cart were updated due to limited stock availability.";
     }
-  }
-}
+
     if (!cart || cart.items.length === 0) {
-      
       return res.render("user/cart", {
         title: "Cart",
         layout: "layouts/userLayout",
@@ -57,7 +67,6 @@ const loadCart = async (req, res) => {
         },
       });
     }
-
 
     const enrichedItems = cart.items
       .map((item) => {
@@ -102,9 +111,8 @@ const loadCart = async (req, res) => {
       totalPrice: enrichedItems.reduce((sum, item) => sum + item.subtotal, 0),
     };
 
-
     let hasOutOfStock = enrichedItems.some((item) => item.stock === 0);
-    
+
     res.render("user/cart", {
       title: "Cart",
       layout: "layouts/userLayout",
@@ -115,12 +123,14 @@ const loadCart = async (req, res) => {
       },
       summary,
       hasOutOfStock,
+      stockMessage, // 👈 pass to view
     });
   } catch (err) {
     console.error("Error loading cart:", err);
     res.status(500).send("Server error");
   }
 };
+
 
 
 const addToCart = async (req, res) => {

@@ -1,4 +1,5 @@
 const Address = require("../models/Address");
+  const Cart = require("../models/Cart");
 
 const loadAddress = async (req, res) => {
   try {
@@ -9,19 +10,63 @@ const loadAddress = async (req, res) => {
     const userId = req.session.user._id;
     req.session.inCheckout = true;
 
+    const cart = await Cart.findOne({ userId }).populate({
+      path: "items.variantId",
+      populate: { path: "productId" },
+    });
+
+    if (!cart || cart.items.length === 0) {
+      return res.redirect(
+        "/cart?msg=" + encodeURIComponent("Your cart is empty.")
+      );
+    }
+
+    const outOfStockItems = [];
+    for (const item of cart.items) {
+      const variant = item.variantId;
+
+      if (!variant) continue; 
+
+      if (variant.stock < item.quantity) {
+        outOfStockItems.push({
+          productName: variant.productId?.name || "Unknown product",
+          variantName: variant.variantName,
+          available: variant.stock,
+          requested: item.quantity,
+        });
+      }
+    }
+
+    if (outOfStockItems.length > 0) {
+      const message = outOfStockItems
+        .map(
+          (item) =>
+            `${item.productName} (${item.variantName}) - only ${item.available} left in stock`
+        )
+        .join(", ");
+
+      return res.redirect(
+        "/cart?msg=" +
+          encodeURIComponent(
+            `Some items are out of stock or quantity exceeded: ${message}`
+          )
+      );
+    }
+
     const addresses = await Address.find({ userId });
-  
+
     res.render("user/checkoutAddress", {
-      title: "address",
+      title: "Address",
       layout: "layouts/userLayout",
       user: req.session.user,
       addresses,
     });
   } catch (error) {
-    console.error("error while loading address page", error);
+    console.error("Error while loading address page:", error);
     res.status(500).send("Server Error");
   }
 };
+
 
 const addAddress = async (req, res) => {
   try {

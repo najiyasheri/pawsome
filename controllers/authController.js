@@ -121,16 +121,27 @@ const postSignup = async (req, res) => {
 
     await sendOtp(email, otp);
 
-    return res.render("user/otp", {
-      email,
-      layout: "layouts/userLayout",
-      title: "OTP",
-    });
+    return res.redirect(`/otp?email=${email}`);
   } catch (error) {
     console.error("Error saving user:", error);
     res.status(500).send("Internal server error");
   }
 };
+
+const loadOtpPage = async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.redirect("/signup");
+  }
+
+  return res.render("user/otp", {
+    email,
+    layout: "layouts/userLayout",
+    title: "OTP",
+  });
+};
+
 
 const resendOtp = async (req, res) => {
   const { email } = req.body;
@@ -246,7 +257,6 @@ const postOtp = async (req, res) => {
     res.status(500).send("Internal server error during OTP verification");
   }
 };
-
 
 const postLogin = async (req, res) => {
   try {
@@ -504,4 +514,5 @@ module.exports = {
   logoutUser,
   logoutAdmin,
   googleAuth,
+  loadOtpPage
 };

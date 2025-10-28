@@ -221,7 +221,7 @@
           return
         }
         if (data.success) {
-        const statusCell = targetRow.querySelector("td:nth-child(4)");
+        const statusCell = targetRow.querySelector("td:nth-child(5)");
         statusCell.innerText = data.isBlocked ? "Blocked" : "Active";
 
         const actionBtn = targetRow.querySelector(".confirm-action");

@@ -9,6 +9,10 @@ const loadCart = async (req, res) => {
     }
 
     const userId = req.session.user._id;
+
+     const message = req.query.msg ? decodeURIComponent(req.query.msg) : null;
+
+
     const cart = await Cart.findOne({ userId })
       .populate({
         path: "items.productId",
@@ -123,7 +127,8 @@ const loadCart = async (req, res) => {
       },
       summary,
       hasOutOfStock,
-      stockMessage, // 👈 pass to view
+      stockMessage, 
+      message,
     });
   } catch (err) {
     console.error("Error loading cart:", err);
@@ -147,7 +152,7 @@ const addToCart = async (req, res) => {
     const quantity = 1;
 
     const product = await Product.findById(productId);
-    if (!product)
+    if (!product || product.isBlocked)
       return res
         .status(404)
         .json({ success: false, message: "Product not found" });

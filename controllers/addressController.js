@@ -22,33 +22,44 @@ const loadAddress = async (req, res) => {
     }
 
     const outOfStockItems = [];
+    const blockedItems = [];
+
     for (const item of cart.items) {
       const variant = item.variantId;
+      const product = variant?.productId;
 
-      if (!variant) continue; 
+      if (!variant || !product) continue;
 
       if (variant.stock < item.quantity) {
         outOfStockItems.push({
-          productName: variant.productId?.name || "Unknown product",
+          productName: product.name || "Unknown product",
           variantName: variant.variantName,
           available: variant.stock,
           requested: item.quantity,
         });
       }
+
+      if (product.isBlocked) {
+        blockedItems.push(product.name || "Unknown product");
+      }
     }
 
     if (outOfStockItems.length > 0) {
-      const message = outOfStockItems
-        .map(
-          (item) =>
-            `${item.productName} (${item.variantName}) - only ${item.available} left in stock`
-        )
-        .join(", ");
 
       return res.redirect(
         "/cart?msg=" +
           encodeURIComponent(
-            `Some items are out of stock or quantity exceeded: ${message}`
+            `Some items are out of stock or quantity exceeded`
+          )
+      );
+    }
+
+    if (blockedItems.length > 0) {
+      const message = blockedItems.join(", ");
+      return res.redirect(
+        "/cart?msg=" +
+          encodeURIComponent(
+            `Some products are currently unavailable for purchase`
           )
       );
     }
@@ -66,6 +77,7 @@ const loadAddress = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
 
 
 const addAddress = async (req, res) => {

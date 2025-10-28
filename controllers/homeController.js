@@ -12,6 +12,11 @@ const loadHomepage = async (req, res) => {
 
   const products = await Product.aggregate([
     {
+      $match: {
+        isBlocked:false
+      }
+    },
+    {
       $lookup: {
         from: "variants",
         localField: "_id",

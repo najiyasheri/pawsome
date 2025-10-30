@@ -51,12 +51,12 @@
                         </div>
                         <!-- Quantity & Remove buttons -->
                         <div class="flex items-center gap-2">
-                            <button
-                                onclick="updateQuantity('<%= item.productId %>', '<%= item.variantId %>', 'decrease')"
-                                class="px-2 py-1 border rounded hover:bg-gray-100 transition" <%=item.stock===0
-                                ? 'disabled' : '' %>>
-                                −
-                            </button>
+                        <button onclick="updateQuantity('<%= item.productId %>', '<%= item.variantId %>', 'decrease')"
+                            class="px-2 py-1 border rounded hover:bg-gray-100 transition disabled:opacity-50" <%=item.quantity <=1 ||
+                            item.stock===0 ? 'disabled' : '' %>>
+                            −
+                        </button>
+
                             <span class="px-2 quantity-display">
                                 <%= item.quantity %>
                             </span>
@@ -234,8 +234,12 @@
             let newSubTotal = price * item.quantity;
             itemElement.querySelector('.quantity-display').textContent = item.quantity;
             itemElement.querySelector('.subtotal-display').textContent = `₹${newSubTotal}`;
-            const increaseBtn = itemElement.querySelector('button[onclick*="increase"]');
+           const increaseBtn = itemElement.querySelector('button[onclick*="increase"]');
+            const decreaseBtn = itemElement.querySelector('button[onclick*="decrease"]');
+
             increaseBtn.disabled = item.quantity >= 10;
+            decreaseBtn.disabled = item.quantity <= 1 || item.stock === 0;
+
             totalPrice += newSubTotal;
         });
 

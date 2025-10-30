@@ -46,6 +46,23 @@
     opacity: 0.6;
   }
 </style>
+<!-- Breadcrumbs -->
+<nav class="text-sm text-gray-600 mb-4">
+  <% breadcrumbs.forEach((crumb, index)=> { %>
+    <% if (crumb.url) { %>
+      <a href="<%= crumb.url %>" class="hover:text-yellow-500">
+        <%= crumb.name %>
+      </a>
+      <% if (index < breadcrumbs.length - 1) { %>
+        <span class="mx-2 text-gray-400">›</span>
+        <% } %>
+          <% } else { %>
+            <span class="text-gray-800 font-semibold">
+              <%= crumb.name %>
+            </span>
+            <% } %>
+              <% }) %>
+</nav>
 
 <div class="max-w-7xl mx-auto px-4 py-8">
   <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -76,6 +93,7 @@
     </div>
 
     <!-- Right: Product Details -->
+     
     <div>
       <h1 class="text-2xl font-bold mb-2">
         <%= product.name %>

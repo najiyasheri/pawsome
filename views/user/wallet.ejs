@@ -124,7 +124,7 @@
 
     const amountInput = document.getElementById("amount");
     const amount = parseFloat(amountInput.value);
-    const currentBalance = '<%= walletBalance %>';
+    const currentBalance = parseFloat('<%= walletBalance %>');
 
     // Client-side validation
     if (isNaN(amount) || amount <= 0) {

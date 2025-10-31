@@ -198,7 +198,7 @@ const postOtp = async (req, res) => {
       }
     }
 
-    // ✅ Mark user as verified and store referredBy
+  
     const newUser = await User.findOneAndUpdate(
       { email },
       {
@@ -210,7 +210,6 @@ const postOtp = async (req, res) => {
       { new: true }
     );
 
-    // ✅ Referral bonus only after verification
     if (referrer) {
       const referrerWallet = await Wallet.findOneAndUpdate(
         { userId: referrer._id },
@@ -248,8 +247,6 @@ const postOtp = async (req, res) => {
         status: "completed",
       });
     }
-
-    // ✅ Clear OTP and redirect
     await OTP.deleteOne({ email });
     return res.redirect("/login");
   } catch (error) {

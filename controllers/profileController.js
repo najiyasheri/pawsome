@@ -11,12 +11,14 @@ const loadProfile = async (req, res) => {
     }
 
     const defaultAddress = await Address.findOne({ userId: id, default: true });
-
+      const { success, error } = req.query;
     return res.render("user/profile", {
       title: "profile",
       layout: "layouts/userLayout",
       user,
       defaultAddress,
+      success,
+      error,
     });
   } catch (error) {
     console.error("error while loading profile page", error.message);
@@ -31,31 +33,48 @@ const postProfile = async (req, res) => {
     const id = req.session.user._id;
     const user = await User.findById(id);
 
-    if (!user) return res.status(400).send("User not found");
+    if (!user)
+      return res.redirect(
+        "/profile?error=" + encodeURIComponent("User not found")
+      );
 
     user.name = name || user.name;
     user.email = email || user.email;
 
     if (currentPassword || newPassword || confirmPassword) {
       if (!currentPassword || !newPassword || !confirmPassword) {
-        return res.status(400).send("Please fill all password fields");
+         return res.redirect(
+           "/profile?error=" +
+             encodeURIComponent("Please fill all password fields")
+         );
       }
       if (!currentPassword || !user.password) {
-        console.error("Missing password data for comparison");
-        return res
-          .status(400)
-          .json({ error: "Old password or stored password missing" });
+        return res.redirect(
+          "/profile?error=" +
+            encodeURIComponent("Please fill correct password")
+        );
       }
 
       const isMatch = await bcrypt.compare(currentPassword, user.password);
-      if (!isMatch)
-        return res.status(400).send("Current password is incorrect");
+       if (!isMatch) {
+         return res.redirect(
+           "/profile?error=" +
+             encodeURIComponent("Current password is incorrect")
+         );
+       }
+
+       if(newPassword===currentPassword){
+        return res.redirect(
+          "/profile?error=" +
+            encodeURIComponent("old password and current password shouldn't be same")
+        );
+       }
 
       if (newPassword !== confirmPassword)
-        return res
-          .status(400)
-          .send("New password and confirm password do not match");
-
+        return res.redirect(
+          "/profile?error=" +
+            encodeURIComponent("New and confirm password do not match")
+        );
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       user.password = hashedPassword;
     }

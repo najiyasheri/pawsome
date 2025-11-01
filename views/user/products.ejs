@@ -32,70 +32,72 @@
 </style>
 
 <section>
-  <div class="flex items-center justify-between gap-6 overflow-x-auto whitespace-nowrap">
-    <div class="bg-white p-4 mb-4 rounded-lg shadow-sm w-full">
-      <form id="filterForm" class="flex items-center justify-between gap-2 overflow-x-auto whitespace-nowrap w-full">
-        <div class="flex items-center gap-2">
-          <input type="text" id="searchInput" name="search" placeholder="Search products..." class="px-4 py-2 border border-gray-300 rounded-l-lg 
-                   focus:outline-none focus:ring-2 focus:ring-gray-50 focus:border-[#F9C22A] w-80" />
-          <button type="submit" class="group px-6 py-2 bg-[#F9C22A] text-gray-700 rounded-r-lg 
-                   hover:bg-[#d4a81f] focus:outline-none focus:border-2 focus:border-[#d4a81f]">
-            <i class="fas fa-search group-hover:text-white"></i>
+  <!-- Filter Section - Fully Responsive -->
+  <div class="bg-white p-4 mb-4 rounded-lg shadow-sm">
+    <form id="filterForm" class="space-y-4">
+      <!-- Search Bar - Full Width on All Screens -->
+      <div class="flex items-center gap-2 w-full">
+        <input type="text" id="searchInput" name="search" placeholder="Search products..." class="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg 
+               focus:outline-none focus:ring-2 focus:ring-gray-50 focus:border-[#F9C22A]" />
+        <button type="submit" class="group px-6 py-2 bg-[#F9C22A] text-gray-700 rounded-r-lg 
+                 hover:bg-[#d4a81f] focus:outline-none focus:border-2 focus:border-[#d4a81f]">
+          <i class="fas fa-search group-hover:text-white"></i>
+        </button>
+      </div>
+
+      <!-- Filters Row - Responsive Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Sort -->
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium text-gray-700">Sort by:</label>
+          <select id="sortSelect" name="sort" class="px-3 py-2 border border-gray-300 rounded-lg 
+                   focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] w-full">
+            <option value="">Default</option>
+            <option value="price-low">Price: Low to High</option>
+            <option value="price-high">Price: High to Low</option>
+            <option value="name-az">Name: A - Z</option>
+            <option value="name-za">Name: Z - A</option>
+            <option value="best-selling">Best Selling</option>
+          </select>
+        </div>
+
+        <!-- Category -->
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium text-gray-700">Category:</label>
+          <select id="categoryFilter" name="category" class="px-3 py-2 border border-gray-300 rounded-lg 
+                   focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] w-full">
+            <option value="">All Categories</option>
+            <% categories.forEach(cat=> { %>
+              <option value="<%= cat._id %>">
+                <%= cat.name %>
+              </option>
+              <% }) %>
+          </select>
+        </div>
+
+        <!-- Price Range -->
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium text-gray-700">Price Range:</label>
+          <select id="priceRangeFilter" name="priceRange" class="px-3 py-2 border border-gray-300 rounded-lg 
+                   focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] w-full">
+            <option value="">All Prices</option>
+            <option value="0-50">₹0 - ₹50</option>
+            <option value="51-100">₹51 - ₹100</option>
+            <option value="101-200">₹101 - ₹200</option>
+            <option value="201-500">₹201 - ₹500</option>
+          </select>
+        </div>
+
+        <!-- Clear All Filters -->
+        <div id="clearFiltersContainer" class="hidden flex flex-col gap-1">
+          <label class="text-sm font-medium text-transparent">Actions</label>
+          <button type="button" id="clearFiltersBtn"
+            class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none">
+            Clear All Filters
           </button>
         </div>
-
-        <div class="flex items-center gap-4">
-          <!-- Sort -->
-          <div class="flex items-center gap-2 whitespace-nowrap">
-            <label class="text-sm font-medium text-gray-700 w-16 text-right">Sort by:</label>
-            <select id="sortSelect" name="sort" class="px-3 py-2 border border-gray-300 rounded-lg 
-                     focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] w-44">
-              <option value="">Default</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="name-az">Name: A - Z</option>
-              <option value="name-za">Name: Z - A</option>
-              <option value="best-selling">Best Selling</option>
-            </select>
-          </div>
-
-          <!-- Category -->
-          <div class="flex items-center gap-2 whitespace-nowrap">
-            <label class="text-sm font-medium text-gray-700 w-16 text-right">Category:</label>
-            <select id="categoryFilter" name="category" class="px-3 py-2 border border-gray-300 rounded-lg 
-                     focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] w-44">
-              <option value="">All Categories</option>
-              <% categories.forEach(cat=> { %>
-                <option value="<%= cat._id %>">
-                  <%= cat.name %>
-                </option>
-                <% }) %>
-            </select>
-          </div>
-
-          <!-- Price Range -->
-          <div class="flex items-center gap-2 whitespace-nowrap">
-            <label class="text-sm font-medium text-gray-700 w-20 text-right">Price Range:</label>
-            <select id="priceRangeFilter" name="priceRange" class="px-3 py-2 border border-gray-300 rounded-lg 
-                     focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] w-32">
-              <option value="">All Prices</option>
-              <option value="0-50">₹0 - ₹50</option>
-              <option value="51-100">₹51 - ₹100</option>
-              <option value="101-200">₹101 - ₹200</option>
-              <option value="201-500">₹201 - ₹500</option>
-            </select>
-          </div>
-
-          <!-- Clear All Filters -->
-          <div id="clearFiltersContainer" class="hidden">
-            <button type="button" id="clearFiltersBtn"
-              class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none">
-              Clear All
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
+      </div>
+    </form>
   </div>
 
   <!-- Products container -->
@@ -112,17 +114,16 @@
 
   <template id="product-template">
     <div class="w-full bg-white border border-gray-200 rounded-lg shadow-sm relative flex flex-col">
-  <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn" data-product-id=""
-    data-in-wishlist="false" data-variant-id="">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 heart-icon" viewBox="0 0 24 24">
-      
-      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
-               2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
-               C13.09 3.81 14.76 3 16.5 3 
-               19.58 3 22 5.42 22 8.5 
-               c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-    </svg>
-  </button>
+      <button class="absolute top-3 right-3 text-gray-400 hover:text-red-500 favorite-btn z-10" data-product-id=""
+        data-in-wishlist="false" data-variant-id="">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-6 h-6 heart-icon" viewBox="0 0 24 24">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
+                 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
+                 C13.09 3.81 14.76 3 16.5 3 
+                 19.58 3 22 5.42 22 8.5 
+                 c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+        </svg>
+      </button>
       <a class="product-link">
         <img class="p-6 rounded-t-lg h-48 w-full object-contain product-img" alt="Product Image" />
       </a>
@@ -136,13 +137,15 @@
           <span class="text-yellow-400 text-lg">★</span>
           <span class="text-gray-800 text-xs font-semibold px-2 py-0.5 rounded-sm">5.0</span>
         </div>
-        <div class="mt-auto flex items-center justify-between">
-          <div>
-            <span class="text-xl font-bold text-black-600 product-price">₹0</span>
-            <span class="line-through text-gray-400 old-price">₹0</span>
+        <div class="mt-auto flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xl font-bold text-black-600 product-price">₹0</span>
+              <span class="line-through text-gray-400 text-sm old-price ml-2">₹0</span>
+            </div>
+            <span class="stock-status"></span>
           </div>
-          <span class="stock-status"></span>
-          <button class="add-cart text-gray-900 bg-yellow-500 hover:bg-yellow-600 focus:ring-4 
+          <button class="add-cart w-full text-gray-900 bg-yellow-500 hover:bg-yellow-600 focus:ring-4 
                    focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-3 py-2.5 text-center"
             data-product-id="" data-variant-id="">
             Add to Cart
@@ -154,7 +157,7 @@
 </section>
 
 <script>
-  
+
   function updateStockStatus(element, stock) {
     const stockStatus = element.querySelector(".stock-status");
     stockStatus.className = "stock-status";
@@ -196,13 +199,13 @@
         clone.querySelector(".product-name").textContent = p.name;
         clone.querySelector(".product-price").textContent = `₹${p.price}`;
         clone.querySelector(".old-price").textContent = `₹${p.oldPrice}`;
-        clone.querySelector('.favorite-btn').setAttribute("data-product-id",`${p._id}`)
+        clone.querySelector('.favorite-btn').setAttribute("data-product-id", `${p._id}`)
         clone.querySelector('.favorite-btn').setAttribute("data-variant-id", p.selectedVariant?._id || (p.variants?.[0]?._id || ""))
 
         const favBtn = clone.querySelector(".favorite-btn");
         favBtn.dataset.productId = p._id;
         favBtn.dataset.variantId = p.selectedVariant?._id;
-        favBtn.dataset.inWishlist = p.isFavourite; 
+        favBtn.dataset.inWishlist = p.isFavourite;
 
         const heartIcon = favBtn.querySelector(".heart-icon");
         heartIcon.style.color = p.isFavourite ? "red" : "gray";
@@ -218,7 +221,7 @@
           addCartBtn.onclick = () => window.location.href = "/cart";
         } else {
           addCartBtn.textContent = "Add to Cart";
-          addCartBtn.classList.remove("bg-yellow-500", "hover:bg-yellow-600", "text-black");
+          addCartBtn.classList.remove("bg-yellow-600", "hover:bg-yellow-700", "text-black");
           addCartBtn.classList.add("bg-yellow-500", "hover:bg-yellow-600");
         }
 
@@ -266,6 +269,7 @@
                   window.location.href = '/login';
                 }
               });
+              button.disabled = false;
               return;
             }
 
@@ -280,7 +284,6 @@
             });
 
             if (result.success) {
-
               Toast.fire({
                 icon: 'success',
                 title: 'Added to Cart!'
@@ -294,30 +297,28 @@
               newBtn.classList.add('bg-yellow-600', 'hover:bg-yellow-700', 'text-black');
               newBtn.disabled = false;
 
-           
               newBtn.onclick = () => window.location.href = '/cart';
+            } else {
+              Toast.fire({
+                icon: 'warning',
+                title: result.message || 'Failed to add to cart'
+              });
+              button.disabled = false;
             }
-            else {
-            Toast.fire({
-              icon: 'warning',
-              title: result.message || 'Failed to add to cart'
+          } catch (error) {
+            console.error("Error adding to cart:", error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Something went wrong!',
+              text: 'Please try again later.',
+              confirmButtonColor: '#f87171'
             });
+            button.disabled = false;
           }
-        } catch (error) {
-          console.error("Error adding to cart:", error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Something went wrong!',
-            text: 'Please try again later.',
-            confirmButtonColor: '#f87171'
-          });
-        }
+        });
       });
-    });
 
-
-
-    // Wishlist / Heart button
+      // Wishlist / Heart button
       document.querySelectorAll(".favorite-btn").forEach(btn => {
         btn.addEventListener("click", async (e) => {
           e.preventDefault();
@@ -382,13 +383,11 @@
         });
       });
 
+      const paginationList = document.querySelector(".pagination ul");
+      paginationList.innerHTML = "";
 
-
-    const paginationList = document.querySelector(".pagination ul");
-    paginationList.innerHTML = "";
-
-    const prevLi = document.createElement("li");
-    prevLi.innerHTML = `
+      const prevLi = document.createElement("li");
+      prevLi.innerHTML = `
         <button class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700
           ${data.currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}"
           onclick="fetchProducts({...getCurrentFilters(), page: ${data.currentPage - 1}})">
@@ -397,21 +396,21 @@
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4" />
           </svg>
         </button>`;
-    paginationList.appendChild(prevLi);
+      paginationList.appendChild(prevLi);
 
-    for (let i = 1; i <= data.totalPages; i++) {
-      const li = document.createElement("li");
-      li.innerHTML = `
+      for (let i = 1; i <= data.totalPages; i++) {
+        const li = document.createElement("li");
+        li.innerHTML = `
           <button class="flex items-center justify-center px-4 h-10 leading-tight border border-gray-100 
             ${i === data.currentPage ? 'bg-yellow-500 text-white' : 'bg-white hover:bg-gray-100'}"
             onclick="fetchProducts({...getCurrentFilters(), page: ${i}})">
             ${i}
           </button>`;
-      paginationList.appendChild(li);
-    }
+        paginationList.appendChild(li);
+      }
 
-    const nextLi = document.createElement("li");
-    nextLi.innerHTML = `
+      const nextLi = document.createElement("li");
+      nextLi.innerHTML = `
         <button class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700
           ${data.currentPage >= data.totalPages ? 'pointer-events-none opacity-50' : ''}"
           onclick="fetchProducts({...getCurrentFilters(), page: ${data.currentPage + 1}})">
@@ -420,19 +419,19 @@
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4" />
           </svg>
         </button>`;
-    paginationList.appendChild(nextLi);
+      paginationList.appendChild(nextLi);
 
-    const clearContainer = document.querySelector("#clearFiltersContainer");
-    const hasRealFilters = Object.entries(cleanedParams).some(([k, v]) => {
-      return !["limit", "page"].includes(k) && v;
-    });
-    clearContainer.classList.toggle("hidden", !hasRealFilters);
+      const clearContainer = document.querySelector("#clearFiltersContainer");
+      const hasRealFilters = Object.entries(cleanedParams).some(([k, v]) => {
+        return !["limit", "page"].includes(k) && v;
+      });
+      clearContainer.classList.toggle("hidden", !hasRealFilters);
 
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    const container = document.querySelector(".products-container");
-    container.innerHTML = '<p class="text-red-500 text-center">Error loading products. Please try again.</p>';
-  }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      const container = document.querySelector(".products-container");
+      container.innerHTML = '<p class="text-red-500 text-center">Error loading products. Please try again.</p>';
+    }
   }
 
   function getCurrentFilters(extra = {}) {

@@ -236,11 +236,10 @@
 
         const actionBtn = targetRow.querySelector('.confirm-action');
         actionBtn.textContent = data.isBlocked ? 'Unblock' : 'Block';
-        // toggle hover colours
+     
         actionBtn.classList.toggle('hover:text-red-500', !data.isBlocked);
         actionBtn.classList.toggle('hover:text-green-500', data.isBlocked);
-        // keep the same query string (page, search, etc.)
-       // Update data-url safely by replacing only the id
+    
         actionBtn.dataset.url = targetUrl.replace(/([?&])id=[^&]*/, `$1id=${data._id}`);
       } else {
         alert(data.error || 'Failed to update user status');

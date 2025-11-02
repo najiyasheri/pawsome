@@ -1,10 +1,23 @@
+<button data-drawer-target="sidebar-multi-level-sidebar" data-drawer-toggle="sidebar-multi-level-sidebar"
+  aria-controls="sidebar-multi-level-sidebar" type="button"
+  class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+  <span class="sr-only">Open sidebar</span>
+  <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+    <path fill-rule="evenodd" clip-rule="evenodd"
+      d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z">
+    </path>
+  </svg>
+</button>
+
 <div class="min-h-screen flex">
 
-  <!-- Sidebar -->
-  <div class="hidden sm:block">
-    <%- include('../partials/user/profileSidebar') %>
-  </div>
+  <!-- ✅ This version is for mobile toggle -->
+  <%- include('../partials/user/profileSidebar') %>
 
+    <!-- ✅ This version is static for desktop -->
+    <div class="hidden sm:block">
+      <%- include('../partials/user/profileSidebar') %>
+    </div>
   <!-- Content Area -->
   <main class="flex-1 sm:ml-64 p-2">
     <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6">
@@ -265,4 +278,99 @@
     renderPagination(totalPages, currentPage);
     fetchOrders(currentPage);
   });
+  document.addEventListener('DOMContentLoaded', function () {
+    const sidebar = document.getElementById('sidebar-multi-level-sidebar');
+    const toggleBtn = document.querySelector('[data-drawer-toggle="sidebar-multi-level-sidebar"]');
+
+    if (!sidebar) return;
+
+    // Create dark backdrop
+    let backdrop = document.querySelector('.sidebar-backdrop');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.className = 'sidebar-backdrop';
+      document.body.appendChild(backdrop);
+    }
+
+    // Create close button (X) inside sidebar
+    let closeBtn = sidebar.querySelector('.sidebar-close-btn');
+    if (!closeBtn) {
+      closeBtn = document.createElement('button');
+      closeBtn.className = 'sidebar-close-btn';
+      closeBtn.innerHTML = '×';
+      closeBtn.type = 'button';
+      const sidebarInner = sidebar.querySelector('div');
+      if (sidebarInner) {
+        sidebarInner.insertBefore(closeBtn, sidebarInner.firstChild);
+      }
+    }
+
+    // Highlight current page in sidebar
+    const currentPath = window.location.pathname;
+    const links = sidebar.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.getAttribute('href') === currentPath) {
+        link.classList.add('active');
+      }
+    });
+
+    // Function: Open sidebar
+    function openSidebar() {
+      sidebar.classList.add('active');
+      backdrop.classList.add('show');
+      document.body.classList.add('sidebar-open');
+    }
+
+    // Function: Close sidebar
+    function closeSidebar() {
+      sidebar.classList.remove('active');
+      backdrop.classList.remove('show');
+      document.body.classList.remove('sidebar-open');
+    }
+
+    // Click hamburger menu to open
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (sidebar.classList.contains('active')) {
+          closeSidebar();
+        } else {
+          openSidebar();
+        }
+      });
+    }
+
+    // Click X button to close
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeSidebar);
+    }
+
+    // Click dark backdrop to close
+    backdrop.addEventListener('click', closeSidebar);
+
+    // Click sidebar link to close (mobile only)
+    links.forEach(link => {
+      link.addEventListener('click', function () {
+        if (window.innerWidth <= 640) {
+          setTimeout(closeSidebar, 100);
+        }
+      });
+    });
+
+    // Press ESC key to close
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+        closeSidebar();
+      }
+    });
+
+    // On window resize
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 640) {
+        closeSidebar();
+      }
+    });
+  });
+
+  
 </script>

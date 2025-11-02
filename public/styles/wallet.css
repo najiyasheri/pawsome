@@ -1,0 +1,369 @@
+/* Responsive Shopping Cart Styles */
+
+/* Base styles - ensure proper box-sizing */
+* {
+  box-sizing: border-box;
+}
+
+/* Main container adjustments */
+.max-w-6xl {
+  max-width: 72rem;
+}
+
+/* Tablet and below */
+@media (max-width: 1024px) {
+  .max-w-6xl {
+    padding: 1rem;
+  }
+  
+  .md\:flex-row {
+    flex-direction: column;
+  }
+  
+  .md\:w-72 {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Tablet */
+@media (max-width: 768px) {
+  .max-w-6xl {
+    padding: 0.75rem;
+  }
+  
+  /* Cart items */
+  .flex.items-center.justify-between {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+  
+  .flex.items-center.gap-4 {
+    width: 100%;
+  }
+  
+  /* Quantity controls */
+  .flex.items-center.gap-2 {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  /* Cart item image */
+  .w-16.h-16 {
+    width: 60px;
+    height: 60px;
+  }
+  
+  /* Order summary */
+  .md\:w-72 {
+    margin-top: 1rem;
+  }
+  
+  /* Buttons */
+  .inline-block.px-6.py-2 {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Mobile - Medium */
+@media (max-width: 640px) {
+  .max-w-6xl {
+    padding: 0.5rem;
+  }
+  
+  /* Shopping cart section */
+  .flex-1.max-w-3xl {
+    padding: 1rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+  
+  .text-xl {
+    font-size: 1.25rem;
+  }
+  
+  /* Cart item container */
+  .bg-gray-50.p-4 {
+    padding: 0.75rem;
+  }
+  
+  /* Product info */
+  .flex.items-center.gap-4 {
+    gap: 0.75rem;
+  }
+  
+  .w-16.h-16 {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .font-medium {
+    font-size: 0.9rem;
+  }
+  
+  .text-gray-500 {
+    font-size: 0.85rem;
+  }
+  
+  /* Quantity controls */
+  .flex.items-center.gap-2 {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .px-2.py-1 {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.9rem;
+  }
+  
+  .ml-4 {
+    margin-left: 0.5rem;
+  }
+  
+  /* Subtotal display */
+  .subtotal-display {
+    font-size: 0.95rem;
+  }
+  
+  /* Order summary */
+  .md\:w-72 {
+    padding: 1rem;
+  }
+  
+  .flex.justify-between {
+    font-size: 0.9rem;
+  }
+  
+  .font-bold.text-lg {
+    font-size: 1.1rem;
+  }
+  
+  /* Checkout button */
+  .w-full.max-w-xs {
+    max-width: 100%;
+  }
+  
+  /* Back to shop button */
+  .inline-block.px-6.py-2 {
+    width: 100%;
+    text-align: center;
+    padding: 0.625rem 1rem;
+  }
+}
+
+/* Mobile - Small */
+@media (max-width: 480px) {
+  .max-w-6xl {
+    padding: 0.375rem;
+  }
+  
+  /* Shopping cart section */
+  .flex-1.max-w-3xl {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem;
+  }
+  
+  .text-xl {
+    font-size: 1.1rem;
+  }
+  
+  /* Cart item */
+  .bg-gray-50.p-4 {
+    padding: 0.625rem;
+  }
+  
+  .flex.items-center.gap-4 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .w-16.h-16 {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .font-medium {
+    font-size: 0.85rem;
+  }
+  
+  .text-gray-500 {
+    font-size: 0.8rem;
+  }
+  
+  /* Quantity controls - stack vertically on very small screens */
+  .flex.items-center.gap-2 {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 0.375rem;
+    align-items: center;
+  }
+  
+  .quantity-display {
+    text-align: center;
+  }
+  
+  .subtotal-display {
+    grid-column: 1 / -1;
+    text-align: right;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+  }
+  
+  .ml-2 {
+    margin-left: 0;
+    grid-column: 4;
+  }
+  
+  /* Order summary */
+  .md\:w-72 {
+    padding: 0.875rem;
+  }
+  
+  .flex.justify-between {
+    font-size: 0.85rem;
+  }
+  
+  .font-bold.text-lg {
+    font-size: 1rem;
+  }
+  
+  /* Messages */
+  .border-red-500,
+  .border-yellow-500 {
+    font-size: 0.85rem;
+    padding: 0.625rem;
+  }
+  
+  /* Empty cart image */
+  .w-60 {
+    width: 12rem;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+  .max-w-6xl {
+    padding: 0.25rem;
+  }
+  
+  .flex-1.max-w-3xl,
+  .md\:w-72 {
+    padding: 0.625rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.125rem;
+  }
+  
+  .text-xl {
+    font-size: 1rem;
+  }
+  
+  .w-16.h-16 {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .font-medium {
+    font-size: 0.8rem;
+  }
+  
+  .text-gray-500 {
+    font-size: 0.75rem;
+  }
+  
+  .px-2.py-1 {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.85rem;
+  }
+  
+  .inline-block.px-6.py-2 {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+  
+  /* Empty cart image */
+  .w-60 {
+    width: 10rem;
+  }
+}
+
+/* Landscape orientation for mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+  .max-w-6xl {
+    padding: 0.5rem;
+  }
+  
+  .flex-1.max-w-3xl,
+  .md\:w-72 {
+    padding: 0.75rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .mb-4 {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  .w-60 {
+    width: 8rem;
+  }
+}
+
+/* Ensure buttons are touch-friendly on mobile */
+@media (max-width: 768px) {
+  button,
+  a.inline-block {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .px-2.py-1 {
+    min-height: 36px;
+    min-width: 36px;
+  }
+}
+
+/* Fix for flex gaps on older browsers */
+.gap-6 {
+  gap: 1.5rem;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+@supports not (gap: 1rem) {
+  .gap-6 > * + * {
+    margin-left: 1.5rem;
+  }
+  
+  .gap-4 > * + * {
+    margin-left: 1rem;
+  }
+  
+  .gap-2 > * + * {
+    margin-left: 0.5rem;
+  }
+}

@@ -1,0 +1,440 @@
+/* Responsive Profile Page Styles */
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+/* Sidebar toggle button - only visible on mobile */
+.inline-flex.items-center.p-2 {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .inline-flex.items-center.p-2 {
+    display: inline-flex;
+  }
+}
+
+/* Main profile container */
+.bg-white.p-6.max-w-3xl {
+  max-width: 48rem;
+  padding: 1.5rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Desktop and Large Screens */
+@media (min-width: 1024px) {
+  .bg-white.p-6.max-w-3xl {
+    padding: 2rem;
+  }
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .bg-white.p-6.max-w-3xl {
+    max-width: 100%;
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+}
+
+/* Mobile - Medium */
+@media (max-width: 768px) {
+  .bg-white.p-6.max-w-3xl {
+    padding: 1.25rem;
+    margin: 0.75rem;
+  }
+
+  /* Header section */
+  .flex.space-x-1.mb-6 {
+    margin-bottom: 1rem;
+  }
+
+  .text-xl {
+    font-size: 1.125rem;
+  }
+
+  /* Profile view section */
+  .flex.items-center.space-x-6 {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .flex.items-center.space-x-6 .mx-4 {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .w-24.h-24 {
+    width: 80px;
+    height: 80px;
+  }
+
+  .text-2xl {
+    font-size: 1.5rem;
+  }
+
+  .text-gray-600 {
+    font-size: 0.9rem;
+  }
+
+  /* Details section */
+  .mt-6.space-y-3 {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* Referral code section */
+  #referralCode {
+    display: block;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  #copyReferralBtn {
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Mobile - Small */
+@media (max-width: 640px) {
+  .bg-white.p-6.max-w-3xl {
+    padding: 1rem;
+    margin: 0.5rem;
+    border-radius: 0.5rem;
+  }
+
+  /* Header */
+  .text-xl {
+    font-size: 1rem;
+  }
+
+  /* Profile image and info */
+  .flex.items-center.space-x-6 {
+    flex-direction: row;
+    align-items: center !important;
+    gap: 0.75rem;
+  }
+
+  .w-24.h-24 {
+    width: 70px;
+    height: 70px;
+  }
+
+  .text-2xl {
+    font-size: 1.25rem;
+  }
+
+  .text-gray-600 {
+    font-size: 0.85rem;
+    margin-top: 0.5rem !important;
+  }
+
+  /* Details section */
+  .mt-6.space-y-3 {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .mt-6.space-y-3 p {
+    line-height: 1.6;
+  }
+
+  /* Referral code responsive */
+  #referralCode {
+    font-size: 0.85rem;
+    padding: 0.375rem 0.75rem;
+    word-break: break-all;
+  }
+
+  /* Form inputs */
+  .space-y-4 input,
+  .space-y-4 textarea {
+    font-size: 0.9rem;
+    padding: 0.625rem 1rem;
+  }
+
+  .block.text-sm {
+    font-size: 0.8rem;
+  }
+
+  /* Buttons */
+  .px-6.py-2 {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+
+  /* Email input with button */
+  .relative.mt-1.w-full input {
+    padding-right: 80px;
+  }
+
+  .absolute.mt-2\.5 {
+    font-size: 0.8rem;
+    padding: 0.375rem 0.625rem;
+  }
+
+  /* Action buttons */
+  .flex.justify-end.space-x-4 {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .flex.justify-end.space-x-4 button {
+    width: 100%;
+  }
+}
+
+/* Extra Small Mobile */
+@media (max-width: 480px) {
+  .bg-white.p-6.max-w-3xl {
+    padding: 0.875rem;
+    margin: 0.375rem;
+  }
+
+  /* Profile section */
+  .flex.items-center.space-x-6 {
+    flex-direction: column;
+    align-items: center !important;
+    text-align: center;
+  }
+
+  .w-24.h-24 {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 0.5rem;
+  }
+
+  .text-2xl {
+    font-size: 1.125rem;
+  }
+
+  .text-gray-600 {
+    font-size: 0.8rem;
+  }
+
+  /* Details */
+  .mt-6.space-y-3 {
+    font-size: 0.8rem;
+  }
+
+  #referralCode {
+    font-size: 0.8rem;
+    padding: 0.375rem 0.625rem;
+  }
+
+  #copyReferralBtn {
+    font-size: 0.8rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  /* Form elements */
+  .space-y-4 input,
+  .space-y-4 textarea {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.875rem;
+  }
+
+  .block.text-sm {
+    font-size: 0.75rem;
+  }
+
+  /* Buttons */
+  .px-6.py-2 {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Modal Responsive Styles */
+#emailModal .relative.bg-white {
+  width: 90%;
+  max-width: 24rem;
+  padding: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  #emailModal .relative.bg-white {
+    width: 95%;
+    padding: 1.25rem;
+    margin: 1rem;
+  }
+
+  #emailModal .text-xl {
+    font-size: 1.125rem;
+  }
+
+  #emailModal input {
+    font-size: 0.9rem;
+    padding: 0.625rem 1rem;
+  }
+
+  #emailModal button {
+    font-size: 0.9rem;
+    padding: 0.625rem;
+  }
+
+  #emailModal .flex.justify-between {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  #emailModal #timer {
+    text-align: center;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  #emailModal .relative.bg-white {
+    width: 98%;
+    padding: 1rem;
+  }
+
+  #emailModal .text-xl {
+    font-size: 1rem;
+  }
+
+  #emailModal input {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.875rem;
+  }
+
+  #emailModal button {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+
+  #emailModal .block.text-sm {
+    font-size: 0.75rem;
+  }
+}
+
+/* Landscape Mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+  .bg-white.p-6.max-w-3xl {
+    padding: 1rem;
+    margin: 0.5rem;
+  }
+
+  .flex.items-center.space-x-6 {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+
+  .w-24.h-24 {
+    width: 60px;
+    height: 60px;
+  }
+
+  .text-2xl {
+    font-size: 1.125rem;
+  }
+
+  .mt-6.space-y-3 {
+    margin-top: 0.75rem;
+  }
+
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+
+  #emailModal .relative.bg-white {
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1rem;
+  }
+}
+
+/* Touch-friendly buttons on mobile */
+@media (max-width: 768px) {
+  button,
+  a.inline-block {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  #copyReferralBtn,
+  #editProfileBtn {
+    min-height: 36px;
+    min-width: 36px;
+  }
+}
+
+/* Fix spacing issues */
+.space-x-1 > * + * {
+  margin-left: 0.25rem;
+}
+
+.space-x-4 > * + * {
+  margin-left: 1rem;
+}
+
+.space-x-6 > * + * {
+  margin-left: 1.5rem;
+}
+
+.space-y-3 > * + * {
+  margin-top: 0.75rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  .space-x-4 > * + * {
+    margin-left: 0;
+  }
+  
+  .space-x-6 > * + * {
+    margin-left: 0;
+  }
+}
+
+/* Ensure proper focus states on mobile */
+@media (max-width: 768px) {
+  input:focus,
+  textarea:focus,
+  button:focus {
+    outline: 2px solid #facc15;
+    outline-offset: 2px;
+  }
+}
+
+/* Fix modal backdrop on mobile */
+#emailModal {
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+@media (max-width: 640px) {
+  #emailModal {
+    padding: 0.5rem;
+  }
+}
+
+/* Make close button more accessible on mobile */
+#closeModal {
+  font-size: 1.5rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  #closeModal {
+    font-size: 2rem;
+    width: 40px;
+    height: 40px;
+  }
+}

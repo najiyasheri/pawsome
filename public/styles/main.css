@@ -1,0 +1,34 @@
+/* Add this CSS to fix the hamburger button position */
+
+/* Remove the margin and position it properly */
+button[data-drawer-toggle="sidebar-multi-level-sidebar"] {
+  position: fixed !important;
+  top: 1rem !important;
+  left: 1rem !important;
+  z-index: 50 !important;
+  background: white !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 0.5rem !important;
+  margin: 0 !important; /* Remove all margins */
+}
+
+/* Override any Tailwind margin classes */
+button[data-drawer-toggle="sidebar-multi-level-sidebar"].mt-2 {
+  margin-top: 0 !important;
+}
+
+button[data-drawer-toggle="sidebar-multi-level-sidebar"].ms-3 {
+  margin-left: 0 !important;
+}
+
+/* Adjust main content to prevent overlap with button */
+@media (max-width: 640px) {
+  main.flex-1 {
+    padding-top: 3.5rem !important;
+  }
+  
+  /* If you have a specific content wrapper */
+  .min-h-screen > main {
+    padding-top: 3.5rem;
+  }
+}

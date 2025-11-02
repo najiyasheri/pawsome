@@ -257,6 +257,32 @@ const loadDashboard = async (req, res) => {
       { $sort: { _id: 1 } },
     ]);
 
+    const allOrders = await Order.aggregate([
+      { $match: dateMatchCondition },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      {
+        $project: {
+          orderId: 1,
+          userName: "$user.name",
+          email: "$user.email",
+          createdAt: 1,
+          finalAmount: 1,
+          discountAmount: 1,
+          paymentMethod: 1,
+          status: 1,
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
+
     res.render("admin/dashboard", {
       title: "Dashboard",
       layout: "layouts/adminLayout",
@@ -270,6 +296,7 @@ const loadDashboard = async (req, res) => {
       topProducts: topProducts || [],
       topCustomers: topCustomers || [],
       salesReport: salesReport || [],
+      allOrders: allOrders || [],
     });
   } catch (error) {
     console.error("Dashboard Error:", error);
@@ -286,6 +313,7 @@ const loadDashboard = async (req, res) => {
       topProducts: [],
       topCustomers: [],
       salesReport: [],
+      allOrders: [],
     });
   }
 };

@@ -1,58 +1,71 @@
-<header class="bg-white shadow-md py-4">
-  <div class="max-w-6xl mx-auto px-2">
-    <div class="flex justify-between items-center">
-      
-      <!-- Logo -->
-      <div>
-        <img class="w-40 object-cover" src="/img/Remove background project.png" alt="">
-      </div>
-
-      <!-- Navigation -->
-      <nav>
-        <ul class="flex space-x-8">
-          <li><a href="/" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors duration-300">Home</a></li>
-          <li><a href="/products" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors duration-300">Products</a></li>
-          <li><a href="#" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors duration-300 ">About</a></li>
-          <li><a href="#" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors duration-300">Contact</a></li>
-        </ul>
-      </nav>
-
-      <!-- Right Section -->
-      <div class="flex items-center space-x-6">
-        <% if (user) { %>
-     
-
-          <!-- Favorites -->
-          <a href="/wishlist" class="text-gray-700 hover:text-[#F9C22A] text-xl">
-            <i class="fas fa-heart"></i>
-          </a>
-
-          <!-- Cart -->
-          <a href="/cart" class="text-gray-700 hover:text-[#F9C22A] text-xl">
-            <i class="fas fa-shopping-cart"></i>
-          </a>
-
-              <!-- Profile -->
-              <a href="/profile" class="text-gray-700 hover:text-[#F9C22A] text-xl">
-                <i class="fas fa-user"></i>
-              </a>
-              
-          <!-- Logout -->
-          <a href="/logout" class="bg-[#F9C22A] text-black py-2 px-4 rounded-full hover:bg-[#d4a81f] transition-colors duration-300 no-underline">
-            Logout
-          </a>
-        <% } else { %>
-          <!-- Login -->
-           <% if(title!='User Signup' && title!='User Login') {%>
-            <a href="/login"
-              class="bg-[#F9C22A] text-black py-2 px-4 rounded-full hover:bg-[#d4a81f] transition-colors duration-300 no-underline">
-              Login
-            </a>
-            <% } %>
-         
-        <% } %>
-      </div>
-
+<header class="bg-white shadow-md relative">
+  <div class="max-w-[1280px] mx-auto flex items-center justify-between px-6 py-3 md:py-4 flex-nowrap">
+    <!-- Logo -->
+    <div class="flex items-center shrink-0">
+      <img class="w-32 sm:w-36 md:w-40 object-contain" src="/img/Remove background project.png" alt="Pawsome Logo">
     </div>
+
+    <!-- Navigation (Desktop) -->
+    <nav class="hidden md:flex items-center space-x-8">
+      <a href="/" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors">Home</a>
+      <a href="/products" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors">Products</a>
+      <a href="#" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors">About</a>
+      <a href="#" class="text-gray-800 font-medium hover:text-[#F9C22A] transition-colors">Contact</a>
+    </nav>
+
+    <!-- Right Section (Desktop) -->
+    <div class="hidden md:flex items-center space-x-5 shrink-0">
+      <% if (user) { %>
+        <a href="/wishlist" class="text-gray-700 hover:text-[#F9C22A] text-xl"><i class="fas fa-heart"></i></a>
+        <a href="/cart" class="text-gray-700 hover:text-[#F9C22A] text-xl"><i class="fas fa-shopping-cart"></i></a>
+        <a href="/profile" class="text-gray-700 hover:text-[#F9C22A] text-xl"><i class="fas fa-user"></i></a>
+        <a href="/logout"
+          class="bg-[#F9C22A] text-black py-2 px-5 rounded-full hover:bg-[#d4a81f] transition-colors">Logout</a>
+        <% } else { %>
+          <% if(title!='User Signup' && title!='User Login' ) { %>
+            <a href="/login"
+              class="bg-[#F9C22A] text-black py-2 px-5 rounded-full hover:bg-[#d4a81f] transition-colors">Login</a>
+            <% } %>
+              <% } %>
+    </div>
+
+    <!-- Hamburger Icon (Mobile) -->
+    <button id="menu-btn" class="block md:hidden text-2xl text-gray-800 focus:outline-none ml-auto">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+
+  <!-- ✅ Mobile Menu (Fixed Alignment) -->
+  <div id="menu"
+    class="hidden absolute top-full right-4 bg-white shadow-lg rounded-lg py-4 px-4 w-48 md:hidden z-50 transition-all duration-300">
+    <ul class="flex flex-col space-y-3 text-center">
+      <li><a href="/" class="block text-gray-800 font-medium hover:text-[#F9C22A]">Home</a></li>
+      <li><a href="/products" class="block text-gray-800 font-medium hover:text-[#F9C22A]">Products</a></li>
+      <li><a href="#" class="block text-gray-800 font-medium hover:text-[#F9C22A]">About</a></li>
+      <li><a href="#" class="block text-gray-800 font-medium hover:text-[#F9C22A]">Contact</a></li>
+    </ul>
+
+    <% if (user) { %>
+      <div class="flex justify-center space-x-6 text-xl mt-3">
+        <a href="/wishlist" class="text-gray-700 hover:text-[#F9C22A]"><i class="fas fa-heart"></i></a>
+        <a href="/cart" class="text-gray-700 hover:text-[#F9C22A]"><i class="fas fa-shopping-cart"></i></a>
+        <a href="/profile" class="text-gray-700 hover:text-[#F9C22A]"><i class="fas fa-user"></i></a>
+      </div>
+      <a href="/logout"
+        class="block text-center bg-[#F9C22A] text-black py-2 px-4 rounded-full mt-3 hover:bg-[#d4a81f] transition-colors duration-300">Logout</a>
+      <% } else { %>
+        <% if(title!='User Signup' && title!='User Login' ) { %>
+          <a href="/login"
+            class="block text-center bg-[#F9C22A] text-black py-2 px-4 rounded-full mt-3 hover:bg-[#d4a81f] transition-colors duration-300">Login</a>
+          <% } %>
+            <% } %>
   </div>
 </header>
+
+<script>
+  const menuBtn = document.getElementById('menu-btn');
+  const menu = document.getElementById('menu');
+  menuBtn.addEventListener('click', () => {
+    menu.classList.toggle('hidden');
+  });
+</script>

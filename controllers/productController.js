@@ -15,7 +15,7 @@ const loadProductManagement = async (req, res) => {
       search = req.query.search;
     }
     let page = parseInt(req.query.page) || 1;
-    const limit = 5;
+    const limit = 3;
     const filter = search
       ? {
           $or: [
@@ -294,7 +294,7 @@ const userProducts = async (req, res) => {
   try {
     let search = req.query.search || "";
     let page = parseInt(req.query.page) || 1;
-    const limit = 8;
+    const limit = 3;
     let sort = req.query.sort || "";
     let category = req.query.category || "";
     let priceRange = req.query.priceRange || "";
@@ -318,10 +318,6 @@ const userProducts = async (req, res) => {
       }
     }
 
-    if (priceRange) {
-      const [minPrice, maxPrice] = priceRange.split("-").map(Number);
-      filter.basePrice = { $gte: minPrice, $lte: maxPrice };
-    }
 
     let sortOption = { createdAt: -1 };
     if (sort) {
@@ -364,10 +360,30 @@ const userProducts = async (req, res) => {
         },
       },
       {
+        $lookup: {
+          from: "categories",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          effectiveDiscount: {
+            $cond: {
+              if: { $gt: ["$discountPercentage", "$category.offerPercentage"] },
+              then: "$discountPercentage",
+              else: { $ifNull: ["$category.offerPercentage", 0] },
+            },
+          },
+        },
+      },
+      {
         $addFields: {
           oldPrice: {
             $add: [
-              "$basePrice",
+              { $toDouble: "$basePrice" },
               { $ifNull: ["$selectedVariant.additionalPrice", 0] },
             ],
           },
@@ -379,7 +395,7 @@ const userProducts = async (req, res) => {
                     $subtract: [
                       1,
                       {
-                        $divide: [{ $ifNull: ["$discountPercentage", 0] }, 100],
+                        $divide: [{ $ifNull: ["$effectiveDiscount", 0] }, 100],
                       },
                     ],
                   },
@@ -396,20 +412,62 @@ const userProducts = async (req, res) => {
           },
         },
       },
-      {
-        $lookup: {
-          from: "categories",
-          localField: "categoryId",
-          foreignField: "_id",
-          as: "category",
-        },
-      },
-      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+      ...(priceRange
+        ? [
+            {
+              $match: {
+                finalPrice: {
+                  $gte: parseInt(priceRange.split("-")[0]),
+                  $lte: parseInt(priceRange.split("-")[1]),
+                },
+              },
+            },
+          ]
+        : []),
 
       ...(sort === "price-low"
         ? [{ $sort: { finalPrice: 1 } }]
         : sort === "price-high"
         ? [{ $sort: { finalPrice: -1 } }]
+        : sort === "best-selling"
+        ? [
+            {
+              $lookup: {
+                from: "orders",
+                localField: "_id",
+                foreignField: "items.productId",
+                as: "orderData",
+              },
+            },
+            {
+              $addFields: {
+                totalSold: {
+                  $sum: {
+                    $map: {
+                      input: "$orderData",
+                      as: "order",
+                      in: {
+                        $sum: {
+                          $map: {
+                            input: {
+                              $filter: {
+                                input: "$$order.items",
+                                as: "i",
+                                cond: { $eq: ["$$i.productId", "$_id"] },
+                              },
+                            },
+                            as: "i",
+                            in: "$$i.quantity",
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            { $sort: { totalSold: -1 } },
+          ]
         : [{ $sort: sortOption }]),
 
       { $skip: (page - 1) * limit },
@@ -706,6 +764,15 @@ const loadProductDetails = async (req, res) => {
       };
     });
 
+      const breadcrumbs = [
+        { name: "Home", url: "/" },
+        {
+          name: product.category?.name || "Category",
+          url: `/products?category=${product.categoryId}`,
+        },
+        { name: product.name, url: null }, 
+      ];
+
     res.render("user/productDetail", {
       title: "Product Details",
       layout: "layouts/userLayout",
@@ -716,6 +783,7 @@ const loadProductDetails = async (req, res) => {
       isExistingInCart: !!(
         variant && cartItems.includes(variant._id.toString())
       ),
+      breadcrumbs,
     });
   } catch (error) {
     console.error("Error loading product details:", error);

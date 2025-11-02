@@ -28,60 +28,59 @@ const loadOrder = async (req, res) => {
     const totalOrders = totalOrdersAgg[0]?.total || 0;
     const totalPages = Math.ceil(totalOrders / limit);
 
-  const orders = await Order.aggregate([
-    { $match: matchStage },
-    { $sort: { createdAt: -1 } },
-    { $skip: (page - 1) * limit },
-    { $limit: limit },
+    const orders = await Order.aggregate([
+      { $match: matchStage },
+      { $sort: { createdAt: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
 
-    // user info
-    {
-      $lookup: {
-        from: "users",
-        localField: "userId",
-        foreignField: "_id",
-        as: "user",
-        pipeline: [{ $project: { name: 1, email: 1, phone: 1 } }],
+      // user info
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+          pipeline: [{ $project: { name: 1, email: 1, phone: 1 } }],
+        },
       },
-    },
-    { $unwind: "$user" },
+      { $unwind: "$user" },
 
-    // unwind each item for lookup
-    { $unwind: { path: "$items", preserveNullAndEmptyArrays: true } },
+      // unwind each item for lookup
+      { $unwind: { path: "$items", preserveNullAndEmptyArrays: true } },
 
-    // lookup product details for each item
-    {
-      $lookup: {
-        from: "products",
-        localField: "items.productId",
-        foreignField: "_id",
-        as: "productDetails",
-        pipeline: [{ $project: { name: 1, price: 1, images: 1 } }],
+      // lookup product details for each item
+      {
+        $lookup: {
+          from: "products",
+          localField: "items.productId",
+          foreignField: "_id",
+          as: "productDetails",
+          pipeline: [{ $project: { name: 1, price: 1, images: 1 } }],
+        },
       },
-    },
-    {
-      $addFields: {
-        "items.product": { $arrayElemAt: ["$productDetails", 0] },
+      {
+        $addFields: {
+          "items.product": { $arrayElemAt: ["$productDetails", 0] },
+        },
       },
-    },
-    { $project: { productDetails: 0 } },
+      { $project: { productDetails: 0 } },
 
-    // group back to original order
-    {
-      $group: {
-        _id: "$_id",
-        orderId: { $first: "$orderId" },
-        user: { $first: "$user" },
-        paymentMethod: { $first: "$paymentMethod" },
-        paymentStatus: { $first: "$paymentStatus" },
-        totalAmount: { $first: "$totalAmount" },
-        status: { $first: "$status" },
-        createdAt: { $first: "$createdAt" },
-        items: { $push: "$items" },
+      // group back to original order
+      {
+        $group: {
+          _id: "$_id",
+          orderId: { $first: "$orderId" },
+          user: { $first: "$user" },
+          paymentMethod: { $first: "$paymentMethod" },
+          paymentStatus: { $first: "$paymentStatus" },
+          totalAmount: { $first: "$totalAmount" },
+          status: { $first: "$status" },
+          createdAt: { $first: "$createdAt" },
+          items: { $push: "$items" },
+        },
       },
-    },
-  ]);
-
+    ]);
 
     res.render("admin/orderManagement", {
       title: "Order-Management",
@@ -100,7 +99,7 @@ const loadOrder = async (req, res) => {
 const loadOrderDetail = async (req, res) => {
   try {
     const orderId = req.params.id;
-     if (!orderId) return res.status(404).send("OrderId not found");
+    if (!orderId) return res.status(404).send("OrderId not found");
 
     const order = await Order.findById(orderId).populate(
       "userId",
@@ -285,12 +284,13 @@ const updateOrderStatus = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
-     if (!orderId) return res.status(404).send("OrderId not found");
+    if (!orderId) return res.status(404).send("OrderId not found");
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).send("Order not found");
     order.status = status;
     if (order.status === "Delivered" && !order.deliveredDate) {
       order.deliveredDate = new Date();
+      order.paymentStatus = 'Success';
     }
     await order.save();
     res.redirect(`/admin/order/${orderId}`);
@@ -303,6 +303,10 @@ const updateOrderStatus = async (req, res) => {
 const loadUserOrders = async (req, res) => {
   try {
     const userId = req.session.user._id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 5;
+    const skip = (page - 1) * limit;
+    const totalOrders = await Order.countDocuments({ userId });
     const orders = await Order.aggregate([
       { $match: { userId: new mongoose.Types.ObjectId(userId) } },
       { $sort: { createdAt: -1 } },
@@ -348,12 +352,27 @@ const loadUserOrders = async (req, res) => {
         },
       },
       { $sort: { createdAt: -1 } },
+      { $skip: skip },
+      { $limit: limit },
     ]);
+    const totalPages = Math.ceil(totalOrders / limit);
+      if (
+        req.headers.accept &&
+        req.headers.accept.includes("application/json")
+      ) {
+        return res.json({
+          orders,
+          totalPages,
+          currentPage: page,
+        });
+      }
 
     res.render("user/myOrder", {
       title: "MyOrders",
       layout: "layouts/userLayout",
       orders,
+      currentPage:page,
+      totalPages,
     });
   } catch (err) {
     console.error(err);
@@ -366,11 +385,11 @@ const loadUserOrderDetail = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.session.user._id;
 
-    if(!orderId) {
+    if (!orderId) {
       return res.render("user/orderDetails", {
         title: "Order Details",
         layout: "layouts/userLayout",
-        error: 'invalid params',
+        error: "invalid params",
       });
     }
 
@@ -383,7 +402,7 @@ const loadUserOrderDetail = async (req, res) => {
       return res.render("user/orderDetails", {
         title: "Order Details",
         layout: "layouts/userLayout",
-        error: 'invalid params',
+        error: "invalid params",
       });
     }
     const itemsWithDetails = await Promise.all(
@@ -402,25 +421,25 @@ const loadUserOrderDetail = async (req, res) => {
       })
     );
 
-     let cancellationReason = order.cancellationReason || "";
+    let cancellationReason = order.cancellationReason || "";
 
-     if (!cancellationReason) {
-       const itemReasons = order.items
-         .filter(
-           (item) => item.status === "Cancelled" && item.cancellationReason
-         )
-         .map((item) => `${item.name}: ${item.cancellationReason}`);
+    if (!cancellationReason) {
+      const itemReasons = order.items
+        .filter(
+          (item) => item.status === "Cancelled" && item.cancellationReason
+        )
+        .map((item) => `${item.name}: ${item.cancellationReason}`);
 
-       if (itemReasons.length > 0) {
-         cancellationReason = itemReasons.join(", ");
-       }
-     }
+      if (itemReasons.length > 0) {
+        cancellationReason = itemReasons.join(", ");
+      }
+    }
 
-     const fullOrder = {
-       ...order.toObject(),
-       items: itemsWithDetails,
-       cancellationReason,
-     };
+    const fullOrder = {
+      ...order.toObject(),
+      items: itemsWithDetails,
+      cancellationReason,
+    };
 
     res.render("user/orderDetails", {
       title: "Order Details",
@@ -438,7 +457,8 @@ const userCancelSingleItem = async (req, res) => {
     const { orderId, itemId } = req.params;
     const { reason } = req.body;
     const userId = req.session.user._id;
-     if (!orderId || !itemId) return res.status(404).send("OrderId or itemId not found");
+    if (!orderId || !itemId)
+      return res.status(404).send("OrderId or itemId not found");
 
     const order = await Order.findOne({ _id: orderId, userId });
     if (!order) return res.status(404).send("Order not found");
@@ -509,7 +529,7 @@ const userCancelEntireOrder = async (req, res) => {
     const { orderId } = req.params;
     const { reason } = req.body;
     const userId = req.session.user._id;
-     if (!orderId) return res.status(404).send("OrderId not found");
+    if (!orderId) return res.status(404).send("OrderId not found");
 
     const order = await Order.findOne({ _id: orderId, userId });
     if (!order) return res.status(404).send("Order not found");
@@ -573,7 +593,8 @@ const returnSingleItem = async (req, res) => {
     const { orderId, itemId } = req.params;
     const { reason } = req.body;
     const userId = req.session.user._id;
-     if (!orderId || !itemId) return res.status(404).send("OrderId or itemId not found");
+    if (!orderId || !itemId)
+      return res.status(404).send("OrderId or itemId not found");
 
     const order = await Order.findOne({ _id: orderId, userId });
     if (!order)
@@ -592,26 +613,24 @@ const returnSingleItem = async (req, res) => {
         success: false,
         message: "Only delivered items can be returned",
       });
-     const now = new Date();
-     const deliveredDate = order.deliveredDate;
+    const now = new Date();
+    const deliveredDate = order.deliveredDate;
 
-     if (deliveredDate) {
-       const diffInMs = now - deliveredDate; 
-       const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
-       if (diffInDays > 7) {
-         return res.status(400).json({
-           success: false,
-           message: "order can not be returned after 7 days",
-         });
-       } 
-     }
+    if (deliveredDate) {
+      const diffInMs = now - deliveredDate;
+      const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+      if (diffInDays > 7) {
+        return res.status(400).json({
+          success: false,
+          message: "order can not be returned after 7 days",
+        });
+      }
+    }
 
-    
     item.status = "Returned";
     item.returnStatus = "Returned";
     item.returnReason = reason || "No reason provided";
 
-   
     const product = await Product.findById(item.productId);
     if (product) {
       if (item.variant?._id) {

@@ -31,19 +31,15 @@
         <% } %>
     </form>
 
-    <a href="/admin/users" class="link ml-2 px-2 py-2 text-yellow-500  rounded-lg hover:text-yellow-600">All Users</a>
+    <a href="/admin/users" class="link ml-2 px-2 py-2 text-yellow-500 rounded-lg hover:text-yellow-600">All Users</a>
     <a href="/admin/users?blocked=true" class="link ml-2 px-2 py-2 text-red-500 rounded-lg hover:text-red-600">Blocked
       Users</a>
-    <a href="/admin/users?active=true" class="link ml-2 px-2 py-2 text-blue-500  rounded-lg hover:text-blue-600">Active
+    <a href="/admin/users?active=true" class="link ml-2 px-2 py-2 text-blue-500 rounded-lg hover:text-blue-600">Active
       Users</a>
 
     <div id="userList"></div>
-    <!-- <button type="button"
-      class="ml-4 flex items-center gap-3 px-5 py-2.5 text-sm font-medium text-white bg-yellow-600 rounded-lg hover:bg-yellow-300 focus:ring-4 focus:outline-none focus:ring-yellow-300">
-      <i class="fa-solid fa-filter"></i>
-      Filter
-    </button> -->
   </div>
+
   <div class="relative overflow-x-auto shadow-md sm:rounded-lg mb-6">
     <table class="w-full text-sm text-left text-gray-500">
       <thead class="text-xs text-gray-700 uppercase bg-gray-50">
@@ -56,53 +52,50 @@
           <th scope="col" class="px-6 py-3">Action</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="userTableBody">
         <% if(userData && userData.length) { %>
-
           <% userData.forEach((user,i)=> { %>
             <tr class="bg-white border-b" id="user-<%= user._id %>">
               <td class="px-6 py-4">
-                <%= (currentPage-1)*limit+(i+1)%>
+                <%= (currentPage-1)*limit+(i+1) %>
               </td>
-              <th scope="row" class="px-6 py-4  font-medium text-gray-600 whitespace-nowrap uppercase">
-                <%=user.name %>
+              <th scope="row" class="px-6 py-4 font-medium text-gray-600 whitespace-nowrap uppercase">
+                <%= user.name %>
               </th>
               <td class="px-6 py-4">
-                <%=user.email %>
+                <%= user.email %>
               </td>
-              <td class="px-6 py-4">
+              <td class="px-6 py-4 status-cell">
                 <%= user.isBlocked ? 'Blocked' : "Active" %>
               </td>
               <td class="px-6 py-4">
-                <%=user.createdAt.toLocaleDateString("en-IN",{year:'numeric',month:'short',day:'numeric'}) %>
+                <%= user.createdAt.toLocaleDateString("en-IN",{year:'numeric',month:'short',day:'numeric'}) %>
               </td>
               <td class="px-6 py-4">
                 <% if(user.isBlocked){ %>
-                  <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
-                    class="text-yellow-600 hover:text-green-500 confirm-action cursor-pointer"
+                  <button class="text-yellow-600 hover:text-green-500 confirm-action cursor-pointer"
                     data-url="/admin/user/toggleBlock?id=<%= user._id %>&search=<%= search %>&page=<%= currentPage %>">
                     Unblock
                   </button>
                   <% } else { %>
-                    <button data-modal-target="popup-modal" data-modal-toggle="popup-modal"
-                      class="text-yellow-600 hover:text-red-500 confirm-action cursor-pointer"
+                    <button class="text-yellow-600 hover:text-red-500 confirm-action cursor-pointer"
                       data-url="/admin/user/toggleBlock?id=<%= user._id %>&search=<%= search %>&page=<%= currentPage %>">
                       Block
                     </button>
                     <% } %>
-                    <div>
-                        <a href="/admin/user/<%= user._id %>" class=" text-blue-600 hover:text-blue-800 font-medium">View</a>
-                    </div>
-                   
+                      <div>
+                        <a href="/admin/user/<%= user._id %>"
+                          class="text-blue-600 hover:text-blue-800 font-medium">View</a>
+                      </div>
               </td>
             </tr>
             <% }) %>
-
-              <% } else{%>
-                <td class="p-2">User Data Not Found</td>
+              <% } else { %>
+                <tr>
+                  <td colspan="6" class="p-2 text-center">User Data Not Found</td>
+                </tr>
                 <% } %>
       </tbody>
-     
     </table>
   </div>
 
@@ -110,7 +103,6 @@
   <div class="flex justify-center">
     <nav aria-label="Page navigation example">
       <ul class="flex items-center -space-x-px h-10 text-base">
-        <!-- Previous Button -->
         <li>
           <a href="/admin/users?page=<%= currentPage - 1 %>&limit=<%= limit %>&search=<%= search %>"
             class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700 <%= currentPage === 1 ? 'pointer-events-none opacity-50' : '' %>">
@@ -122,18 +114,15 @@
           </a>
         </li>
 
-        <!-- Page Numbers -->
         <% for(let i=1; i <=totalPages; i++) { %>
           <li>
             <a href="/admin/users?page=<%= i %>&limit=<%= limit %>&search=<%= search %>"
-            class="flex items-center justify-center px-4 h-10 border border-gray-200 <%= i===currentPage
-              ? 'bg-yellow-500 text-white' : 'bg-white hover:bg-yellow-500' %>">
+              class="flex items-center justify-center px-4 h-10 border border-gray-200 <%= i===currentPage ? 'bg-yellow-500 text-white' : 'bg-white hover:bg-yellow-500' %>">
               <%= i %>
             </a>
           </li>
           <% } %>
 
-            <!-- Next Button -->
             <li>
               <a href="/admin/users?page=<%= currentPage + 1 %>&limit=<%= limit %>&search=<%= search %>"
                 class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700 <%= currentPage === totalPages ? 'pointer-events-none opacity-50' : '' %>">
@@ -149,119 +138,148 @@
   </div>
 </section>
 
-<!--confirm modal  -->
+<!-- Overlay -->
+<div id="modal-overlay" class="hidden fixed inset-0 z-40 bg-black/40"></div>
 
+<!-- Confirm modal -->
 <div id="popup-modal" tabindex="-1"
-  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-  <div class="relative p-4 w-full max-w-md max-h-full">
+  class="hidden fixed inset-0 z-50 flex justify-center items-center overflow-y-auto overflow-x-hidden">
+  <div class="relative p-4 w-full max-w-md">
     <div class="relative bg-white rounded-lg shadow-sm">
       <button type="button"
-        class="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center "
-        data-modal-hide="popup-modal">
-        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+        class="close-modal absolute top-3 right-2.5 text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center">
+        <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
         </svg>
         <span class="sr-only">Close modal</span>
       </button>
       <div class="p-4 md:p-5 text-center">
-        <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+        <svg class="mx-auto mb-4 text-gray-400 w-12 h-12" xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 20 20">
           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
         </svg>
-        <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Are you sure you want to delete this
-          product?</h3>
-        <button id="confirm-yes" data-modal-hide="popup-modal" type="button"
-          class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+        <h3 class="mb-5 text-lg font-normal text-gray-600">Are you sure you want to block/unblock this user?</h3>
+        <button id="confirm-yes" type="button"
+          class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
           Yes, I'm sure
         </button>
-        <button data-modal-hide="popup-modal" type="button"
-          class="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">No,
-          cancel</button>
+        <button type="button"
+          class="close-modal py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:outline-none">
+          Cancel
+        </button>
       </div>
     </div>
   </div>
 </div>
+
 <script>
+  // ---------- Modal helpers ----------
+  const modal = document.getElementById('popup-modal');
+  const overlay = document.getElementById('modal-overlay');
+
+  function openModal() {
+    overlay.classList.remove('hidden');
+    modal.classList.remove('hidden');
+    // force flex for the modal (Tailwind hidden removes display)
+    modal.style.display = 'flex';
+    overlay.style.display = 'block';
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+    overlay.classList.add('hidden');
+    modal.style.display = 'none';
+    overlay.style.display = 'none';
+  }
+
+  // close on X or Cancel
+  document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', closeModal));
+  // close when clicking the dark overlay
+  overlay.addEventListener('click', closeModal);
+
+  // ---------- Block / Unblock ----------
   let targetUrl = null;
   let targetRow = null;
 
-  document.querySelectorAll('.confirm-action').forEach(btn => {
-    btn.addEventListener('click', () => {
-      targetUrl = btn.getAttribute('data-url');
-      targetRow = btn.closest("tr");
-      document.getElementById('popup-modal').classList.remove('hidden');
-    });
+  document.getElementById('userTableBody').addEventListener('click', e => {
+    const btn = e.target.closest('.confirm-action');
+    if (!btn) return;
+
+    targetUrl = btn.dataset.url;
+    targetRow = btn.closest('tr');
+    openModal();
   });
 
   document.getElementById('confirm-yes').addEventListener('click', async () => {
-    if (targetUrl) {
-      try {
-        const res = await fetch(targetUrl, {
-          method: "GET",
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        });
+    if (!targetUrl) return;
 
-        const data = await res.json();
+   
 
-        if (!res.ok) {
-          if (data.redirect) {
-            window.location.href = data.redirect;
-            return;
-          }
-          alert(data.error || "Request failed");
-          return;
-        }
+    try {
+      const res = await fetch(targetUrl, {
+        method: 'GET',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const data = await res.json();
 
-        if (data.success) {
-          const statusCell = targetRow.querySelector("td:nth-child(4)");
-          statusCell.innerText = data.isBlocked ? "Blocked" : "Active";
-
-          const actionBtn = targetRow.querySelector(".confirm-action");
-          actionBtn.textContent = data.isBlocked ? "Unblock" : "Block";
-          actionBtn.classList.toggle("hover:text-red-500", !data.isBlocked);
-          actionBtn.classList.toggle("hover:text-green-500", data.isBlocked);
-
-          actionBtn.setAttribute("data-url", `/admin/user/toggleBlock?id=${data._id}`);
-        } else {
-          alert(data.error || "Failed to update user status");
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        alert("An error occurred during the request");
-      } finally {
-        document.getElementById('popup-modal').classList.add('hidden');
+      if (!res.ok) {
+        if (data.redirect) return window.location.href = data.redirect;
+        alert(data.error || 'Request failed');
+        return;
       }
+
+      if (data.success) {
+        const statusCell = targetRow.querySelector('td:nth-child(4)'); // Status column
+        statusCell.textContent = data.isBlocked ? 'Blocked' : 'Active';
+
+        const actionBtn = targetRow.querySelector('.confirm-action');
+        actionBtn.textContent = data.isBlocked ? 'Unblock' : 'Block';
+     
+        actionBtn.classList.toggle('hover:text-red-500', !data.isBlocked);
+        actionBtn.classList.toggle('hover:text-green-500', data.isBlocked);
+    
+        actionBtn.dataset.url = targetUrl.replace(/([?&])id=[^&]*/, `$1id=${data._id}`);
+      } else {
+        alert(data.error || 'Failed to update user status');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error');
+    } finally {
+      closeModal();
     }
   });
 
-
-  document.getElementById("searchForm").addEventListener("submit", function (e) {
-    const input = document.getElementById("default-search");
+  // ---------- Search form ----------
+  document.getElementById('searchForm').addEventListener('submit', e => {
+    const input = document.getElementById('default-search');
     input.value = input.value.trim();
-
-    if (input.value === "") {
-      e.preventDefault();
-    }
+    if (!input.value) e.preventDefault();
   });
 
-
+  // ---------- Filter links (All / Blocked / Active) ----------
   document.querySelectorAll('.link').forEach(link => {
-    link.addEventListener('click', async function (e) {
-      e.preventDefault()
-      const url = this.getAttribute('href')
+    link.addEventListener('click', async e => {
+      e.preventDefault();
+      const url = link.getAttribute('href');
 
       try {
-        const res = await fetch(url, { method: 'GET' })
-        const html = await res.text()
-        document.querySelector('tbody').innerHTML = new DOMParser().parseFromString(html, 'text/html').querySelector('tbody').innerHTML
-      } catch (error) {
-        console.error("Error fetching users:", err);
-      }
-    })
-  })
+        const res = await fetch(url);
+        const html = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newTbody = doc.querySelector('tbody');
 
+        if (newTbody) {
+          document.getElementById('userTableBody').innerHTML = newTbody.innerHTML;
+        }
+        // optional: keep URL in sync without reload
+        history.replaceState(null, '', url);
+      } catch (err) {
+        console.error(err);
+      }
+    });
+  });
 </script>

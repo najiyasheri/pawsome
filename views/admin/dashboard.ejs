@@ -212,6 +212,53 @@
               </table>
               <% } %>
         </div>
+        <!-- All Orders List -->
+        <div class="bg-white p-6 rounded-2xl shadow-lg mb-8">
+          <h2 class="text-lg font-semibold mb-4 text-gray-700">All Orders (Detailed)</h2>
+          <% if (allOrders.length===0) { %>
+            <p class="text-gray-500">No orders found for the selected time frame.</p>
+            <% } else { %>
+              <table class="w-full text-sm text-gray-700">
+                <thead class="border-b font-medium">
+                  <tr>
+                    <th class="text-left py-2">Order ID</th>
+                    <th class="text-left">Customer</th>
+                    <th class="text-left">Payment</th>
+                    <th class="text-right">Amount</th>
+                    <th class="text-right">Discount</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-right">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% allOrders.forEach(o=> { %>
+                    <tr class="border-b">
+                      <td class="py-2">
+                        <%= o._id.toString() %>
+                      </td>
+                      <td>
+                        <%= o.userName %> (<%= o.email %>)
+                      </td>
+                      <td>
+                        <%= o.paymentMethod %>
+                      </td>
+                      <td class="text-right">₹<%= o.finalAmount?.toLocaleString() ?? '0' %>
+                      </td>
+                      <td class="text-right">₹<%= o.discountAmount?.toLocaleString() ?? '0' %>
+                      </td>
+                      <td class="text-center">
+                        <%= o.status %>
+                      </td>
+                      <td class="text-right">
+                        <%= new Date(o.createdAt).toLocaleDateString() %>
+                      </td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+              </table>
+              <% } %>
+        </div>
+
 
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

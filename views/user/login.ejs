@@ -1,50 +1,49 @@
 <link rel="stylesheet" href="/styles/auth.css" />
 
+<main class='flex justify-center w-full'>
+  <div class="auth-container">
+    <% if(typeof msg !=='undefined' ) { %>
+      <div class="success-message">
+        <%=msg%>
+      </div>
+      <% } %>
+        <h1 class="auth-title text-center">Log in to Exclusive</h1>
+        <p class="auth-subtitle text-center">Enter your details below</p>
 
-<main class='flex justify-center w-full'> 
-    <div class="auth-container max-w-[1/2]">
-      <% if(typeof msg !=='undefined' ) { %>
-        <div class="success-message">
-          <%=msg%>
-        </div>
-        <% } %>
-          <h1 class="auth-title text-center">Log in to Exclusive</h1>
-          <p class="auth-subtitle text-center">Enter your details below</p>
+        <form id="loginform" action="/login" method="POST" class="auth-form">
+          <% if(typeof error !=='undefined' ) { %>
+            <div class="error-message">
+              <%=error%>
+            </div>
+            <% } %>
 
-          <form id="loginform" action="/login" method="POST" class="auth-form">
-            <% if(typeof error !=='undefined' ) { %>
-              <div class="error-message">
-                <%=error%>
+              <input type="email" id="email" class="input-field" name="email" placeholder="Email" />
+              <div id="error1" class="error-message"></div>
+              <div class="password-container">
+
+                <input type="password" id="password" class="input-field" name="password" placeholder="Password" />
+                <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('password', this)"></i>
+
               </div>
-              <% } %>
-
-                <input type="email" id="email" class="input-field" name="email" placeholder="Email" />
-                <div id="error1" class="error-message"></div>
-                <div class="password-container">
-
-                  <input type="password" id="password" class="input-field" name="password" placeholder="Password" />
-                  <i class="fa-solid fa-eye toggle-password" onclick="togglePassword('password', this)"></i>
-
-                </div>
 
 
-                <div id="error2" class="error-message"></div>
-                <div class="auth-actions">
-                  <button type="submit" class="primary-btn">LOGIN</button>
-                  <a href="/forgotpassword" class="forgot-password">Forgot Password?</a>
-                </div>
-          </form>
+              <div id="error2" class="error-message"></div>
+              <div class="auth-actions">
+                <button type="submit" class="primary-btn">LOGIN</button>
+                <a href="/forgotpassword" class="forgot-password">Forgot Password?</a>
+              </div>
+        </form>
 
-          <a href="/auth/google"><button class="google-btn">
-              <img src="/img/google.png" alt="Google" class="google-icon" />
-              Log in with Google
-            </button></a>
+        <a href="/auth/google"><button class="google-btn">
+            <img src="/img/google.png" alt="Google" class="google-icon" />
+            Log in with Google
+          </button></a>
 
-          <div class="auth-bottom">
-            <p class="bottom-text">Don’t have an account?</p>
-            <a href="/signup" class="link-btn">Sign up</a>
-          </div>
-    </div>
+        <div class="auth-bottom">
+          <p class="bottom-text">Don't have an account?</p>
+          <a href="/signup" class="link-btn">Sign up</a>
+        </div>
+  </div>
 </main>
 
 <script>
@@ -64,8 +63,8 @@
       error1.style.display = 'block'
       error1.innerHTML = 'Invalid Format'
     } else {
-      error2.style.display = 'none'
-      error2.innerHTML = ""
+      error1.style.display = 'none'  // Fixed: was error2, should be error1
+      error1.innerHTML = ""           // Fixed: was error2, should be error1
     }
   }
   function passwordValidateChecking() {

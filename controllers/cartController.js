@@ -62,7 +62,6 @@ const loadCart = async (req, res) => {
         layout: "layouts/userLayout",
         user: req.session.user,
         cart: null,
-        message: "Your cart is empty",
         summary: {
           totalItems: 0,
           totalQuantity: 0,

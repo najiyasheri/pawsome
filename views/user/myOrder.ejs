@@ -1,112 +1,376 @@
+<button data-drawer-target="sidebar-multi-level-sidebar" data-drawer-toggle="sidebar-multi-level-sidebar"
+  aria-controls="sidebar-multi-level-sidebar" type="button"
+  class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+  <span class="sr-only">Open sidebar</span>
+  <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
+    <path fill-rule="evenodd" clip-rule="evenodd"
+      d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z">
+    </path>
+  </svg>
+</button>
+
 <div class="min-h-screen flex">
 
-  <!-- Sidebar -->
-  <div class="hidden sm:block">
-    <%- include('../partials/user/profileSidebar') %>
-  </div>
+  <!-- ✅ This version is for mobile toggle -->
+  <%- include('../partials/user/profileSidebar') %>
 
+    <!-- ✅ This version is static for desktop -->
+    <div class="hidden sm:block">
+      <%- include('../partials/user/profileSidebar') %>
+    </div>
   <!-- Content Area -->
   <main class="flex-1 sm:ml-64 p-2">
     <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6">
 
-      <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3">My Orders</h1>
+      <h1 class="text-2xl font-bold mb-6 text-gray-800 border-b border-gray-200 pb-3">
+        My Orders
+      </h1>
 
       <% if (orders.length===0) { %>
         <div class="text-center py-12 text-gray-600">
           <p class="text-lg mb-3">You have no orders yet.</p>
-          <a href="/shop" class="bg-yellow-500 text-white px-6 py-2 rounded-md hover:bg-yellow-600 transition">
+          <a href="/products" class="bg-yellow-500 text-white px-6 py-2 rounded-md hover:bg-yellow-600 transition">
             Shop Now
           </a>
         </div>
+
         <% } else { %>
+
+          <!-- ✅ Orders and Pagination Container -->
           <div class="space-y-6">
-            <% orders.forEach(order=> { %>
-              <div class="border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
-                <!-- Order Info -->
-                <div class="flex justify-between items-center mb-4">
-                  <div class="text-gray-700 space-y-1">
-                    <p><strong>Order ID:</strong>
-                      <%= order.orderId %>
-                    </p>
-                    <p><strong>Date:</strong>
-                      <%= order.createdAt.toLocaleDateString("en-IN") %>
-                    </p>
-                    <p><strong>Total:</strong> ₹<%= order.totalAmount %>
-                    </p>
-                    <p><strong>Status:</strong>
-                      <span class=" text-sm font-medium
-                              <%= order.status === 'Cancelled' ? 'text-red-500' :
-                                  order.status === 'Delivered' ? 'text-green-600' :
-                                  order.status === 'Pending' ? 'text-yellow-500' :
-                                  order.status === 'Shipped' ? 'text-blue-500' : 'text-gray-500' %>">
-                        <%= order.status %>
-                      </span>
-                    </p>
-                    <p>
-                      <strong>Payment Status:</strong>
-                      <span class="
-                                         <%= order.paymentStatus === 'Failed' ? 'text-red-600' : '' %>
-                          <%= order.paymentStatus === 'Pending' ? 'text-yellow-600' : '' %>
-                          <%= order.paymentStatus === 'Paid' ? 'text-green-600' : '' %>
-                        ">
-                        <%= order.paymentStatus %>
-                      </span>
-                    </p>
 
+            <!-- Orders List (will be replaced dynamically by JS) -->
+            <div id="order-list" class="space-y-6">
+              <% orders.forEach(order=> { %>
+                <div class="border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
 
-                    <!-- ✅ Order Status Badge -->
+                  <!-- Order Info -->
+                  <div class="flex justify-between items-center mb-4">
+                    <div class="text-gray-700 space-y-1">
+                      <p><strong>Order ID:</strong>
+                        <%= order.orderId %>
+                      </p>
+                      <p><strong>Date:</strong>
+                        <%= order.createdAt.toLocaleDateString("en-IN") %>
+                      </p>
+                      <p><strong>Total:</strong> ₹<%= order.totalAmount %>
+                      </p>
+                      <p><strong>Status:</strong>
+                        <span class="text-sm font-medium
+                        <%= order.status === 'Cancelled' ? 'text-red-500' :
+                            order.status === 'Delivered' ? 'text-green-600' :
+                            order.status === 'Pending' ? 'text-yellow-500' :
+                            order.status === 'Shipped' ? 'text-blue-500' : 'text-gray-500' %>">
+                          <%= order.status %>
+                        </span>
+                      </p>
+                      <p><strong>Payment Status:</strong>
+                        <span class="
+                        <%= order.paymentStatus === 'Failed' ? 'text-red-600' : '' %>
+                        <%= order.paymentStatus === 'Pending' ? 'text-yellow-600' : '' %>
+                        <%= order.paymentStatus === 'Paid' ? 'text-green-600' : '' %>
+                      ">
+                          <%= order.paymentStatus %>
+                        </span>
+                      </p>
 
-                    <br />
-                    <a href="/order/<%= order._id %>"
-                      class="inline-block mt-2 bg-yellow-500 text-white px-4 py-1.5 rounded hover:bg-yellow-600 transition">
-                      View Details
-                    </a>
+                      <br />
+                      <a href="/order/<%= order._id %>"
+                        class="inline-block mt-2 bg-yellow-500 text-white px-4 py-1.5 rounded hover:bg-yellow-600 transition">
+                        View Details
+                      </a>
+                    </div>
+                  </div>
+
+                  <!-- Order Items -->
+                  <div class="space-y-3">
+                    <% order.items.forEach(item=> { %>
+                      <% const imagePath=item.image && item.image !=="" ? `/uploads/${item.image}`
+                        : '/uploads/accessories.png' ; %>
+                        <div class="flex items-center gap-4 border border-gray-100 p-3 rounded-md bg-gray-50">
+                          <img src="<%= imagePath %>" alt="<%= item.name %>"
+                            class="w-16 h-16 object-cover rounded border" />
+
+                          <div class="flex flex-col">
+                            <p class="font-semibold text-gray-800">
+                              <%= item.name %>
+                            </p>
+                            <p class="text-sm text-gray-600">Quantity: <%= item.quantity %>
+                            </p>
+
+                            <p class="text-sm font-medium mt-1">
+                              Status:
+                              <span class="px-2 py-1 rounded
+                            <%= item.status ?? order.status === 'Pending' ? 'text-yellow-800' :
+                                item.status ?? order.status === 'Confirmed' ? 'text-blue-800' :
+                                item.status ?? order.status === 'Shipped' ? 'text-purple-800' :
+                                item.status ?? order.status === 'Delivered' ? 'text-green-800' :
+                                item.status ?? order.status === 'Cancelled' ? 'text-red-800' : '' %>">
+                                <%= item.status ?? order.status %>
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                        <% }) %>
                   </div>
                 </div>
+                <% }) %>
+            </div>
 
+            <!-- ✅ Pagination (kept outside order-list so it won’t be replaced) -->
+            <div class="mt-4 flex justify-center">
+              <ul id="pagination" class="flex items-center -space-x-px h-10 text-base rounded-2xl"></ul>
+            </div>
 
-                <!-- Order Items -->
-                <div class="space-y-3">
-                  <% order.items.forEach(item=> { %>
-                    <% const imagePath=item.image && item.image !=="" ? `/uploads/${item.image}`
-                      : '/uploads/accessories.png' ; %>
-                      <div class="flex items-center gap-4 border border-gray-100 p-3 rounded-md bg-gray-50">
-                        <img src="<%= imagePath %>" alt="<%= item.name %>"
-                          class="w-16 h-16 object-cover rounded border" />
-
-                        <div class="flex flex-col">
-                          <p class="font-semibold text-gray-800">
-                            <%= item.name %>
-                          </p>
-                          <p class="text-sm text-gray-600">Quantity: <%= item.quantity %>
-                          </p>
-
-
-                          <p class="text-sm font-medium mt-1">
-                            Status:
-                            <span class="px-2 py-1 rounded <%= 
-                            item.status ?? order.status === 'Pending' ? 'text-yellow-800' :
-                            item.status ?? order.status === 'Confirmed' ? 'text-blue-800' :
-                            item.status ?? order.status === 'Shipped' ? 'text-purple-800' :
-                            item.status ?? order.status === 'Delivered' ? 'text-green-800' :
-                            item.status ?? order.status === 'Cancelled' ? 'text-red-800' : ''
-                        %>">
-                              <%= item.status ?? order.status %>
-                            </span>
-
-                          </p>
-                        </div>
-                      </div>
-                      <% }) %>
-                </div>
-
-              </div>
-              <% }) %> <!-- close orders.forEach -->
           </div>
-          <% } %> <!-- close if-else -->
+          <% } %>
 
     </div>
+  </main>
+</div>
 
-</div>
-</main>
-</div>
+<script>
+  function formatDate(iso) {
+    try { return new Date(iso).toLocaleDateString("en-IN"); }
+    catch (e) { return ""; }
+  }
+
+  function safe(val, fallback = "") {
+    return val === null || val === undefined ? fallback : val;
+  }
+
+  async function fetchOrders(page) {
+    try {
+      const res = await fetch(`/orders?page=${page}`, { headers: { "Accept": "application/json" } });
+      if (!res.ok) return console.error("Network error:", res.status);
+
+      const data = await res.json();
+      if (!data || !Array.isArray(data.orders)) return console.error("Invalid JSON shape:", data);
+
+      const ordersContainer = document.getElementById("order-list");
+      if (!ordersContainer) return console.error("#order-list not found!");
+
+      // Render each order
+      ordersContainer.innerHTML = data.orders.map(order => {
+        const orderId = safe(order.orderId, order._id);
+        const createdAt = formatDate(order.createdAt);
+        const total = safe(order.totalAmount, 0);
+
+        const itemsHtml = (order.items || []).map(item => {
+          const imgFile = item.image || (item.productInfo?.images?.[0]) || "";
+          const imgSrc = imgFile ? `/uploads/${imgFile}` : '/uploads/accessories.png';
+          const itemName = safe(item.name, "Product");
+          const qty = safe(item.quantity, 1);
+          const itStatus = safe(item.status, order.status || "Pending");
+
+          return `
+            <div class="flex items-center gap-4 border border-gray-100 p-3 rounded-md bg-gray-50">
+              <img src="${imgSrc}" onerror="this.src='/uploads/accessories.png'" alt="${itemName}"
+                class="w-16 h-16 object-cover rounded border" />
+              <div class="flex flex-col">
+                <p class="font-semibold text-gray-800">${itemName}</p>
+                <p class="text-sm text-gray-600">Quantity: ${qty}</p>
+                <p class="text-sm font-medium mt-1">
+                  Status:
+                  <span class="px-2 py-1 rounded ${itStatus === 'Pending' ? 'text-yellow-800' :
+              itStatus === 'Confirmed' ? 'text-blue-800' :
+                itStatus === 'Shipped' ? 'text-purple-800' :
+                  itStatus === 'Delivered' ? 'text-green-800' :
+                    itStatus === 'Cancelled' ? 'text-red-800' : ''
+            }">${itStatus}</span>
+                </p>
+              </div>
+            </div>`;
+        }).join("");
+
+        return `
+          <div class="border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition">
+            <div class="text-gray-700 space-y-1 mb-4">
+              <p><strong>Order ID:</strong> ${orderId}</p>
+              <p><strong>Date:</strong> ${createdAt}</p>
+              <p><strong>Total:</strong> ₹${total}</p>
+              <p><strong>Status:</strong>
+                <span class="text-sm font-medium ${order.status === 'Cancelled' ? 'text-red-500' :
+            order.status === 'Delivered' ? 'text-green-600' :
+              order.status === 'Pending' ? 'text-yellow-500' :
+                order.status === 'Shipped' ? 'text-blue-500' : 'text-gray-500'
+          }">${safe(order.status)}</span>
+              </p>
+              <p><strong>Payment Status:</strong>
+                <span class="${order.paymentStatus === 'Failed' ? 'text-red-600' :
+            order.paymentStatus === 'Pending' ? 'text-yellow-600' :
+              order.paymentStatus === 'Paid' ? 'text-green-600' : ''
+          }">${safe(order.paymentStatus)}</span>
+              </p>
+              <br/>
+              <a href="/order/${order._id}"
+                class="inline-block mt-2 bg-yellow-500 text-white px-4 py-1.5 rounded hover:bg-yellow-600 transition">
+                View Details
+              </a>
+            </div>
+            <div class="space-y-3">
+              ${itemsHtml || '<div class="text-gray-500">No items found</div>'}
+            </div>
+          </div>`;
+      }).join("");
+
+      renderPagination(data.totalPages, data.currentPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+    } catch (err) {
+      console.error("fetchOrders error:", err);
+    }
+  }
+
+  function renderPagination(totalPages, currentPage) {
+    const pagination = document.getElementById("pagination");
+    if (!pagination) return console.warn("#pagination not found");
+
+    pagination.innerHTML = "";
+    if (!totalPages || totalPages <= 1) return;
+
+    // Left arrow
+    pagination.innerHTML += `
+      <li>
+        <button ${currentPage === 1 ? "disabled" : ""} onclick="fetchOrders(${Math.max(1, currentPage - 1)})"
+          class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+      </li>`;
+
+    const maxButtons = 5;
+    let start = 1, end = totalPages;
+    if (totalPages > maxButtons) {
+      const half = Math.floor(maxButtons / 2);
+      start = Math.max(1, currentPage - half);
+      end = Math.min(totalPages, start + maxButtons - 1);
+      if (end - start + 1 < maxButtons) start = Math.max(1, end - maxButtons + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pagination.innerHTML += `
+        <li>
+          <button onclick="fetchOrders(${i})"
+            class="flex items-center justify-center px-4 h-10 leading-tight border border-gray-300 ${i === currentPage
+          ? 'bg-yellow-500 text-white border-yellow-500'
+          : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+        }">${i}</button>
+        </li>`;
+    }
+
+    // Right arrow
+    pagination.innerHTML += `
+      <li>
+        <button ${currentPage === totalPages ? "disabled" : ""} onclick="fetchOrders(${Math.min(totalPages, currentPage + 1)})"
+          class="flex items-center justify-center px-4 h-10 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-100 ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </li>`;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const totalPages = parseInt('<%= totalPages %>') || 1;
+    const currentPage = parseInt('<%= currentPage %>') || 1;
+    renderPagination(totalPages, currentPage);
+    fetchOrders(currentPage);
+  });
+  document.addEventListener('DOMContentLoaded', function () {
+    const sidebar = document.getElementById('sidebar-multi-level-sidebar');
+    const toggleBtn = document.querySelector('[data-drawer-toggle="sidebar-multi-level-sidebar"]');
+
+    if (!sidebar) return;
+
+    // Create dark backdrop
+    let backdrop = document.querySelector('.sidebar-backdrop');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.className = 'sidebar-backdrop';
+      document.body.appendChild(backdrop);
+    }
+
+    // Create close button (X) inside sidebar
+    let closeBtn = sidebar.querySelector('.sidebar-close-btn');
+    if (!closeBtn) {
+      closeBtn = document.createElement('button');
+      closeBtn.className = 'sidebar-close-btn';
+      closeBtn.innerHTML = '×';
+      closeBtn.type = 'button';
+      const sidebarInner = sidebar.querySelector('div');
+      if (sidebarInner) {
+        sidebarInner.insertBefore(closeBtn, sidebarInner.firstChild);
+      }
+    }
+
+    // Highlight current page in sidebar
+    const currentPath = window.location.pathname;
+    const links = sidebar.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.getAttribute('href') === currentPath) {
+        link.classList.add('active');
+      }
+    });
+
+    // Function: Open sidebar
+    function openSidebar() {
+      sidebar.classList.add('active');
+      backdrop.classList.add('show');
+      document.body.classList.add('sidebar-open');
+    }
+
+    // Function: Close sidebar
+    function closeSidebar() {
+      sidebar.classList.remove('active');
+      backdrop.classList.remove('show');
+      document.body.classList.remove('sidebar-open');
+    }
+
+    // Click hamburger menu to open
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (sidebar.classList.contains('active')) {
+          closeSidebar();
+        } else {
+          openSidebar();
+        }
+      });
+    }
+
+    // Click X button to close
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeSidebar);
+    }
+
+    // Click dark backdrop to close
+    backdrop.addEventListener('click', closeSidebar);
+
+    // Click sidebar link to close (mobile only)
+    links.forEach(link => {
+      link.addEventListener('click', function () {
+        if (window.innerWidth <= 640) {
+          setTimeout(closeSidebar, 100);
+        }
+      });
+    });
+
+    // Press ESC key to close
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+        closeSidebar();
+      }
+    });
+
+    // On window resize
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 640) {
+        closeSidebar();
+      }
+    });
+  });
+
+  
+</script>

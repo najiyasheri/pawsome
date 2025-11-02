@@ -1,9 +1,11 @@
+
+const { default: mongoose } = require("mongoose");
 const Category = require("../models/Category");
 
 const addCategory = async (req, res) => {
   try {
     const { name, description, offerPercentage } = req.body;
-    
+
     const isExists = await Category.findOne({
       name: { $regex: new RegExp(`^${name}$`, "i") },
     });
@@ -61,7 +63,7 @@ const getCategory = async (req, res) => {
       currentPage: page,
       search,
       error,
-      success, 
+      success,
     });
   } catch (error) {
     console.error("Error fetching categories:", error);
@@ -89,10 +91,16 @@ const toggleBlock = async (req, res) => {
     }
     category.isBlocked = !category.isBlocked;
     await category.save();
- res.json({ success: true, _id: category._id, isBlocked: category.isBlocked });
+    res.json({
+      success: true,
+      _id: category._id,
+      isBlocked: category.isBlocked,
+    });
   } catch (error) {
     console.error("Error toggling category block:", error);
-  res.status(500).json({ success: false, error: 'Failed to toggle block status' });
+    res
+      .status(500)
+      .json({ success: false, error: "Failed to toggle block status" });
   }
 };
 
@@ -106,7 +114,10 @@ const categoryEdit = async (req, res) => {
         `/admin/category?error=${encodeURIComponent("Category not found")}`
       );
     }
-    const isExists = await Category.findOne({ name, _id: { $ne: id } });
+    const isExists = await Category.findOne({
+      name: { $regex: new RegExp(`^${name}$`, "i") },
+      _id: { $ne: new mongoose.Types.ObjectId(id) },
+    });
     if (isExists) {
       return res.redirect(
         `/admin/category?error=${encodeURIComponent(
@@ -116,7 +127,7 @@ const categoryEdit = async (req, res) => {
     }
     category.name = name || category.name;
     category.description = description || category.description;
-    category.offerPercentage = offerPercentage || category.offerPercentage
+    category.offerPercentage = offerPercentage || category.offerPercentage;
     await category.save();
     return res.redirect(
       "/admin/category?success=Category updated successfully"

@@ -9,7 +9,7 @@
     <% categories.forEach(category=> { %>
       <div>
         <a href="/products?category=<%= category._id %>">
-          <img src="/img/<%= category.name %>.png" alt="<%= category.name %>"
+          <img src="/img/<%= category.name.toLowerCase()%>.png" alt="<%= category.name %>"
             class="w-32 h-32 object-cover shadow-md rounded-full mx-auto">
           <p class="mt-2 font-medium">
             <%= category.name %>

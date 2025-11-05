@@ -300,12 +300,24 @@
             });
             const data = await res.json();
 
-            if (!data.success) {
-                alert("Error creating order. Please try again.");
-                return;
-            }
-            else if (data.orderId) {
-                window.location.href = `/success/${data.orderId}`
+           if (data.success && data.orderId) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Payment Successful!',
+                    text: 'Your COD payment has been processed successfully.',
+                    confirmButtonColor: '#22c55e'
+                }).then(() => {
+                    console.log(data.orderId)
+                    window.location.href = `/success/${data.orderId}`
+                });
+            } else {
+                if (data.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Failed',
+                    text: data.message || 'Insufficient wallet balance',
+                    confirmButtonColor: '#ef4444'
+                });
             }
             return
 
@@ -321,7 +333,7 @@
             });
 
             const data = await res.json();
-            console.log(data);
+          
             if (data.success && data.orderId) {
                  Swal.fire({
                     icon: 'success',
@@ -353,10 +365,26 @@
             });
             const data = await res.json();
 
-            if (!data.success) {
-                alert("Error creating order. Please try again.");
-                return;
+            if (data.success && data.orderId) {
+                    Swal.fire({
+                    icon: 'success',
+                    title: 'Payment Successful!',
+                    text: 'Your Online payment has been processed successfully.',
+                    confirmButtonColor: '#22c55e'
+                }).then(() => {
+                   
+                    window.location.href = `/success/${data.orderId}`
+                });
+            } else {
+                if (data.message);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Failed',
+                    text: data.message || 'Insufficient wallet balance',
+                    confirmButtonColor: '#ef4444'
+                });
             }
+            return;
 
             const options = {
                 key: data.key,

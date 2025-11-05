@@ -705,6 +705,30 @@ const retryPayment = async (req, res) => {
       });
     }
 
+     for (const item of order.items) {
+       const product = await Product.findById(item.productId);
+       if (!product) {
+         return res
+           .status(400)
+           .json({ success: false, message: `${item.name} no longer exists` });
+       }
+
+       let availableStock;
+       if (item.variant?._id) {
+         const variant = await Variant.findById(item.variant._id);
+         availableStock = variant?.stock ?? 0;
+       } else {
+         availableStock = product.stock ?? 0;
+       }
+
+       if (availableStock < item.quantity) {
+         return res.status(400).json({
+           success: false,
+           message: `Product '${product.name}' is out of stock`,
+         });
+       }
+     }
+
     if (parseFloat(totalAmount) !== order.finalAmount) {
       return res.status(400).json({
         success: false,

@@ -22,7 +22,7 @@ const viewWishlist = async (req, res) => {
     console.log("Wishlist not found for user:", userId);
     return res.render("user/wishlist", {
       title: "My Wishlist",
-      layout: "Layouts/userLayout",
+      layout: "layouts/userLayout",
       products: [],
     });
   }

@@ -144,12 +144,42 @@ const processPayment = async (req, res) => {
     if (!cart || cart.items.length === 0) {
       return res.redirect("/cart?error=Cart is empty");
     }
+    // ✅ Step: Check stock availability before proceeding
+    for (const item of cart.items) {
+      const variant = item.variantId;
+      const product = item.productId;
+
+      if (!product || !variant) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid product or variant in cart.",
+        });
+      }
+
+      // Check variant stock first (if exists)
+      if (variant.stock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for ${product.name} (${
+            variant.size || ""
+          } ${variant.color || ""}).`,
+        });
+      }
+
+      // Optional: If no variant stock, fallback to product stock
+      if (variant.stock === undefined && product.stock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for ${product.name}.`,
+        });
+      }
+    }
 
     let subtotal = 0;
     const embeddedItems = cart.items.map((item) => {
       const product = item.productId;
       const variant = item.variantId;
-       const category = product?.categoryId;
+      const category = product?.categoryId;
 
       const basePrice = parseFloat(product.basePrice || 0);
       const productOffer = parseFloat(product.discountPercentage || 0);
@@ -329,7 +359,6 @@ const processPayment = async (req, res) => {
     });
 
     await newOrder.save();
-   
 
     res.json({
       success: true,

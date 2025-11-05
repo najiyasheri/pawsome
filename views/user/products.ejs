@@ -33,11 +33,12 @@
 
 <section>
   <!-- Filter Section - Fully Responsive -->
-<div class=" border-gray-100 shadow-md rounded-2xl p-10 mb-6 transition-all duration-300 hover:shadow-lg">
+<div class=" border-gray-100  p-1 mb-6 transition-all duration-300  ">
   <form id="filterForm" class="space-y-6">
 
     <!-- Search Bar -->
-    <div class="flex items-center gap-1 mb-7 w-full max-w-xl mx-auto">
+     <div class="flex items-center gap-1 mb-4 w-full max-w-xl mx-auto">
+
       <input type="text" id="searchInput" name="search" placeholder="Search products..." class="flex-1 px-4 py-3 border border-gray-200 rounded-l-xl text-gray-700 
                focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] 
                shadow-sm transition-all duration-300" />
@@ -49,13 +50,13 @@
     </div>
 
     <!-- Filters -->
-    <div class="grid grid-cols-1 mb-7 sm:grid-cols-2 lg:grid-cols-4 gap-1">
+    <div class="grid grid-cols-1 mb-7 sm:grid-cols-2 lg:grid-cols-4 gap-0.5">
 
       <!-- Sort -->
-      <div class="flex flex-col gap-1 ">
+      <div >
         <label class="text-sm font-medium text-gray-600 ">Sort by:</label>
-        <select id="sortSelect" name="sort" class="px-3 py-2.5 border border-gray-200 rounded-xl text-gray-700 
-                 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] transition">
+        <select id="sortSelect" name="sort" class="px-5.5 py-1 border border-gray-100 rounded-xl text-gray-700 
+              focus:outline-none focus:ring-2 focus:ring-yellow-50 focus:border-yellow-50 transition"   >
           <option value="">Default</option>
           <option value="price-low">Price: Low to High</option>
           <option value="price-high">Price: High to Low</option>
@@ -66,10 +67,10 @@
       </div>
 
       <!-- Category -->
-      <div class="flex flex-col gap-1">
+      <div >
         <label class="text-sm font-medium text-gray-600">Category:</label>
-        <select id="categoryFilter" name="category" class="px-3 py-2.5 border border-gray-200 rounded-xl text-gray-700 
-                 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] transition">
+        <select id="categoryFilter" name="category" class="px-6 py-1 border-gray-100 rounded-xl text-gray-700 
+                  focus:outline-none focus:ring-2 focus:ring-yellow-50 focus:border-yellow-50 transition">
           <option value="">All Categories</option>
           <% categories.forEach(cat=> { %>
             <option value="<%= cat._id %>">
@@ -80,10 +81,10 @@
       </div>
 
       <!-- Price Range -->
-      <div class="flex flex-col gap-1">
+      <div >
         <label class="text-sm font-medium text-gray-600">Price Range:</label>
-        <select id="priceRangeFilter" name="priceRange" class="px-3 py-2.5 border border-gray-200 rounded-xl text-gray-700 
-                 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] transition">
+        <select id="priceRangeFilter" name="priceRange" class="px-5.5 py-1 border-gray-100 rounded-xl text-gray-700 
+                 focus:outline-none focus:ring-2 focus:ring-yellow-50 focus:border-yellow-50 transition">
           <option value="">All Prices</option>
           <option value="0-50">₹0 - ₹50</option>
           <option value="51-100">₹51 - ₹100</option>
@@ -93,10 +94,10 @@
       </div>
 
       <!-- Clear All Filters -->
-      <div id="clearFiltersContainer" class="flex flex-col justify-end">
+      <div id="clearFiltersContainer" class="hidden">
         <label class="text-sm font-medium text-transparent">Actions</label>
-        <button type="button" id="clearFiltersBtn" class="w-full px-4 py-2.5 bg-red-500 text-white rounded-xl font-medium 
-                 hover:bg-red-600 shadow-sm transition">
+        <button type="button" id="clearFiltersBtn" class="px-3 py-2 bg-red-500 text-white rounded-xl font-medium 
+         hover:bg-red-600 shadow-sm transition self-start">
           Clear All Filters
         </button>
       </div>

@@ -74,7 +74,7 @@ const viewWishlist = async (req, res) => {
 
   res.render("user/wishlist", {
     title: "My Wishlist",
-    layout: "Layouts/userLayout",
+    layout: "layouts/userLayout",
     products: updatedWishlist,
   });
 };

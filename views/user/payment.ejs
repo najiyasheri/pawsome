@@ -315,7 +315,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Payment Failed',
-                    text: data.message || 'Insufficient wallet balance',
+                    text: data.message,
                     confirmButtonColor: '#ef4444'
                 });
             }
@@ -365,26 +365,16 @@
             });
             const data = await res.json();
 
-            if (data.success && data.orderId) {
-                    Swal.fire({
-                    icon: 'success',
-                    title: 'Payment Successful!',
-                    text: 'Your Online payment has been processed successfully.',
-                    confirmButtonColor: '#22c55e'
-                }).then(() => {
-                   
-                    window.location.href = `/success/${data.orderId}`
-                });
-            } else {
+            if (!data.success) {
                 if (data.message);
                 Swal.fire({
                     icon: 'error',
                     title: 'Payment Failed',
-                    text: data.message || 'Insufficient wallet balance',
+                    text: data.message ,
                     confirmButtonColor: '#ef4444'
                 });
+                return;
             }
-            return;
 
             const options = {
                 key: data.key,
@@ -514,10 +504,6 @@
             selectedCouponBtn.disabled = true;
             selectedCouponBtn.classList.add('cursor-not-allowed')
 
-
-
-
-
             // Update UI
             document.getElementById('discountAmount').textContent = `-₹${appliedDiscount.toFixed(2)}`;
             const newTotal = subtotal + deliveryCharge - appliedDiscount;
@@ -530,7 +516,6 @@
             hiddenCouponInput.type = 'hidden';
             hiddenCouponInput.name = 'couponCode';
             document.getElementById('paymentForm').appendChild(hiddenCouponInput);
-
 
             Swal.fire({
                 icon: 'success',
@@ -549,11 +534,6 @@
             });
         }
     }
-
-
-
-
-
     const clearCoupon = document.getElementById('clearCoupon');
     clearCoupon.addEventListener('click', () => {
 
@@ -611,7 +591,5 @@
         msg.style.marginTop = "5px";
         codBtn.parentElement.appendChild(msg);
     }
-
-
 
 </script>

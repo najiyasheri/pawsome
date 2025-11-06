@@ -714,13 +714,13 @@ const retryPayment = async (req, res) => {
        }
 
        let availableStock;
-       if (item.variant?._id) {
-         const variant = await Variant.findById(item.variant._id);
+       console.log(item)
+       if (item.variant?.id) {
+         const variant = await Variant.findById(item.variant.id);
+         console.log(variant);
          availableStock = variant?.stock ?? 0;
-       } else {
-         availableStock = product.stock ?? 0;
-       }
-
+       } 
+       console.log(availableStock)
        if (availableStock < item.quantity) {
          return res.status(400).json({
            success: false,

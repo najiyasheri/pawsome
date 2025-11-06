@@ -567,7 +567,7 @@
                                             body: JSON.stringify({ orderId, totalAmount, addressId, couponCode })
                                         });
                                         const data = await res.json();
-
+                                            console.log(data)
                                         if (!data.success) {
                                             alert("Error initiating retry payment. Please try again.");
                                             return;

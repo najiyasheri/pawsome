@@ -12,7 +12,7 @@ const loadOrder = async (req, res) => {
   try {
     const search = req.query.search ? req.query.search.trim() : "";
     const page = parseInt(req.query.page) || 1;
-    const limit = 2;
+    const limit = 15;
 
     const matchStage = {};
 

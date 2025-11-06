@@ -294,7 +294,7 @@ const userProducts = async (req, res) => {
   try {
     let search = req.query.search || "";
     let page = parseInt(req.query.page) || 1;
-    const limit = 4;
+    const limit = 8;
     let sort = req.query.sort || "";
     let category = req.query.category || "";
     let priceRange = req.query.priceRange || "";

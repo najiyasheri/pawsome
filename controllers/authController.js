@@ -142,7 +142,6 @@ const loadOtpPage = async (req, res) => {
   });
 };
 
-
 const resendOtp = async (req, res) => {
   const { email } = req.body;
   try {
@@ -291,6 +290,7 @@ const postLogin = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, userRecord.password);
+
     if (!isMatch) {
       console.log("password is not matching");
       return res.render("user/login", {
@@ -300,7 +300,7 @@ const postLogin = async (req, res) => {
         title: "login",
       });
     }
-
+    
     req.session.user = userRecord;
 
     return res.redirect("/");
@@ -484,9 +484,11 @@ const googleAuth = async (req, res) => {
     const isExist = await User.findOne({ email });
     let newUser;
     if (!isExist) {
-      newUser = new User({ name, email, picture });
+      newUser = new User({ name, email, picture,isVerified:true });
+
       await newUser.save();
     }
+    
     req.session.user = isExist || newUser;
     return res.redirect("/");
   } catch (error) {

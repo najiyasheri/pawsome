@@ -349,7 +349,13 @@ const userProducts = async (req, res) => {
             $filter: {
               input: "$variants",
               as: "variant",
-              cond: { $eq: ["$$variant.status", true] },
+                  cond: {
+              $and: [
+                { $eq: ["$$variant.status", true] },
+                { $gt: ["$$variant.stock", 0] },
+                true
+              ],
+            },
             },
           },
         },

@@ -270,20 +270,25 @@
         const cropBtn = document.getElementById('cropBtn');
         const cancelCropBtn = document.getElementById('cancelCropBtn');
         const tbody = document.getElementById('variantsTable');
+        const addVariantBtn = document.getElementById('addVariantBtn');
 
-        let uploadedImages = 0;
         let cropper = null;
         let currentInput = null;
 
-        // ---------------- VALIDATION ----------------
-
+        // ---------------- VALIDATION REGEX ----------------
         const nameRegex = /^(?=.*[A-Za-z])[A-Za-z0-9]+(?: [A-Za-z0-9]+)*$/;
-        const descRegex= /^[\s\S]{1,500}$/
+        const descRegex = /^[\s\S]{1,500}$/;
+
+        // ---------------- VALIDATION FUNCTION ----------------
         function validateForm() {
             let isValid = true;
+            let uploadedImages = 0;
+
+            // Clear all errors
             document.querySelectorAll('.error').forEach(error => error.textContent = '');
             document.querySelectorAll('input, select').forEach(input => input.classList.remove('border-error'));
 
+            // === Product Name ===
             const productName = document.getElementById('productName');
             if (!productName.value.trim()) {
                 document.getElementById('productNameError').textContent = 'Product name is required';
@@ -295,18 +300,19 @@
                 isValid = false;
             }
 
+            // === Product Description ===
             const productDescription = document.getElementById('productDescription');
             if (!productDescription.value.trim()) {
-
                 document.getElementById('productDescriptionError').textContent = 'Product description is required';
                 productDescription.classList.add('border-error');
                 isValid = false;
             } else if (!descRegex.test(productDescription.value)) {
-                document.getElementById('productDescriptionError').textContent = 'Only letters/numbers allowed';
+                document.getElementById('productDescriptionError').textContent = 'Max 500 characters';
                 productDescription.classList.add('border-error');
                 isValid = false;
             }
 
+            // === Category ===
             const category = document.getElementById('category');
             if (!category.value) {
                 document.getElementById('categoryError').textContent = 'Please select a category';
@@ -314,6 +320,7 @@
                 isValid = false;
             }
 
+            // === Brand ===
             const brand = document.getElementById('brand');
             if (!brand.value.trim()) {
                 document.getElementById('brandError').textContent = 'Brand is required';
@@ -325,21 +332,25 @@
                 isValid = false;
             }
 
+            // === Return Within ===
             const returnWithin = document.getElementById('returnWithin');
-            if (returnWithin.value === '' || Number(returnWithin.value) < 0 || !Number.isInteger(Number(returnWithin.value))) {
-                document.getElementById('returnWithinError').textContent = 'Enter valid days (whole number 0 or greater)';
+            if (returnWithin.value === '' || returnWithin.value < 0 || !Number.isInteger(Number(returnWithin.value))) {
+                document.getElementById('returnWithinError').textContent = 'Enter valid whole number (0 or greater)';
+
+
                 returnWithin.classList.add('border-error');
                 isValid = false;
             }
 
-
+            // === Price ===
             const price = document.getElementById('price');
-            if (!price.value || price.value < 0) {
+            if (!price.value || price.value <= 0) {
                 document.getElementById('priceError').textContent = 'Price must be greater than 0';
                 price.classList.add('border-error');
                 isValid = false;
             }
 
+            // === Discount ===
             const discount = document.getElementById('discount');
             if (discount.value && (discount.value < 0 || discount.value > 100)) {
                 document.getElementById('discountError').textContent = 'Discount must be between 0–100';
@@ -347,41 +358,53 @@
                 isValid = false;
             }
 
-            document.querySelectorAll('.existing-image input[type="hidden"]').forEach(() => uploadedImages++);
-            // Count new or replaced images
+            // === IMAGE VALIDATION (FIXED) ===
             document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(input => {
                 if (input.files && input.files.length > 0) {
                     uploadedImages++;
                 }
             });
 
+            // Include existing images (if editing product)
+            document.querySelectorAll('.existing-image input[type="hidden"]').forEach(() => {
+                uploadedImages++;
+            });
+
             if (uploadedImages < 4) {
-                document.getElementById('imageError').textContent = 'Upload at least 4 images';
+                document.getElementById('imageError').textContent = 'Please upload at least 4 images';
                 isValid = false;
+            } else {
+                document.getElementById('imageError').textContent = '';
             }
 
+            // === VARIANT VALIDATION ===
             const variantRows = document.querySelectorAll('#variantsTable tr');
             variantRows.forEach(row => {
                 const size = row.querySelector('input[name="size[]"]');
                 const additionalPrice = row.querySelector('input[name="additionalPrice[]"]');
                 const stock = row.querySelector('input[name="stock[]"]');
+
                 const sizeError = row.querySelector('td:nth-child(1) .error');
                 const priceError = row.querySelector('td:nth-child(2) .error');
                 const stockError = row.querySelector('td:nth-child(3) .error');
 
-            
+                // Size: optional, but if filled → validate
                 if (size.value.trim() !== '' && !nameRegex.test(size.value.trim())) {
-                    sizeError.textContent = 'Only letters/numbers allowed'
+                    sizeError.textContent = 'Only letters/numbers allowed';
                     size.classList.add('border-error');
                     isValid = false;
                 }
-                if (!additionalPrice.value || additionalPrice.value < 0) {
-                    priceError.textContent = 'Must be greater than 0';
+
+                // Additional Price: required if variant exists
+                if (additionalPrice.value === '' || additionalPrice.value < 0) {
+                    priceError.textContent = 'Must be 0 or greater';
                     additionalPrice.classList.add('border-error');
                     isValid = false;
                 }
-                if (!stock.value || stock.value < 0 || !Number.isInteger(Number(stock.value))) {
-                    stockError.textContent = 'Stock must be whole number greater than 0';
+
+                // Stock: required and whole number
+                if (stock.value === '' || stock.value < 0 || !Number.isInteger(Number(stock.value))) {
+                    stockError.textContent = 'Stock must be a whole number (0 or greater)';
                     stock.classList.add('border-error');
                     isValid = false;
                 }
@@ -390,12 +413,14 @@
             return isValid;
         }
 
+        // ---------------- FORM SUBMIT ----------------
         form.addEventListener('submit', e => {
-            if (!validateForm()) e.preventDefault();
+            if (!validateForm()) {
+                e.preventDefault();
+            }
         });
 
-        // ---------------- VARIANT HANDLING ----------------
-        const addVariantBtn = document.getElementById('addVariantBtn');
+        // ---------------- ADD/REMOVE VARIANT ----------------
         addVariantBtn.addEventListener('click', () => {
             const newRow = tbody.querySelector('tr').cloneNode(true);
             newRow.querySelectorAll('input').forEach(input => input.value = '');
@@ -404,85 +429,102 @@
         });
 
         tbody.addEventListener('click', e => {
-            if (e.target.classList.contains('remove-variant')) {
-                if (tbody.querySelectorAll('tr').length > 1) {
-                    e.target.closest('tr').remove();
-                }
+            if (e.target.classList.contains('remove-variant') && tbody.children.length > 1) {
+                e.target.closest('tr').remove();
             }
         });
 
         // ---------------- REAL-TIME VALIDATION ----------------
-        ['productName', 'productDescription', 'category', 'brand', 'returnWithin', 'price', 'discount']
-            .forEach(id => document.getElementById(id).addEventListener('input', validateForm));
-        tbody.addEventListener('input', e => {
-            if (['size[]', 'additionalPrice[]', 'stock[]'].includes(e.target.name)) validateForm();
+        ['productName', 'productDescription', 'category', 'brand', 'returnWithin', 'price', 'discount'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', validateForm);
         });
 
+        tbody.addEventListener('input', e => {
+            if (['size[]', 'additionalPrice[]', 'stock[]'].includes(e.target.name)) {
+                validateForm();
+            }
+        });
+
+        // ---------------- IMAGE UPLOAD & CROPPING ----------------
         imageSlots.forEach(slot => {
             const input = slot.querySelector('input[type="file"]');
 
+            // Click to trigger file input
+            slot.addEventListener('click', () => input.click());
+
+            // File selected → open cropper
             input.addEventListener('change', e => {
                 const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        cropImage.src = e.target.result;
-                        currentInput = input;
-                        cropModal.style.display = 'block';
-                        if (cropper) cropper.destroy();
-                        try {
-                            cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1 });
-                        } catch (error) {
-                            console.error('Failed to initialize Cropper:', error);
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
+                if (!file) return;
 
-            slot.addEventListener('click', () => input.click());
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    cropImage.src = ev.target.result;
+                    currentInput = input;
+                    cropModal.style.display = 'flex'; // Use flex for centering
+
+                    if (cropper) cropper.destroy();
+                    try {
+                        cropper = new Cropper(cropImage, {
+                            aspectRatio: 1,
+                            viewMode: 1,
+                            autoCropArea: 0.8,
+                            responsive: true
+                        });
+                    } catch (err) {
+                        console.error('Cropper init failed:', err);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
         });
 
+        // Crop & Use
         cropBtn.addEventListener('click', () => {
             if (!cropper || !currentInput) return;
 
             const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
-            if (canvas) {
-                canvas.toBlob(blob => {
-                    const slot = currentInput.closest('.image-upload-slot');
+            canvas.toBlob(blob => {
+                const slot = currentInput.closest('.image-upload-slot');
+                const fileName = currentInput.files[0].name;
 
-                    slot.innerHTML = '';
+                // Replace slot content with cropped image
+                slot.innerHTML = `
+                    <img src="${URL.createObjectURL(blob)}" class="w-full h-full object-cover rounded-lg">
+                `;
+                slot.appendChild(currentInput); // Re-attach file input
 
-                   
-                    const img = document.createElement('img');
-                    img.src = URL.createObjectURL(blob);
-                    img.classList.add('w-full', 'h-full', 'object-cover', 'rounded-lg');
-                    slot.appendChild(img);
+                // Replace file in input
+                const newFile = new File([blob], fileName, { type: 'image/jpeg' });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(newFile);
+                currentInput.files = dataTransfer.files;
 
-                   
-                    slot.appendChild(currentInput);
+                // Close modal & cleanup
+                closeCropModal();
+                validateForm(); // Re-validate after image added
+            }, 'image/jpeg', 0.95);
+        });
 
-                 
-                    const file = new File([blob], currentInput.files[0].name, { type: 'image/jpeg' });
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    currentInput.files = dataTransfer.files;
+        // Cancel Crop
+        cancelCropBtn.addEventListener('click', () => closeCropModal(true));
 
-                    const oldImg = slot.querySelector('img'); 
-                    if (!oldImg) uploadedImages++;
+        // Close modal on background click
+        cropModal.addEventListener('click', e => {
+            if (e.target === cropModal) closeCropModal(true);
+        });
 
-                    cropModal.style.display = 'none';
-                    cropper.destroy();
-                    cropper = null;
-                    validateForm(); 
-                }, 'image/jpeg');
+        // Close on Escape
+        window.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && cropModal.style.display === 'flex') {
+                closeCropModal(true);
             }
         });
 
-
+        // ---------------- HELPER: Close Crop Modal ----------------
         function closeCropModal(clearFile = false) {
             cropModal.style.display = 'none';
-
             if (cropper) {
                 cropper.destroy();
                 cropper = null;
@@ -490,33 +532,27 @@
 
             if (clearFile && currentInput) {
                 const slot = currentInput.closest('.image-upload-slot');
-                const oldImg = slot.querySelector('img');
-                const placeholderSvg = slot.querySelector('svg');
-                const placeholderSpan = slot.querySelector('span');
+                const img = slot.querySelector('img');
 
-                if (oldImg) {
-                    oldImg.remove();
-                    uploadedImages = Math.max(0, uploadedImages - 1); 
+                // Restore placeholder
+                if (img) {
+                    slot.innerHTML = `
+                        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xs text-gray-500 text-center">Add Image</span>
+                    `;
+                    slot.appendChild(currentInput);
                 }
 
-                if (placeholderSvg && placeholderSpan) {
-                    placeholderSvg.classList.remove('hidden');
-                    placeholderSpan.classList.remove('hidden');
-                }
-
-                currentInput.value = '';
+                currentInput.value = ''; // Clear file
+                validateForm(); // Re-validate after removal
             }
         }
 
-
-        cancelCropBtn.addEventListener('click', () => closeCropModal(true));
-        window.addEventListener('click', e => {
-            if (e.target === cropModal) closeCropModal(true);
-        });
-        window.addEventListener('keydown', e => {
-            if (e.key === 'Escape' && cropModal.style.display === 'block') closeCropModal(true);
-        });
+        // Initial validation on load
+        validateForm();
     });
-
-
 </script>

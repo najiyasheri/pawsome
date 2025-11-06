@@ -190,10 +190,11 @@ const postOtp = async (req, res) => {
         referralCode: referralCode.trim().toUpperCase(),
       });
       if (!referrer) {
-        return res.render("user/signup", {
+        return res.render("user/otp", {
+          email,
           error: "Invalid referral code",
           layout: "layouts/userLayout",
-          title: "User Signup",
+          title: "User otp",
         });
       }
     }

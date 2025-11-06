@@ -1,30 +1,29 @@
+<link rel="stylesheet" href="/styles/auth.css" />
 
-    <link rel="stylesheet" href="/styles/auth.css" />
-
-    <div class="min-h-screen flex items-center justify-center bg-white">
-
+<div class="min-h-screen flex items-center justify-center bg-white">
 
 
-        <div class="auth-container w-full max-w-md bg-white p-6 rounded-lg shadow-md">
-            <img src="/img/arrow_back_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.png" alt="back-arrow" class="back-arrow" />
-            <h1 class="otp-title">Verify With Your Email</h1>
-            <p class="otp-subtitle">
-                The One-Time Password sends to the Account
-                <span class="highlight-email">
-                    <%= email %>
-                </span>. please Enter your OTP.
-            </p>
 
-            <form action="/otp" method="POST" class="auth-form">
-                <input type="hidden" name="email" value="<%= email %>">
-                <input type="number" name="otp" class="otp-field" placeholder="ENTER OTP" maxlength="6"
-                    oninput="if(this.value.length > 6) this.value = this.value.slice(0,6);" />
+    <div class="auth-container w-full max-w-md bg-white p-6 rounded-lg shadow-md">
+        <img src="/img/arrow_back_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.png" alt="back-arrow" class="back-arrow" />
+        <h1 class="otp-title">Verify With Your Email</h1>
+        <p class="otp-subtitle">
+            The One-Time Password sends to the Account
+            <span class="highlight-email">
+                <%=email %>
+            </span>. please Enter your OTP.
+        </p>
 
-                <% if (typeof error !=="undefined" ) { %>
-                    <p class="otp-error" style="color:red; margin-top:5px;">
-                        <%= error %>
-                    </p>
-                    <% } %>
+        <form action="/otp" method="POST" class="auth-form">
+            <input type="hidden" name="email" value="<%= email %>">
+            <input type="number" name="otp" class="otp-field" placeholder="ENTER OTP" maxlength="6"
+                oninput="if(this.value.length > 6) this.value = this.value.slice(0,6);" />
+
+            <% if (typeof error !=="undefined" ) { %>
+                <p class="otp-error" style="color:red; margin-top:5px;">
+                    <%= error %>
+                </p>
+                <% } %>
                     <input type="text" placeholder="Referral Code (optional)" class="input-field" name="referralCode"
                         value="<%= typeof referralCode !== 'undefined' ? referralCode : '' %>" />
                     <% if (typeof referralError !=='undefined' ) { %>
@@ -32,52 +31,44 @@
                             <%= referralError %>
                         </div>
                         <% } %>
-                        <div class="auth-actions">
-                            <button type="submit" class="primary-btn">Verify</button>
+                            <div class="auth-actions">
+                                <button type="submit" class="primary-btn">Verify</button>
 
-                        </div>
+                            </div>
+        </form>
+        <div class="resend-otp">
+            <form action="/resend-otp" method="POST">
+                <input type="hidden" name="email" value="<%= email %>">
+                <button id="resendBtn" class="resendButton" type="submit" disabled>Resend OTP </button>
             </form>
-            <div class="resend-otp">
-                <form action="/resend-otp" method="POST">
-                    <input type="hidden" name="email" value="<%= email %>">
-                    <button id="resendBtn" class="resendButton" type="submit" disabled>Resend OTP </button>
-                </form>
-                <span id="timer"> in 00:30</span>
-            </div>
-
-
-
+            <span id="timer"> in 00:30</span>
         </div>
+
+
+
     </div>
-    <script>
+</div>
+<script>
+let duration = 30;
+const btn = document.getElementById('resendBtn');
+const timerSpan = document.getElementById('timer');
 
-        let duration = 30
-        const btn = document.getElementById('resendBtn')
-        const timerSpan = document.getElementById('timer')
-
-        let endTime = localStorage.getItem('otpEndTime')
-
-        if (!endTime || Date.now() > endTime) {
-            endTime = Date.now() + duration * 1000;
-            localStorage.setItem("otpEndTime", endTime);
-        }
-
-        function updateTimer() {
-            let remaining = Math.floor((endTime - Date.now()) / 1000);
-
-            if (remaining > 0) {
-                btn.disabled = true;
-                timerSpan.textContent = " in 00:" + (remaining < 10 ? "0" : "") + remaining;
-            } else {
-                btn.disabled = false;
-                timerSpan.textContent = "";
-                clearInterval(countDown);
-                localStorage.removeItem("otpEndTime");
-            }
-        }
-
-        updateTimer();
-        let countDown = setInterval(updateTimer, 1000);
+let endTime = localStorage.getItem('otpEndTime');
 
 
-    </script>
+if (!endTime || Date.now() > endTime) {
+endTime = Date.now() + duration * 1000;
+localStorage.setItem('otpEndTime', endTime);
+}
+
+
+function updateTimer() {
+let remaining = Math.floor((endTime - Date.now()) / 1000);
+
+if (remaining > 0) {
+btn.disabled = true;
+timerSpan.textContent = " in 00:" + (remaining < 10 ? "0" : "" ) + remaining; } else { btn.disabled=false;
+    timerSpan.textContent="" ; clearInterval(countDown); localStorage.removeItem('otpEndTime'); } } updateTimer(); let
+    countDown=setInterval(updateTimer, 1000); btn.addEventListener('click', function () { btn.disabled=true;
+    endTime=Date.now() + duration * 1000; localStorage.setItem('otpEndTime', endTime); updateTimer();
+    clearInterval(countDown); countDown=setInterval(updateTimer, 1000); }); </script>

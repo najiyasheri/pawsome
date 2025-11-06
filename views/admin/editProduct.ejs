@@ -192,133 +192,114 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('productForm');
-    const imageSlots = document.querySelectorAll('.image-upload-slot');
     const cropModal = document.getElementById('cropModal');
     const cropImage = document.getElementById('cropImage');
     const cropBtn = document.getElementById('cropBtn');
     const cancelCropBtn = document.getElementById('cancelCropBtn');
-    let uploadedImages = parseInt("<%= product.images.length %>") // Initialize with existing images
+    const variantsTbody = document.getElementById('variantsTable');
+    const addVariantBtn = document.querySelector('.add-variant-btn');
+
     let cropper = null;
     let currentInput = null;
 
-    // Validation function
+    /* --------------------------------------------------------------
+       VALIDATION
+    -------------------------------------------------------------- */
+    const nameRegex = /^(?=.*[A-Za-z])[A-Za-z0-9]+(?: [A-Za-z0-9]+)*$/;
+
     function validateForm() {
       let isValid = true;
+      let imageCount = 0;                     // <-- LOCAL counter
 
-      // Reset error states
-      document.querySelectorAll('.error').forEach(error => error.textContent = '');
-      document.querySelectorAll('input, select').forEach(input => input.classList.remove('border-error'));
+      // clear previous errors
+      document.querySelectorAll('.error').forEach(el => el.textContent = '');
+      document.querySelectorAll('input, select').forEach(el => el.classList.remove('border-error'));
 
-      // Validate Product Name
+      /* ----- Basic fields ----- */
       const productName = document.getElementById('productName');
       if (!productName.value.trim()) {
-        document.getElementById('productNameError').textContent = 'Product name is required';
-        productName.classList.add('border-error');
+        setError('productNameError', 'Product name is required');
         isValid = false;
-      } else if (/^\s+$/.test(productName.value)) {
-        document.getElementById('productNameError').textContent = 'Product name cannot be only whitespace';
-        productName.classList.add('border-error');
+      } else if (!nameRegex.test(productName.value)) {
+        setError('productNameError', 'Only letters/numbers allowed');
         isValid = false;
       }
 
-      // Validate Product Description
-      const productDescription = document.getElementById('productDescription');
-      if (!productDescription.value.trim()) {
-        document.getElementById('productDescriptionError').textContent = 'Product description is required';
-        productDescription.classList.add('border-error');
-        isValid = false;
-      } else if (/^\s+$/.test(productDescription.value)) {
-        document.getElementById('productDescriptionError').textContent = 'Product description cannot be only whitespace';
-        productDescription.classList.add('border-error');
+      const description = document.getElementById('productDescription');
+      if (!description.value.trim()) {
+        setError('productDescriptionError', 'Description is required');
         isValid = false;
       }
 
-      // Validate Category
       const category = document.getElementById('category');
       if (!category.value) {
-        document.getElementById('categoryError').textContent = 'Please select a category';
-        category.classList.add('border-error');
+        setError('categoryError', 'Select a category');
         isValid = false;
       }
 
-      // Validate Brand
       const brand = document.getElementById('brand');
       if (!brand.value.trim()) {
-        document.getElementById('brandError').textContent = 'Brand is required';
-        brand.classList.add('border-error');
+        setError('brandError', 'Brand is required');
         isValid = false;
-      } else if (/^\s+$/.test(brand.value)) {
-        document.getElementById('brandError').textContent = 'Brand cannot be only whitespace';
-        brand.classList.add('border-error');
+      } else if (!nameRegex.test(brand.value)) {
+        setError('brandError', 'Only letters/numbers allowed');
         isValid = false;
       }
 
-      // Validate Price
       const price = document.getElementById('price');
-      if (!price.value || price.value < 0) {
-        document.getElementById('priceError').textContent = 'Please enter a valid price (0 or greater)';
-        price.classList.add('border-error');
+      if (!price.value || price.value <= 0) {
+        setError('priceError', 'Price must be > 0');
         isValid = false;
       }
 
-      // Validate Discount
       const discount = document.getElementById('discount');
       if (discount.value && (discount.value < 0 || discount.value > 100)) {
-        document.getElementById('discountError').textContent = 'Discount must be between 0 and 100';
-        discount.classList.add('border-error');
+        setError('discountError', 'Discount 0-100');
         isValid = false;
       }
 
-let imageCount = 0;
+      /* ----- IMAGES ----- */
+      // 1. Existing images that still have a hidden value
+      document.querySelectorAll('.existing-image input[type="hidden"]').forEach(h => {
+        if (h.value.trim()) imageCount++;
+      });
 
+      // 2. New / replaced uploads
+      document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(inp => {
+        if (inp.files && inp.files.length) imageCount++;
+      });
 
-document.querySelectorAll('.existing-image input[type="hidden"]').forEach(hidden => {
-  if (hidden.closest('.existing-image').querySelector('input[type="file"]') === null) {
-    if (hidden.value.trim() !== '') { 
-      imageCount++;
-    }
-  }
-});
+      if (imageCount < 4) {
+        document.getElementById('imageError').textContent = 'Upload at least 4 images';
+        isValid = false;
+      }
 
-// Count new or replaced images
-document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(input => {
-  if (input.files && input.files.length > 0) {
-    imageCount++;
-    console.log('File found, total now:', imageCount); 
-  }
-});
-
-if (imageCount < 4) {
-  document.getElementById('imageError').textContent = 'Please upload at least 4 images';
-  isValid = false;
-}
-
-      // Validate Variants
-      const variantRows = document.querySelectorAll('#variantsTable tr');
-      variantRows.forEach((row, index) => {
+      /* ----- VARIANTS ----- */
+      document.querySelectorAll('#variantsTable tr').forEach(row => {
         const size = row.querySelector('input[name="size[]"]');
-        const additionalPrice = row.querySelector('input[name="additionalPrice[]"]');
+        const addP = row.querySelector('input[name="additionalPrice[]"]');
         const stock = row.querySelector('input[name="stock[]"]');
-        const sizeError = row.querySelector('td:nth-child(1) .error');
-        const priceError = row.querySelector('td:nth-child(2) .error');
-        const stockError = row.querySelector('td:nth-child(3) .error');
 
-        if (value !== '' && !/^(?=.*[A-Za-z])[A-Za-z0-9]+(?: [A-Za-z0-9]+)*$/.test(value)) {
-          sizeError.textContent = 'Only letters/numbers allowed';
+        const sizeE = row.querySelector('td:nth-child(1) .error');
+        const addPE = row.querySelector('td:nth-child(2) .error');
+        const stockE = row.querySelector('td:nth-child(3) .error');
+
+        if (size.value.trim() && !nameRegex.test(size.value.trim())) {
+          sizeE.textContent = 'Only letters/numbers';
           size.classList.add('border-error');
           isValid = false;
         }
 
-        if (!additionalPrice.value || additionalPrice.value < 0) {
-          priceError.textContent = 'Additional price must be 0 or greater';
-          additionalPrice.classList.add('border-error');
+        if (!addP.value || addP.value < 0) {
+          addPE.textContent = '≥ 0';
+          addP.classList.add('border-error');
           isValid = false;
         }
 
-        if (!stock.value || stock.value < 0 || !Number.isInteger(Number(stock.value))) {
-          stockError.textContent = 'Stock must be a whole number (0 or greater)';
+        if (!stock.value || stock.value < 0 || !Number.isInteger(+stock.value)) {
+          stockE.textContent = 'Whole number ≥ 0';
           stock.classList.add('border-error');
           isValid = false;
         }
@@ -327,281 +308,195 @@ if (imageCount < 4) {
       return isValid;
     }
 
-  
-    form.addEventListener('submit', function (e) {
-      if (!validateForm()) {
-        e.preventDefault();
-      }
-    });
-
-
-    function handleImageUpload(slot, input) {
-      input.addEventListener('change', function (e) {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            cropImage.src = e.target.result;
-            currentInput = input;
-            cropModal.style.display = 'block';
-            if (cropper) cropper.destroy();
-            try {
-              cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1 });
-            } catch (error) {
-              console.error('Failed to initialize Cropper:', error);
-            }
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-
-      slot.addEventListener('click', () => input.click());
+    function setError(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      const input = el.closest('div').querySelector('input, select');
+      if (input) input.classList.add('border-error');
     }
 
- 
-    imageSlots.forEach(slot => {
+    /* --------------------------------------------------------------
+       FORM SUBMIT
+    -------------------------------------------------------------- */
+    form.addEventListener('submit', e => {
+      if (!validateForm()) e.preventDefault();
+    });
+
+    /* --------------------------------------------------------------
+       IMAGE UPLOAD / REPLACE / CROP
+    -------------------------------------------------------------- */
+    function initSlot(slot) {
       const input = slot.querySelector('input[type="file"]');
-      if (input) {
-        handleImageUpload(slot, input);
-      }
-    });
+      if (!input) return;
 
-    
-    const replaceImageButtons = document.querySelectorAll('.replace-image');
-    replaceImageButtons.forEach(button => {
-      button.addEventListener('click', function () {
-        const imageContainer = button.closest('.existing-image');
-        if (imageContainer) {
-        
-          const hiddenInput = imageContainer.querySelector('input[type="hidden"]');
-          const index = hiddenInput ? hiddenInput.name.match(/\d+/)[0] : null;
+      // click slot → trigger file input
+      slot.addEventListener('click', () => input.click());
 
-       
-          const indexDisplay = imageContainer.querySelector('.absolute.-top-2.-right-2');
+      // file selected → open cropper
+      input.addEventListener('change', () => {
+        const file = input.files[0];
+        if (!file) return;
 
-           const img = imageContainer.querySelector('img');
-          const replaceButton = imageContainer.querySelector('.replace-image');
-          if (img) img.remove();
-          if (replaceButton) replaceButton.remove();
-         
+        const reader = new FileReader();
+        reader.onload = ev => {
+          cropImage.src = ev.target.result;
+          currentInput = input;
+          cropModal.style.display = 'flex';
+          if (cropper) cropper.destroy();
+          cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1 });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
 
-          
-          imageContainer.classList.remove('existing-image');
-          imageContainer.classList.add('image-upload-slot', 'flex', 'flex-col', 'items-center', 'justify-center', 'cursor-pointer', 'hover:bg-gray-50', 'transition-colors');
+    // initialise all slots (new + replaced later)
+    document.querySelectorAll('.image-upload-slot').forEach(initSlot);
 
-      
-          const placeholderDiv = document.createElement('div');
-          placeholderDiv.classList.add('w-12', 'h-12', 'bg-gray-100', 'rounded-lg', 'flex', 'items-center', 'justify-center', 'mb-2');
-          placeholderDiv.innerHTML = `
-        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
+    // ---- Replace button on existing images ----
+    document.querySelectorAll('.replace-image').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const container = btn.closest('.existing-image');
+        const hidden = container.querySelector('input[type="hidden"]');
+        const idxBadge = container.querySelector('.absolute.-top-2.-right-2');
+
+        // turn existing block into an upload slot
+        container.classList.remove('existing-image');
+        container.classList.add('image-upload-slot', 'flex', 'flex-col', 'items-center', 'justify-center', 'cursor-pointer');
+        container.innerHTML = `
+        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+        </div>
+        <span class="text-xs text-gray-500 text-center">Add Image</span>
       `;
-          const placeholderSpan = document.createElement('span');
-          placeholderSpan.classList.add('text-xs', 'text-gray-500', 'text-center');
-          placeholderSpan.textContent = 'Add Image';
-          const fileInput = document.createElement('input');
-          fileInput.type = 'file';
-          fileInput.name = index ? `replaceImages[${index}]` : 'images[]';
-          fileInput.accept = 'image/*';
-          fileInput.classList.add('hidden');
 
-         
-          imageContainer.innerHTML = ''; 
-          imageContainer.appendChild(placeholderDiv);
-          imageContainer.appendChild(placeholderSpan);
-          if (hiddenInput) {
-            hiddenInput.value = ''; 
-            imageContainer.appendChild(hiddenInput); 
-          }
-          imageContainer.appendChild(fileInput);
-          if (indexDisplay) imageContainer.appendChild(indexDisplay); 
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.classList.add('hidden');
+        fileInput.name = hidden ? `replaceImages[${hidden.name.match(/\d+/)[0]}]` : 'images[]';
 
-       
-          handleImageUpload(imageContainer, fileInput);
-
-         
-
-          validateForm(); 
+        container.appendChild(fileInput);
+        if (hidden) {
+          hidden.value = '';                 // mark old image for removal on server
+          container.appendChild(hidden);
         }
+        if (idxBadge) container.appendChild(idxBadge);
+
+        initSlot(container);
+        validateForm();
       });
     });
-  
-cropBtn.addEventListener('click', () => {
-  if (!cropper || !currentInput) return;
 
-  const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
-  if (canvas) {
-    canvas.toBlob(blob => {
-      const slot = currentInput.closest('.image-upload-slot');
+    // ---- Crop & Use ----
+    cropBtn.addEventListener('click', () => {
+      if (!cropper || !currentInput) return;
 
-      
-      const indexDisplay = slot.querySelector('.absolute.-top-2.-right-2');
+      const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
+      canvas.toBlob(blob => {
+        const slot = currentInput.closest('.image-upload-slot') || currentInput.closest('.existing-image');
+        const badge = slot.querySelector('.absolute.-top-2.-right-2');
 
-      
-      const hiddenInput = slot.querySelector('input[type="hidden"][name^="images["]');
+        // replace slot content with cropped image
+        slot.innerHTML = `<img src="${URL.createObjectURL(blob)}" class="w-full h-full object-cover rounded-lg">`;
+        slot.appendChild(currentInput);
+        if (badge) slot.appendChild(badge);
 
-      
-      slot.innerHTML = '';
+        // replace file in input
+        const newFile = new File([blob], currentInput.files[0]?.name || 'cropped.jpg', { type: 'image/jpeg' });
+        const dt = new DataTransfer();
+        dt.items.add(newFile);
+        currentInput.files = dt.files;
 
-      
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(blob);
-      img.classList.add('w-full', 'h-full', 'object-cover', 'rounded-lg');
-      slot.appendChild(img);
+        closeCropModal();
+        validateForm();
+      }, 'image/jpeg', 0.95);
+    });
 
-   
-      if (hiddenInput) {
-        slot.appendChild(hiddenInput);
-      }
+    // ---- Cancel crop (remove selected file) ----
+    cancelCropBtn.addEventListener('click', () => closeCropModal(true));
+    cropModal.addEventListener('click', e => { if (e.target === cropModal) closeCropModal(true); });
+    window.addEventListener('keydown', e => { if (e.key === 'Escape' && cropModal.style.display === 'flex') closeCropModal(true); });
 
-      
-      slot.appendChild(currentInput);
-
-      
-      if (indexDisplay) slot.appendChild(indexDisplay);
-
-      
-      const file = new File([blob], currentInput.files[0]?.name || 'cropped.jpg', { type: 'image/jpeg' });
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      currentInput.files = dataTransfer.files;
-
-     
-      if (currentInput.name === 'images[]') {  
-        uploadedImages++;
-      }
-
+    function closeCropModal(clear = false) {
       cropModal.style.display = 'none';
-      cropper.destroy();
-      cropper = null;
-      validateForm(); 
-    }, 'image/jpeg');
-  }
-});
+      if (cropper) { cropper.destroy(); cropper = null; }
 
-    function closeCropModal(clearFile = false) {
-      cropModal.style.display = 'none';
-
-      if (cropper) {
-        cropper.destroy();
-        cropper = null;
-      }
-
-      if (clearFile && currentInput) {
+      if (clear && currentInput) {
         const slot = currentInput.closest('.image-upload-slot');
-        const oldImg = slot.querySelector('img');
-        const placeholderSvg = slot.querySelector('svg');
-        const placeholderSpan = slot.querySelector('span');
-        const indexDisplay = slot.querySelector('.absolute.-top-2.-right-2');
+        const badge = slot.querySelector('.absolute.-top-2.-right-2');
 
-        if (oldImg) {
-          oldImg.remove();
-         
-          if (currentInput.name.startsWith('images[')) {
-            uploadedImages = Math.max(0, uploadedImages);
-          }
-        }
-
-        if (!placeholderSvg || !placeholderSpan) {
-          slot.innerHTML = ''; 
-          const placeholderDiv = document.createElement('div');
-          placeholderDiv.classList.add('w-12', 'h-12', 'bg-gray-100', 'rounded-lg', 'flex', 'items-center', 'justify-center', 'mb-2');
-          placeholderDiv.innerHTML = `
-        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
+        // restore placeholder
+        slot.innerHTML = `
+        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+        </div>
+        <span class="text-xs text-gray-500 text-center">Add Image</span>
       `;
-          const placeholderSpan = document.createElement('span');
-          placeholderSpan.classList.add('text-xs', 'text-gray-500', 'text-center');
-          placeholderSpan.textContent = 'Add Image';
-          slot.appendChild(placeholderDiv);
-          slot.appendChild(placeholderSpan);
-          slot.appendChild(currentInput);
-          if (indexDisplay) slot.appendChild(indexDisplay);
-        }
-
+        slot.appendChild(currentInput);
+        if (badge) slot.appendChild(badge);
         currentInput.value = '';
+        validateForm();
       }
     }
 
-    cancelCropBtn.addEventListener('click', () => closeCropModal(true));
-    window.addEventListener('click', e => {
-      if (e.target === cropModal) closeCropModal(true);
-    });
-    window.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && cropModal.style.display === 'block') closeCropModal(true);
-    });
-
-   
-    const addVariantBtn = document.querySelector('.add-variant-btn');
-    const tbody = document.querySelector('#variantsTable');
-
-    addVariantBtn.addEventListener('click', function () {
-      // Check if there's an existing row to clone
-      const existingRow = tbody.querySelector('tr');
-
-      if (existingRow) {
-        // Clone the first row if it exists
-        const newRow = existingRow.cloneNode(true);
-        newRow.querySelectorAll('input').forEach(input => {
-          input.value = ''; // Clear input values
-          input.classList.remove('border-error'); // Remove error styling
-        });
-        newRow.querySelectorAll('.error').forEach(error => error.textContent = ''); // Clear error messages
-        tbody.appendChild(newRow);
-      } else {
-        // Create a new row from scratch if no rows exist
-        const newRow = document.createElement('tr');
-        newRow.classList.add('border-b', 'border-gray-100');
-        newRow.innerHTML = `
-        <td class="py-4 px-4">
-          <input name="size[]" placeholder="Nil" type="text" value=""
-            class="w-full px-3 py-2 border rounded-md">
-          <input type="hidden" name="variantId[]" value="">
-          <div class="error"></div>
-        </td>
-        <td class="py-4 px-4">
-          <input name="additionalPrice[]" type="number" value="0"
-            class="w-full px-3 py-2 border rounded-md">
-          <div class="error"></div>
-        </td>
-        <td class="py-4 px-4">
-          <input name="stock[]" type="number" value="0"
-            class="w-full px-3 py-2 border rounded-md">
-          <div class="error"></div>
-        </td>
-        <td class="py-4 px-4">
-          <button type="button" class="remove-variant text-red-500 hover:text-red-700">Remove</button>
-        </td>
-      `;
-        tbody.appendChild(newRow);
-      }
-
-      validateForm(); // Re-validate the form after adding the row
+    /* --------------------------------------------------------------
+       VARIANTS
+    -------------------------------------------------------------- */
+    addVariantBtn.addEventListener('click', () => {
+      const tmpl = variantsTbody.querySelector('tr') || createEmptyRow();
+      const row = tmpl.cloneNode(true);
+      row.querySelectorAll('input').forEach(i => i.value = '');
+      row.querySelectorAll('.error').forEach(e => e.textContent = '');
+      variantsTbody.appendChild(row);
+      validateForm();
     });
 
-    tbody.addEventListener('click', function (e) {
-      if (e.target.classList.contains('remove-variant')) {
-        const tr = e.target.closest('tr');
-        if (tbody.querySelectorAll('tr').length > 1) {
-          tr.remove();
-          validateForm(); 
-        }
-      }
-    });
-
-  
-    ['productName', 'productDescription', 'category', 'brand', 'price', 'discount'].forEach(id => {
-      const input = document.getElementById(id);
-      input.addEventListener('input', validateForm);
-    });
-
-    
-    tbody.addEventListener('input', function (e) {
-      if (e.target.name === 'size[]' || e.target.name === 'additionalPrice[]' || e.target.name === 'stock[]') {
+    variantsTbody.addEventListener('click', e => {
+      if (e.target.classList.contains('remove-variant') && variantsTbody.children.length > 1) {
+        e.target.closest('tr').remove();
         validateForm();
       }
     });
+
+    function createEmptyRow() {
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-gray-100';
+      tr.innerHTML = `
+      <td class="py-4 px-4">
+        <input name="size[]" placeholder="Nil" type="text" class="w-full px-3 py-2 border rounded-md">
+        <input type="hidden" name="variantId[]" value="">
+        <div class="error"></div>
+      </td>
+      <td class="py-4 px-4">
+        <input name="additionalPrice[]" type="number" value="0" class="w-full px-3 py-2 border rounded-md">
+        <div class="error"></div>
+      </td>
+      <td class="py-4 px-4">
+        <input name="stock[]" type="number" value="0" class="w-full px-3 py-2 border rounded-md">
+        <div class="error"></div>
+      </td>
+      <td class="py-4 px-4">
+        <button type="button" class="remove-variant text-red-500 hover:text-red-700">Remove</button>
+      </td>
+    `;
+      return tr;
+    }
+
+    /* --------------------------------------------------------------
+       REAL-TIME VALIDATION
+    -------------------------------------------------------------- */
+    ['productName', 'productDescription', 'category', 'brand', 'price', 'discount']
+      .forEach(id => document.getElementById(id)?.addEventListener('input', validateForm));
+
+    variantsTbody.addEventListener('input', e => {
+      if (['size[]', 'additionalPrice[]', 'stock[]'].includes(e.target.name)) validateForm();
+    });
+
+    // initial validation (useful on edit page)
+    validateForm();
   });
 </script>

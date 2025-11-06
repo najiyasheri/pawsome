@@ -568,10 +568,17 @@
                                         });
                                         const data = await res.json();
                                             console.log(data)
-                                        if (!data.success) {
-                                            alert("Error initiating retry payment. Please try again.");
+                                      if (!data.success) {
+                                            Swal.fire({
+                                                icon: "error",
+                                                title: "Payment Failed!",
+                                                text: data.message || "Error initiating retry payment. Please try again.",
+                                                confirmButtonColor: "#d33",
+                                                confirmButtonText: "OK"
+                                            });
                                             return;
                                         }
+
 
                                         // Razorpay payment options
                                         const options = {

@@ -138,29 +138,39 @@ const loadOtpPage = async (req, res) => {
   return res.render("user/otp", {
     email,
     layout: "layouts/userLayout",
+    cooldownUntil: req.session.resendCooldownUntil || 0,
     title: "OTP",
   });
 };
 
 const resendOtp = async (req, res) => {
   const { email } = req.body;
+
   try {
+    // Delete old OTPs
     await OTP.deleteMany({ email });
+
     const otp = generateOTP();
-    const expiredAt = generateExpiry(5);
-    const otpRecord = new OTP({ email, otp, expiredAt });
-    await otpRecord.save();
+    const expiredAt = generateExpiry(5); // OTP valid for 5 min
+    await new OTP({ email, otp, expiredAt }).save();
     await sendOtp(email, otp);
-    return res.render("user/otp", {
-      email,
-      layout: "layouts/userLayout",
-      title: "OTP",
+
+    // This is the KEY: 30-second resend cooldown
+    const resendCooldownUntil = Date.now() + 30 * 1000;
+
+    // Save in session (survives refresh!)
+    req.session.resendCooldownUntil = resendCooldownUntil;
+
+    res.json({
+      success: true,
+      cooldownUntil: resendCooldownUntil, // ← This syncs timer across refreshes
     });
   } catch (error) {
-    console.error("Resend otp failed");
-    res.status(500).send("Internal server error");
+    console.error("Resend OTP failed:", error);
+    res.json({ success: false, message: "Server error" });
   }
 };
+
 
 const postOtp = async (req, res) => {
   const { email, otp, referralCode } = req.body;
@@ -248,6 +258,7 @@ const postOtp = async (req, res) => {
       });
     }
     await OTP.deleteOne({ email });
+    delete req.session.resendCooldownUntil;
     return res.redirect("/login");
   } catch (error) {
     console.error("OTP verification error:", error);

@@ -213,8 +213,6 @@ const updateCoupon = async (req, res) => {
   }
 };
 
-
-
 const deleteCoupon = async (req, res) => {
   try {
     const { id } = req.params;

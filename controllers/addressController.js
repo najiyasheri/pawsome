@@ -78,8 +78,6 @@ const loadAddress = async (req, res) => {
   }
 };
 
-
-
 const addAddress = async (req, res) => {
   try {
     const userId = req.session.user._id;

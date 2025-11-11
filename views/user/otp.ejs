@@ -24,51 +24,88 @@
                     <%= error %>
                 </p>
                 <% } %>
-                    <input type="text" placeholder="Referral Code (optional)" class="input-field" name="referralCode"
-                        value="<%= typeof referralCode !== 'undefined' ? referralCode : '' %>" />
-                    <% if (typeof referralError !=='undefined' ) { %>
-                        <div class="error-message">
-                            <%= referralError %>
-                        </div>
-                        <% } %>
+                  
                             <div class="auth-actions">
                                 <button type="submit" class="primary-btn">Verify</button>
 
                             </div>
         </form>
-        <div class="resend-otp">
-            <form action="/resend-otp" method="POST">
-                <input type="hidden" name="email" value="<%= email %>">
-                <button id="resendBtn" class="resendButton" type="submit" disabled>Resend OTP </button>
-            </form>
-            <span id="timer"> in 00:30</span>
-        </div>
+    <div class="resend-otp">
+        <button id="resendBtn" class="resendButton" disabled>
+            Resend OTP <span id="timer">in 00:30</span>
+        </button>
+        <p id="resendMessage" style="margin-top: 8px; font-size: 14px;"></p>
+    </div>
 
 
 
     </div>
 </div>
 <script>
-let duration = 30;
-const btn = document.getElementById('resendBtn');
-const timerSpan = document.getElementById('timer');
+    // This comes from backend session → NEVER resets on refresh!
+    let COOLDOWN_UNTIL = "<%= cooldownUntil %>"; // e.g., 1731268000000
 
-let endTime = localStorage.getItem('otpEndTime');
+    let timerInterval;
+    const btn = document.getElementById('resendBtn');
+    const timerSpan = document.getElementById('timer');
+    const msg = document.getElementById('resendMessage');
+    const email = "<%= email %>";
 
+    function updateTimer() {
+        const now = Date.now();
+        const remaining = Math.max(0, Math.floor((COOLDOWN_UNTIL - now) / 1000));
 
-if (!endTime || Date.now() > endTime) {
-endTime = Date.now() + duration * 1000;
-localStorage.setItem('otpEndTime', endTime);
-}
+        if (remaining > 0) {
+            btn.disabled = true;
+            const secs = String(remaining).padStart(2, '0');
+            timerSpan.textContent = `in 00:${secs}`;
+            btn.innerHTML = `Resend OTP <span id="timer">in 00:${secs}</span>`;
+        } else {
+            btn.disabled = false;
+            timerSpan.textContent = '';
+            btn.innerHTML = 'Resend OTP';
+            clearInterval(timerInterval);
+        }
+    }
 
+    // Start timer
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
 
-function updateTimer() {
-let remaining = Math.floor((endTime - Date.now()) / 1000);
+    // Resend with fetch
+    btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        btn.innerHTML = 'Sending...';
 
-if (remaining > 0) {
-btn.disabled = true;
-timerSpan.textContent = " in 00:" + (remaining < 10 ? "0" : "" ) + remaining; } else { btn.disabled=false;
-    timerSpan.textContent="" ; clearInterval(countDown); localStorage.removeItem('otpEndTime'); } } updateTimer(); let
-    countDown=setInterval(updateTimer, 1000); btn.addEventListener('click', function () { btn.disabled=true;
-    endTime=Date.now() + duration * 1000; localStorage.setItem('otpEndTime', endTime); updateTimer();
-    clearInterval(countDown); countDown=setInterval(updateTimer, 1000); }); </script>
+        try {
+            const res = await fetch('/resend-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                msg.style.color = 'green';
+                msg.textContent = 'New OTP sent!';
+
+                // Update cooldown from server response
+                COOLDOWN_UNTIL = data.cooldownUntil;
+                updateTimer();
+                timerInterval = setInterval(updateTimer, 1000);
+            } else {
+                msg.style.color = 'red';
+                msg.textContent = data.message || 'Failed';
+                btn.disabled = false;
+                btn.innerHTML = 'Resend OTP';
+            }
+        } catch (err) {
+            console.log(err)
+            msg.style.color = 'red';
+            msg.textContent = 'Network error';
+            btn.disabled = false;
+            btn.innerHTML = 'Resend OTP';
+        }
+    });
+</script>

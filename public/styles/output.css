@@ -65,7 +65,6 @@
     --container-md: 28rem;
     --container-lg: 32rem;
     --container-xl: 36rem;
-    --container-2xl: 42rem;
     --container-3xl: 48rem;
     --container-4xl: 56rem;
     --container-5xl: 64rem;
@@ -790,11 +789,11 @@
   .justify-items-center {
     justify-items: center;
   }
+  .gap-0 {
+    gap: calc(var(--spacing) * 0);
+  }
   .gap-0\.5 {
     gap: calc(var(--spacing) * 0.5);
-  }
-  .gap-1 {
-    gap: calc(var(--spacing) * 1);
   }
   .gap-2 {
     gap: calc(var(--spacing) * 2);
@@ -2036,6 +2035,11 @@
   .focus\:ring-yellow-50 {
     &:focus {
       --tw-ring-color: var(--color-yellow-50);
+    }
+  }
+  .focus\:ring-yellow-100 {
+    &:focus {
+      --tw-ring-color: var(--color-yellow-100);
     }
   }
   .focus\:ring-yellow-200 {

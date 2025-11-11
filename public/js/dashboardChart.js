@@ -271,6 +271,60 @@ document.addEventListener("DOMContentLoaded", () => {
       XLSX.utils.book_append_sheet(wb, reportSheet, "Sales Report");
     }
 
+    // All Orders + Product Details Sheet
+    if (allOrders && allOrders.length > 0) {
+      const orderData = [
+        [
+          "Order ID",
+          "Customer Name",
+          "Email",
+          "Payment Method",
+         
+          "Discount (₹)",
+
+          "Final Amount (₹)",
+          "Status",
+          "Order Date",
+        ],
+      ];
+
+      allOrders.forEach((order) => {
+        if (order.orderItems && order.orderItems.length > 0) {
+          order.orderItems.forEach((item) => {
+            const productName = item.productName || item.name || "-";
+            const price = item.price || 0;
+            const qty = item.quantity || 1;
+
+            orderData.push([
+              order.orderId?.toString() || "-",
+              order.userName || "-",
+              order.email || "-",
+              order.paymentMethod || "-",
+              `₹${order.discountAmount?.toLocaleString() ?? 0}`,
+              `₹${order.finalAmount?.toLocaleString() ?? 0}`,
+              order.status || "-",
+              new Date(order.createdAt).toLocaleString(),
+            ]);
+          });
+        } else {
+          // Orders with no products (rare)
+          orderData.push([
+            order.orderId?.toString() || "-",
+            order.userName || "-",
+            order.email || "-",
+            order.paymentMethod || "-",
+            `₹${order.discountAmount?.toLocaleString() ?? 0}`,
+            `₹${order.finalAmount?.toLocaleString() ?? 0}`,
+            order.status || "-",
+            new Date(order.createdAt).toLocaleString(),
+          ]);
+        }
+      });
+
+      const orderSheet = XLSX.utils.aoa_to_sheet(orderData);
+      XLSX.utils.book_append_sheet(wb, orderSheet, "All Orders + Products");
+    }
+
     // Save Excel file
     const fileName = `sales-report-${filter}-${Date.now()}.xlsx`;
     XLSX.writeFile(wb, fileName);

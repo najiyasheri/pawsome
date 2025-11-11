@@ -63,7 +63,7 @@ const loadResetpassword = async (req, res) => {
 };
 
 const postSignup = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password ,referralCode} = req.body;
 
   try {
     if (!password) {
@@ -73,6 +73,8 @@ const postSignup = async (req, res) => {
         title: "User Signup",
       });
     }
+
+ 
 
     const existingUser = await User.findOne({ email });
 
@@ -85,6 +87,10 @@ const postSignup = async (req, res) => {
         title: "User Signup",
       });
     }
+
+       if (referralCode) {
+         req.session.referral = referralCode;
+       }
 
     const hashedPassword = await bcrypt.hash(password, saltRound);
 
@@ -173,7 +179,7 @@ const resendOtp = async (req, res) => {
 
 
 const postOtp = async (req, res) => {
-  const { email, otp, referralCode } = req.body;
+  const { email, otp } = req.body;
 
   try {
     const otpRecord = await OTP.findOne({ email });
@@ -193,7 +199,8 @@ const postOtp = async (req, res) => {
     }
 
 
-    let referrer = null;
+     const referralCode = req.session.referral;
+    let referrer =null
     if (referralCode && referralCode.trim() !== "") {
       referrer = await User.findOne({
         referralCode: referralCode.trim().toUpperCase(),
@@ -299,6 +306,16 @@ const postLogin = async (req, res) => {
         title: "login",
       });
     }
+    if (!userRecord.password) {
+      return res.render("user/login", {
+        email,
+        error:
+          "account was created using Google. Please login with Google.",
+        layout: "layouts/userLayout",
+        title: "login",
+      });
+    }
+
 
     const isMatch = await bcrypt.compare(password, userRecord.password);
 
@@ -315,7 +332,7 @@ const postLogin = async (req, res) => {
     req.session.user = userRecord;
 
     return res.redirect("/");
-  } catch {
+  } catch (error){
     console.error("Login verification error:", error);
     res.status(500).send("Internal server error during Login verification");
   }
@@ -344,7 +361,7 @@ const postForgotpassword = async (req, res) => {
 
     return res.redirect("/resetpassword");
   } catch (error) {
-    console.error("Resend otp failed");
+    console.error("Resend otp failed",error);
     res.status(500).send("Internal server error");
   }
 };
@@ -357,7 +374,7 @@ const postResetpassword = async (req, res) => {
     if (!userRecord) {
       return res.render("user/resetpassword", {
         email,
-        error: "Something went wrong",
+        error: "Invalid Email",
         layout: "layouts/userLayout",
         title: "Reset Password",
       });

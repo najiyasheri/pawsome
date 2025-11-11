@@ -789,11 +789,11 @@
   .justify-items-center {
     justify-items: center;
   }
+  .gap-0 {
+    gap: calc(var(--spacing) * 0);
+  }
   .gap-0\.5 {
     gap: calc(var(--spacing) * 0.5);
-  }
-  .gap-1 {
-    gap: calc(var(--spacing) * 1);
   }
   .gap-2 {
     gap: calc(var(--spacing) * 2);
@@ -2035,6 +2035,11 @@
   .focus\:ring-yellow-50 {
     &:focus {
       --tw-ring-color: var(--color-yellow-50);
+    }
+  }
+  .focus\:ring-yellow-100 {
+    &:focus {
+      --tw-ring-color: var(--color-yellow-100);
     }
   }
   .focus\:ring-yellow-200 {

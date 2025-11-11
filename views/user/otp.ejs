@@ -24,13 +24,7 @@
                     <%= error %>
                 </p>
                 <% } %>
-                    <input type="text" placeholder="Referral Code (optional)" class="input-field" name="referralCode"
-                        value="<%= typeof referralCode !== 'undefined' ? referralCode : '' %>" />
-                    <% if (typeof referralError !=='undefined' ) { %>
-                        <div class="error-message">
-                            <%= referralError %>
-                        </div>
-                        <% } %>
+                  
                             <div class="auth-actions">
                                 <button type="submit" class="primary-btn">Verify</button>
 

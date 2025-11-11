@@ -256,32 +256,65 @@ const loadDashboard = async (req, res) => {
       },
       { $sort: { _id: 1 } },
     ]);
+ const allOrders = await Order.aggregate([
+   { $match: dateMatchCondition },
 
-    const allOrders = await Order.aggregate([
-      { $match: dateMatchCondition },
-      {
-        $lookup: {
-          from: "users",
-          localField: "userId",
-          foreignField: "_id",
-          as: "user",
-        },
-      },
-      { $unwind: "$user" },
-      {
-        $project: {
-          orderId: 1,
-          userName: "$user.name",
-          email: "$user.email",
-          createdAt: 1,
-          finalAmount: 1,
-          discountAmount: 1,
-          paymentMethod: 1,
-          status: 1,
-        },
-      },
-      { $sort: { createdAt: -1 } },
-    ]);
+   // Join user details
+   {
+     $lookup: {
+       from: "users",
+       localField: "userId",
+       foreignField: "_id",
+       as: "user",
+     },
+   },
+   { $unwind: "$user" },
+
+   // Unwind order items
+   { $unwind: "$items" },
+
+   // ✅ Lookup product details
+   {
+     $lookup: {
+       from: "products",
+       localField: "items.productId",
+       foreignField: "_id",
+       as: "product",
+     },
+   },
+   { $unwind: { path: "$product", preserveNullAndEmptyArrays: true } },
+
+   
+   {
+     $project: {
+       orderId: 1,
+       userName: "$user.name",
+       email: "$user.email",
+       paymentMethod: 1,
+       status: 1,
+       createdAt: 1,
+       finalAmount: 1,
+       discountAmount: 1,
+
+       productName: { $ifNull: ["$items.name", "$product.name"] },
+       quantity: "$items.quantity",
+       price: { $ifNull: ["$items.price", "$product.basePrice"] },
+       subtotal: {
+         $cond: {
+           if: { $gt: ["$items.subtotal", 0] },
+           then: "$items.subtotal",
+           else: { $multiply: ["$items.quantity", "$items.price"] },
+         },
+       },
+     },
+   },
+
+   { $sort: { createdAt: -1 } },
+ ]);
+
+
+
+
 
     res.render("admin/dashboard", {
       title: "Dashboard",

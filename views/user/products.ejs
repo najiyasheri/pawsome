@@ -37,17 +37,27 @@
   <form id="filterForm" class="space-y-6">
 
     <!-- Search Bar -->
-     <div class="flex items-center gap-1 mb-4 w-full max-w-xl mx-auto">
+<div class="relative flex items-center gap-0 mb-4 w-full max-w-xl mx-auto">
 
-      <input type="text" id="searchInput" name="search" placeholder="Search products..." class="flex-1 px-4 py-3 border border-gray-200 rounded-l-xl text-gray-700 
-               focus:outline-none focus:ring-2 focus:ring-[#F9C22A] focus:border-[#F9C22A] 
-               shadow-sm transition-all duration-300" />
-      <button type="submit" class="group px-5 py-3 bg-[#F9C22A] text-gray-800 font-semibold rounded-r-xl 
-               hover:bg-[#e0af20] hover:text-white focus:ring-2 focus:ring-[#F9C22A] 
-               transition-all duration-200 shadow-sm">
-        <i class="fas fa-search group-hover:scale-110 transition-transform"></i>
-      </button>
-    </div>
+  <div class="relative flex-1">
+    <input type="text" id="searchInput" name="search" placeholder="Search products..." class="w-full px-4 py-3 pr-10 border border-gray-200 rounded-l-xl text-gray-700 
+             focus:outline-none focus:ring-2 focus:ring-yellow-100 focus:border-[#F9C22A] 
+             shadow-sm transition-all duration-300" />
+
+    <!-- Clear (×) Button inside input -->
+    <button type="button" id="clearBtn"
+      class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 hidden">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <button type="submit" class="group px-5 py-3 bg-[#F9C22A] text-gray-800 font-semibold rounded-r-xl 
+           hover:bg-[#e0af20] hover:text-white focus:ring-2 focus:ring-[#F9C22A] 
+           transition-all duration-200 shadow-sm">
+    <i class="fas fa-search group-hover:scale-110 transition-transform"></i>
+  </button>
+</div>
+
 
     <!-- Filters -->
     <div class="grid grid-cols-1 mb-7 sm:grid-cols-2 lg:grid-cols-4 gap-0.5">
@@ -485,4 +495,18 @@
   });
 
   fetchProducts(getCurrentFilters());
+    const searchInput = document.getElementById("searchInput");
+      const clearBtn = document.getElementById("clearBtn");
+
+      // Show or hide the clear button based on input value
+      searchInput.addEventListener("input", () => {
+        clearBtn.classList.toggle("hidden", searchInput.value === "");
+      });
+
+      // Clear the input when button is clicked
+      clearBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        clearBtn.classList.add("hidden");
+        searchInput.focus();
+      });
 </script>

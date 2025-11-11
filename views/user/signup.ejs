@@ -32,7 +32,13 @@
             </div>
             <div id="error4" class="error-message"></div>
 
-           
+                <input type="text" placeholder="Referral Code (optional)" class="input-field" name="referralCode"
+                  value="<%= typeof referralCode !== 'undefined' ? referralCode : '' %>" />
+                <% if (typeof referralError !=='undefined' ) { %>
+                  <div class="error-message">
+                    <%= referralError %>
+                  </div>
+                  <% } %>
             <button type="submit" class="primary-btn">SIGN UP</button>
       </form>
 

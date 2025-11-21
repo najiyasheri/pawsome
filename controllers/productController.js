@@ -66,10 +66,19 @@ const loadAddProduct = async (req, res) => {
 
 const addProduct = async (req, res) => {
   try {
-    let images = [];
+    const images = req.files["images[]"]
+      ? req.files["images[]"].map((file) => ({
+          url: file.path,
+          public_id: file.filename,
+        }))
+      : [];
 
-    if (req.files && req.files["images[]"]) {
-      images = req.files["images[]"].map((file) => file.filename);
+    if (images.length < 4) {
+      // Delete uploaded ones if less than 4
+      for (const img of images) {
+        await deleteFromCloudinary(img.public_id);
+      }
+      return res.status(400).send("Please upload exactly 4 images");
     }
 
     const product = new Product({
@@ -78,28 +87,28 @@ const addProduct = async (req, res) => {
       categoryId: new mongoose.Types.ObjectId(req.body.category),
       brand: req.body.brand,
       returnWithin: req.body.returnWithin
-        ? new Date(
-            Date.now() + parseInt(req.body.returnWithin) * 24 * 60 * 60 * 1000
-          )
+        ? new Date(Date.now() + parseInt(req.body.returnWithin) * 86400000)
         : undefined,
       basePrice: parseFloat(req.body.price) || 0,
       discountPercentage: parseFloat(req.body.discount) || 0,
-      images,
+      images, // array of { url, public_id }
     });
+
     const savedProduct = await product.save();
-    const variants = req.body.size.map((size, index) => ({
+
+    const variants = (req.body.size || []).map((size, i) => ({
       productId: savedProduct._id,
-      size: size.trim() !== "" ? size.trim() : "Nil",
-      additionalPrice: parseFloat(req.body.additionalPrice[index]) || 0,
-      stock: parseInt(req.body.stock[index]) || 0,
+      size: size?.trim() || "Nil",
+      additionalPrice: parseFloat(req.body.additionalPrice[i]) || 0,
+      stock: parseInt(req.body.stock[i]) || 0,
     }));
 
     await ProductVariant.insertMany(variants);
 
     return res.redirect("/admin/product");
   } catch (error) {
-    console.log("error while adding product", error);
-    res.status(500).send("server error while adding product");
+    console.error("Error adding product:", error);
+    res.status(500).send("Server error");
   }
 };
 
@@ -152,140 +161,122 @@ const loadEditProduct = async (req, res) => {
 const postEditProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      name,
-      description,
-      price,
-      category,
-      brand,
-      discount,
-      images,
-      size,
-      additionalPrice,
-      stock,
-      variantId,
-    } = req.body;
-
     const product = await Product.findById(id);
-    if (!product) {
-      return res.status(404).send("Product not found");
-    }
+    if (!product) return res.status(404).send("Product not found");
 
-    product.name = name;
-    product.description = description;
-    product.categoryId = new mongoose.Types.ObjectId(category);
-    product.brand = brand;
-    product.basePrice = parseFloat(price);
-    product.discountPercentage = parseFloat(discount);
+    // Track old image public_ids to delete later
+    const oldImagePublicIds = product.images.map((img) => img.public_id);
 
-    const existingImages = Array.isArray(images)
-      ? images
-      : images
-      ? [images]
-      : [];
-    product.images = existingImages;
+    // === UPDATE BASIC FIELDS ===
+    product.name = req.body.name;
+    product.description = req.body.description;
+    product.categoryId = new mongoose.Types.ObjectId(req.body.category);
+    product.brand = req.body.brand;
+    product.basePrice = parseFloat(req.body.price);
+    product.discountPercentage = parseFloat(req.body.discount) || 0;
 
+    // === HANDLE IMAGE REPLACEMENT & NEW IMAGES ===
+    let currentImages = [...product.images]; // preserve existing
+
+    // 1. Handle replaceImages[0..3]
     if (req.files) {
-      const replaceImages = {};
-      const newImages = [];
+      for (let i = 0; i <= 3; i++) {
+        const field = `replaceImages[${i}]`;
+        if (req.files[field] && req.files[field][0]) {
+          const newFile = req.files[field][0];
+          const newImage = { url: newFile.path, public_id: newFile.filename };
 
-      Object.keys(req.files).forEach((fieldName) => {
-        if (fieldName.startsWith("replaceImages[")) {
-          const index = parseInt(fieldName.match(/\d+/)[0], 10);
-          if (!isNaN(index) && req.files[fieldName][0]) {
-            replaceImages[index] = req.files[fieldName][0].filename;
+          if (currentImages[i]) {
+            // Mark old for deletion
+            oldImagePublicIds.splice(
+              oldImagePublicIds.indexOf(currentImages[i].public_id),
+              1
+            );
           }
-        } else if (fieldName === "images[]" && req.files[fieldName]) {
-          newImages.push(...req.files[fieldName].map((file) => file.filename));
-        }
-      });
-
-      for (const [index, newImage] of Object.entries(replaceImages)) {
-        const idx = parseInt(index, 10);
-        if (idx >= 0 && idx < product.images.length) {
-          const oldImage = product.images[idx];
-          product.images[idx] = newImage;
+          currentImages[i] = newImage; // Replace at index
         }
       }
 
-      if (product.images.length + newImages.length <= 4) {
-        product.images.push(...newImages);
-      } else {
-        for (const newImage of newImages) {
-          try {
-            await fs.unlink(path.join("public/uploads", newImage));
-          } catch (err) {
-            console.error(`Failed to delete excess image ${newImage}:`, err);
-          }
+      // 2. Handle new images[] (only if less than 4 total)
+      if (req.files["images[]"]) {
+        const newUploads = req.files["images[]"].map((file) => ({
+          url: file.path,
+          public_id: file.filename,
+        }));
+
+        const availableSlots = 4 - currentImages.filter((img) => img).length;
+        const toAdd = newUploads.slice(0, availableSlots);
+
+        currentImages = [...currentImages.filter((img) => img), ...toAdd];
+
+        // Delete excess uploads
+        const excess = newUploads.slice(availableSlots);
+        for (const img of excess) {
+          await deleteFromCloudinary(img.public_id);
         }
-        return res.status(400).send("Cannot add more than 4 images");
       }
     }
 
-    const sizes = Array.isArray(size) ? size : size ? [size] : [];
-    const finalSizes = sizes.map((s) =>
-      s && s.trim() !== "" ? s.trim() : "Nil"
-    );
-
-    const additionalPrices = Array.isArray(additionalPrice)
-      ? additionalPrice
-      : additionalPrice
-      ? [additionalPrice]
-      : [];
-
-    const stocks = Array.isArray(stock) ? stock : stock ? [stock] : [];
-    const variantIds = Array.isArray(variantId)
-      ? variantId
-      : variantId
-      ? [variantId]
-      : [];
-
-    if (
-      sizes.length !== additionalPrices.length ||
-      sizes.length !== stocks.length
-    ) {
-      return res
-        .status(400)
-        .send("Invalid variant data: mismatched array lengths");
+    // Final check: must have exactly 4
+    if (currentImages.length !== 4) {
+      return res.status(400).send("Product must have exactly 4 images");
     }
 
+    product.images = currentImages;
+
+    // === UPDATE VARIANTS ===
+    const sizes = Array.isArray(req.body.size)
+      ? req.body.size
+      : [req.body.size].filter(Boolean);
+    const additionalPrices = Array.isArray(req.body.additionalPrice)
+      ? req.body.additionalPrice
+      : [req.body.additionalPrice];
+    const stocks = Array.isArray(req.body.stock)
+      ? req.body.stock
+      : [req.body.stock];
+    const variantIds = Array.isArray(req.body.variantId)
+      ? req.body.variantId
+      : [req.body.variantId];
+
+    // Delete removed variants
     const existingVariants = await ProductVariant.find({ productId: id });
-    const updatedVariantIds = variantIds.filter((id) =>
-      mongoose.Types.ObjectId.isValid(id)
-    );
-    for (const existingVariant of existingVariants) {
-      if (!updatedVariantIds.includes(existingVariant._id.toString())) {
-        await ProductVariant.findByIdAndDelete(existingVariant._id);
+    for (const variant of existingVariants) {
+      if (!variantIds.includes(variant._id.toString())) {
+        await ProductVariant.deleteOne({ _id: variant._id });
       }
     }
 
+    // Update or create variants
     for (let i = 0; i < sizes.length; i++) {
-      if (stocks[i] < 0) {
-        return res
-          .status(400)
-          .send("Invalid variant data: stock must be non-negative");
-      }
-
-      const variantData = {
-        size: finalSizes[i],
+      const data = {
+        size: sizes[i]?.trim() || "Nil",
         additionalPrice: parseFloat(additionalPrices[i]) || 0,
-        stock: parseInt(stocks[i], 10) || 0,
+        stock: parseInt(stocks[i]) || 0,
         productId: id,
-        status: true,
       };
 
       if (variantIds[i] && mongoose.Types.ObjectId.isValid(variantIds[i])) {
-        await ProductVariant.findByIdAndUpdate(variantIds[i], variantData, {
-          new: true,
-        });
+        await ProductVariant.findByIdAndUpdate(variantIds[i], data);
       } else {
-        await ProductVariant.create(variantData);
+        await ProductVariant.create(data);
       }
     }
+
     await product.save();
+
+    // === DELETE OLD IMAGES FROM CLOUDINARY ===
+    for (const publicId of oldImagePublicIds) {
+      if (
+        publicId &&
+        !currentImages.some((img) => img.public_id === publicId)
+      ) {
+        await deleteFromCloudinary(publicId);
+      }
+    }
+
     res.redirect("/admin/product");
   } catch (err) {
-    console.error(err);
+    console.error("Edit error:", err);
     res.status(500).send("Error updating product");
   }
 };

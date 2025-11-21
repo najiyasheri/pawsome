@@ -71,17 +71,21 @@
       </div>
 
       <!-- Product Images -->
+      <!-- Product Images -->
       <div class="mb-8">
-        <h2 class="text-lg font-semibold text-gray-900 mb-6">Product Images (Minimum 4)</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-6">Product Images (Exactly 4)</h2>
         <div id="imageError" class="error mb-4"></div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <!-- Existing Images -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="imageGrid">
+          <!-- Existing Images (from Cloudinary) -->
           <% product.images.forEach((img, idx)=> { %>
             <div class="relative existing-image">
-              <img src="/uploads/<%= img %>" class="w-full h-full object-cover rounded-lg">
-              <input type="hidden" name="images[<%= idx %>]" value="<%= img %>">
+              <img src="<%= img.url %>" class="w-full h-full object-cover rounded-lg" alt="Product image <%= idx+1 %>">
+              <!-- Keep public_id so backend knows which one to delete -->
+              <input type="hidden" name="existingImages[<%= idx %>]" value="<%= img.public_id %>">
               <button type="button"
-                class="replace-image absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded hover:bg-blue-600">Replace</button>
+                class="replace-image absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded hover:bg-blue-600">
+                Replace
+              </button>
               <div class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
                 <span class="text-white text-xs font-bold">
                   <%= idx+1 %>
@@ -89,7 +93,9 @@
               </div>
             </div>
             <% }) %>
-              <% for(let i=0; i < Math.max(0, 4 - product.images.length); i++) { %>
+      
+              <!-- Empty slots (if < 4) -->
+              <% for(let i=product.images.length; i < 4; i++) { %>
                 <div
                   class="relative image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
                   <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
@@ -99,10 +105,9 @@
                   </div>
                   <span class="text-xs text-gray-500 text-center">Add Image</span>
                   <input type="file" name="images[]" accept="image/*" class="hidden">
-                  <div
-                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                  <div class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
                     <span class="text-white text-xs font-bold">
-                      <%= product.images.length + i + 1 %>
+                      <%= i+1 %>
                     </span>
                   </div>
                 </div>
@@ -325,14 +330,15 @@
     /* --------------------------------------------------------------
        IMAGE UPLOAD / REPLACE / CROP
     -------------------------------------------------------------- */
-    function initSlot(slot) {
+  function initSlot(slot) {
       const input = slot.querySelector('input[type="file"]');
       if (!input) return;
 
-      // click slot → trigger file input
-      slot.addEventListener('click', () => input.click());
+      slot.addEventListener('click', e => {
+        if (e.target.tagName === 'BUTTON') return; // ignore replace btn
+        input.click();
+      });
 
-      // file selected → open cropper
       input.addEventListener('change', () => {
         const file = input.files[0];
         if (!file) return;
@@ -343,67 +349,74 @@
           currentInput = input;
           cropModal.style.display = 'flex';
           if (cropper) cropper.destroy();
-          cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1 });
+          cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8 });
         };
         reader.readAsDataURL(file);
       });
     }
 
-    // initialise all slots (new + replaced later)
+    // init all empty slots
     document.querySelectorAll('.image-upload-slot').forEach(initSlot);
 
-    // ---- Replace button on existing images ----
+    /* --------------------------------------------------------------
+       REPLACE BUTTON (existing image → upload slot)
+    -------------------------------------------------------------- */
     document.querySelectorAll('.replace-image').forEach(btn => {
       btn.addEventListener('click', () => {
         const container = btn.closest('.existing-image');
         const hidden = container.querySelector('input[type="hidden"]');
-        const idxBadge = container.querySelector('.absolute.-top-2.-right-2');
+        const badge = container.querySelector('.absolute.-top-2.-right-2');
 
-        // turn existing block into an upload slot
-        container.classList.remove('existing-image');
-        container.classList.add('image-upload-slot', 'flex', 'flex-col', 'items-center', 'justify-center', 'cursor-pointer');
+        // 1. Convert to upload slot
+        container.className = 'relative image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors';
         container.innerHTML = `
-        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-        </div>
-        <span class="text-xs text-gray-500 text-center">Add Image</span>
-      `;
+          <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+          </div>
+          <span class="text-xs text-gray-500 text-center">Add Image</span>
+        `;
 
+        // 2. Create file input with correct name: replaceImages[idx]
+        const idx = hidden.name.match(/\d+/)[0];
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.accept = 'image/*';
+        fileInput.name = `replaceImages[${idx}]`;
         fileInput.classList.add('hidden');
-        fileInput.name = hidden ? `replaceImages[${hidden.name.match(/\d+/)[0]}]` : 'images[]';
-
         container.appendChild(fileInput);
-        if (hidden) {
-          hidden.value = '';                 // mark old image for removal on server
-          container.appendChild(hidden);
-        }
-        if (idxBadge) container.appendChild(idxBadge);
 
+        // 3. Keep hidden public_id (will be empty → backend deletes old)
+        hidden.value = ''; // mark for deletion
+        container.appendChild(hidden);
+
+        // 4. Re-attach badge
+        if (badge) container.appendChild(badge);
+
+        // 5. Init new slot
         initSlot(container);
         validateForm();
       });
     });
 
-    // ---- Crop & Use ----
+    /* --------------------------------------------------------------
+       CROP & USE
+    -------------------------------------------------------------- */
     cropBtn.addEventListener('click', () => {
       if (!cropper || !currentInput) return;
 
-      const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
+      const canvas = cropper.getCroppedCanvas({ width: 800, height: 800 });
       canvas.toBlob(blob => {
         const slot = currentInput.closest('.image-upload-slot') || currentInput.closest('.existing-image');
         const badge = slot.querySelector('.absolute.-top-2.-right-2');
 
-        // replace slot content with cropped image
+        // Show cropped preview
         slot.innerHTML = `<img src="${URL.createObjectURL(blob)}" class="w-full h-full object-cover rounded-lg">`;
         slot.appendChild(currentInput);
         if (badge) slot.appendChild(badge);
 
-        // replace file in input
+        // Replace file
         const newFile = new File([blob], currentInput.files[0]?.name || 'cropped.jpg', { type: 'image/jpeg' });
         const dt = new DataTransfer();
         dt.items.add(newFile);
@@ -414,12 +427,10 @@
       }, 'image/jpeg', 0.95);
     });
 
-    // ---- Cancel crop (remove selected file) ----
-    cancelCropBtn.addEventListener('click', () => closeCropModal(true));
-    cropModal.addEventListener('click', e => { if (e.target === cropModal) closeCropModal(true); });
-    window.addEventListener('keydown', e => { if (e.key === 'Escape' && cropModal.style.display === 'flex') closeCropModal(true); });
-
-    function closeCropModal(clear = false) {
+    /* --------------------------------------------------------------
+       CANCEL CROP
+    -------------------------------------------------------------- */
+    const closeCropModal = (clear = false) => {
       cropModal.style.display = 'none';
       if (cropper) { cropper.destroy(); cropper = null; }
 
@@ -427,76 +438,67 @@
         const slot = currentInput.closest('.image-upload-slot');
         const badge = slot.querySelector('.absolute.-top-2.-right-2');
 
-        // restore placeholder
         slot.innerHTML = `
-        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-        </div>
-        <span class="text-xs text-gray-500 text-center">Add Image</span>
-      `;
+          <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+          </div>
+          <span class="text-xs text-gray-500 text-center">Add Image</span>
+        `;
         slot.appendChild(currentInput);
         if (badge) slot.appendChild(badge);
         currentInput.value = '';
         validateForm();
       }
-    }
+    };
+
+    cancelCropBtn.addEventListener('click', () => closeCropModal(true));
+    cropModal.addEventListener('click', e => { if (e.target === cropModal) closeCropModal(true); });
+    window.addEventListener('keydown', e => { if (e.key === 'Escape' && cropModal.style.display === 'flex') closeCropModal(true); });
 
     /* --------------------------------------------------------------
-       VARIANTS
+       VALIDATION – IMAGE COUNT
     -------------------------------------------------------------- */
-    addVariantBtn.addEventListener('click', () => {
-      const tmpl = variantsTbody.querySelector('tr') || createEmptyRow();
-      const row = tmpl.cloneNode(true);
-      row.querySelectorAll('input').forEach(i => i.value = '');
-      row.querySelectorAll('.error').forEach(e => e.textContent = '');
-      variantsTbody.appendChild(row);
-      validateForm();
-    });
+    function countImages() {
+      let count = 0;
 
-    variantsTbody.addEventListener('click', e => {
-      if (e.target.classList.contains('remove-variant') && variantsTbody.children.length > 1) {
-        e.target.closest('tr').remove();
-        validateForm();
+      // 1. Existing images with public_id
+      document.querySelectorAll('input[name^="existingImages["]').forEach(h => {
+        if (h.value.trim()) count++;
+      });
+
+      // 2. New/replaced uploads
+      document.querySelectorAll('input[type="file"]').forEach(inp => {
+        if (inp.files && inp.files.length > 0) count++;
+      });
+
+      return count;
+    }
+
+    window.validateForm = function () {
+      // ... (keep your existing validation for name, price, etc.)
+
+      const imageCount = countImages();
+      const imageError = document.getElementById('imageError');
+      if (imageCount !== 4) {
+        imageError.textContent = `Please provide exactly 4 images (currently ${imageCount})`;
+        return false;
+      } else {
+        imageError.textContent = '';
       }
+
+      // ... rest of validation
+      return true;
+    };
+
+    // Re-run on any change
+    imageGrid.addEventListener('change', validateForm);
+    imageGrid.addEventListener('click', e => {
+      if (e.target.matches('.replace-image')) setTimeout(validateForm, 50);
     });
 
-    function createEmptyRow() {
-      const tr = document.createElement('tr');
-      tr.className = 'border-b border-gray-100';
-      tr.innerHTML = `
-      <td class="py-4 px-4">
-        <input name="size[]" placeholder="Nil" type="text" class="w-full px-3 py-2 border rounded-md">
-        <input type="hidden" name="variantId[]" value="">
-        <div class="error"></div>
-      </td>
-      <td class="py-4 px-4">
-        <input name="additionalPrice[]" type="number" value="0" class="w-full px-3 py-2 border rounded-md">
-        <div class="error"></div>
-      </td>
-      <td class="py-4 px-4">
-        <input name="stock[]" type="number" value="0" class="w-full px-3 py-2 border rounded-md">
-        <div class="error"></div>
-      </td>
-      <td class="py-4 px-4">
-        <button type="button" class="remove-variant text-red-500 hover:text-red-700">Remove</button>
-      </td>
-    `;
-      return tr;
-    }
-
-    /* --------------------------------------------------------------
-       REAL-TIME VALIDATION
-    -------------------------------------------------------------- */
-    ['productName', 'productDescription', 'category', 'brand', 'price', 'discount']
-      .forEach(id => document.getElementById(id)?.addEventListener('input', validateForm));
-
-    variantsTbody.addEventListener('input', e => {
-      if (['size[]', 'additionalPrice[]', 'stock[]'].includes(e.target.name)) validateForm();
-    });
-
-    // initial validation (useful on edit page)
+    // Initial call
     validateForm();
   });
 </script>

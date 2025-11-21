@@ -95,23 +95,20 @@
             <% }) %>
       
               <!-- Empty slots (if < 4) -->
-              <% for(let i=product.images.length; i < 4; i++) { %>
-                <div
-                  class="relative image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
-                  <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                  </div>
-                  <span class="text-xs text-gray-500 text-center">Add Image</span>
-                  <input type="file" name="images[]" accept="image/*" class="hidden">
-                  <div class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                    <span class="text-white text-xs font-bold">
-                      <%= i+1 %>
-                    </span>
-                  </div>
-                </div>
-                <% } %>
+             <% for(let i = product.images.length; i < 4; i++) { %>
+  <div class="relative image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+    <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+      <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+    </div>
+    <span class="text-xs text-gray-500 text-center">Add Image</span>
+    <input type="file" name="replaceImages[<%= i %>]" accept="image/*" class="hidden">
+    <div class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+      <span class="text-white text-xs font-bold"><%= i+1 %></span>
+    </div>
+  </div>
+<% } %>
         </div>
       </div>
 
@@ -197,308 +194,152 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('productForm');
-    const cropModal = document.getElementById('cropModal');
-    const cropImage = document.getElementById('cropImage');
-    const cropBtn = document.getElementById('cropBtn');
-    const cancelCropBtn = document.getElementById('cancelCropBtn');
-    const variantsTbody = document.getElementById('variantsTable');
-    const addVariantBtn = document.querySelector('.add-variant-btn');
+document.addEventListener('DOMContentLoaded', () => {
+  const cropModal = document.getElementById('cropModal');
+  const cropImage = document.getElementById('cropImage');
+  const cropBtn = document.getElementById('cropBtn');
+  const cancelCropBtn = document.getElementById('cancelCropBtn');
+  let cropper = null;
+  let currentInput = null;
 
-    let cropper = null;
-    let currentInput = null;
-
-    /* --------------------------------------------------------------
-       VALIDATION
-    -------------------------------------------------------------- */
-    const nameRegex = /^(?=.*[A-Za-z])[A-Za-z0-9]+(?: [A-Za-z0-9]+)*$/;
-
-    function validateForm() {
-      let isValid = true;
-      let imageCount = 0;                     // <-- LOCAL counter
-
-      // clear previous errors
-      document.querySelectorAll('.error').forEach(el => el.textContent = '');
-      document.querySelectorAll('input, select').forEach(el => el.classList.remove('border-error'));
-
-      /* ----- Basic fields ----- */
-      const productName = document.getElementById('productName');
-      if (!productName.value.trim()) {
-        setError('productNameError', 'Product name is required');
-        isValid = false;
-      } else if (!nameRegex.test(productName.value)) {
-        setError('productNameError', 'Only letters/numbers allowed');
-        isValid = false;
-      }
-
-      const description = document.getElementById('productDescription');
-      if (!description.value.trim()) {
-        setError('productDescriptionError', 'Description is required');
-        isValid = false;
-      }
-
-      const category = document.getElementById('category');
-      if (!category.value) {
-        setError('categoryError', 'Select a category');
-        isValid = false;
-      }
-
-      const brand = document.getElementById('brand');
-      if (!brand.value.trim()) {
-        setError('brandError', 'Brand is required');
-        isValid = false;
-      } else if (!nameRegex.test(brand.value)) {
-        setError('brandError', 'Only letters/numbers allowed');
-        isValid = false;
-      }
-
-      const price = document.getElementById('price');
-      if (!price.value || price.value <= 0) {
-        setError('priceError', 'Price must be > 0');
-        isValid = false;
-      }
-
-      const discount = document.getElementById('discount');
-      if (discount.value && (discount.value < 0 || discount.value > 100)) {
-        setError('discountError', 'Discount 0-100');
-        isValid = false;
-      }
-
-      /* ----- IMAGES ----- */
-      // 1. Existing images that still have a hidden value
-      document.querySelectorAll('.existing-image input[type="hidden"]').forEach(h => {
-        if (h.value.trim()) imageCount++;
-      });
-
-      // 2. New / replaced uploads
-      document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(inp => {
-        if (inp.files && inp.files.length) imageCount++;
-      });
-
-      if (imageCount < 4) {
-        document.getElementById('imageError').textContent = 'Upload at least 4 images';
-        isValid = false;
-      }
-
-      /* ----- VARIANTS ----- */
-      document.querySelectorAll('#variantsTable tr').forEach(row => {
-        const size = row.querySelector('input[name="size[]"]');
-        const addP = row.querySelector('input[name="additionalPrice[]"]');
-        const stock = row.querySelector('input[name="stock[]"]');
-
-        const sizeE = row.querySelector('td:nth-child(1) .error');
-        const addPE = row.querySelector('td:nth-child(2) .error');
-        const stockE = row.querySelector('td:nth-child(3) .error');
-
-        if (size.value.trim() && !nameRegex.test(size.value.trim())) {
-          sizeE.textContent = 'Only letters/numbers';
-          size.classList.add('border-error');
-          isValid = false;
-        }
-
-        if (!addP.value || addP.value < 0) {
-          addPE.textContent = '≥ 0';
-          addP.classList.add('border-error');
-          isValid = false;
-        }
-
-        if (!stock.value || stock.value < 0 || !Number.isInteger(+stock.value)) {
-          stockE.textContent = 'Whole number ≥ 0';
-          stock.classList.add('border-error');
-          isValid = false;
-        }
-      });
-
-      return isValid;
+  // Fixed: Always use replaceImages[index] and exactly 4 slots
+  document.querySelectorAll('.existing-image, .image-upload-slot').forEach((slot, idx) => {
+    // Ensure file input exists and has correct name
+    let input = slot.querySelector('input[type="file"]');
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.name = `replaceImages[${idx}]`;
+      input.classList.add('hidden');
+      slot.appendChild(input);
+    } else {
+      input.name = `replaceImages[${idx}]`; // force correct name
     }
 
-    function setError(id, msg) {
-      const el = document.getElementById(id);
-      el.textContent = msg;
-      const input = el.closest('div').querySelector('input, select');
-      if (input) input.classList.add('border-error');
+    // Click anywhere on slot → open picker (except replace button)
+    slot.addEventListener('click', (e) => {
+      if (e.target.classList.contains('replace-image')) return;
+      input.click();
+    });
+
+    // Replace button
+    const replaceBtn = slot.querySelector('.replace-image');
+    if (replaceBtn) {
+      replaceBtn.addEventListener('click', () => input.click());
     }
 
-    /* --------------------------------------------------------------
-       FORM SUBMIT
-    -------------------------------------------------------------- */
-    form.addEventListener('submit', e => {
-      if (!validateForm()) e.preventDefault();
+    // File selected → crop
+    input.addEventListener('change', () => {
+      const file = input.files[0];
+      if (!file) return;
+
+      currentInput = input;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        cropImage.src = e.target.result;
+        cropModal.style.display = 'flex';
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(cropImage, {
+          aspectRatio: 1,
+          viewMode: 1,
+          autoCropArea: 0.8,
+        });
+      };
+      reader.readAsDataURL(file);
     });
-
-    /* --------------------------------------------------------------
-       IMAGE UPLOAD / REPLACE / CROP
-    -------------------------------------------------------------- */
-  function initSlot(slot) {
-      const input = slot.querySelector('input[type="file"]');
-      if (!input) return;
-
-      slot.addEventListener('click', e => {
-        if (e.target.tagName === 'BUTTON') return; // ignore replace btn
-        input.click();
-      });
-
-      input.addEventListener('change', () => {
-        const file = input.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = ev => {
-          cropImage.src = ev.target.result;
-          currentInput = input;
-          cropModal.style.display = 'flex';
-          if (cropper) cropper.destroy();
-          cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8 });
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    // init all empty slots
-    document.querySelectorAll('.image-upload-slot').forEach(initSlot);
-
-    /* --------------------------------------------------------------
-       REPLACE BUTTON (existing image → upload slot)
-    -------------------------------------------------------------- */
-    document.querySelectorAll('.replace-image').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const container = btn.closest('.existing-image');
-        const hidden = container.querySelector('input[type="hidden"]');
-        const badge = container.querySelector('.absolute.-top-2.-right-2');
-
-        // 1. Convert to upload slot
-        container.className = 'relative image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors';
-        container.innerHTML = `
-          <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-          </div>
-          <span class="text-xs text-gray-500 text-center">Add Image</span>
-        `;
-
-        // 2. Create file input with correct name: replaceImages[idx]
-        const idx = hidden.name.match(/\d+/)[0];
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = 'image/*';
-        fileInput.name = `replaceImages[${idx}]`;
-        fileInput.classList.add('hidden');
-        container.appendChild(fileInput);
-
-        // 3. Keep hidden public_id (will be empty → backend deletes old)
-        hidden.value = ''; // mark for deletion
-        container.appendChild(hidden);
-
-        // 4. Re-attach badge
-        if (badge) container.appendChild(badge);
-
-        // 5. Init new slot
-        initSlot(container);
-        validateForm();
-      });
-    });
-
-    /* --------------------------------------------------------------
-       CROP & USE
-    -------------------------------------------------------------- */
-    cropBtn.addEventListener('click', () => {
-      if (!cropper || !currentInput) return;
-
-      const canvas = cropper.getCroppedCanvas({ width: 800, height: 800 });
-      canvas.toBlob(blob => {
-        const slot = currentInput.closest('.image-upload-slot') || currentInput.closest('.existing-image');
-        const badge = slot.querySelector('.absolute.-top-2.-right-2');
-
-        // Show cropped preview
-        slot.innerHTML = `<img src="${URL.createObjectURL(blob)}" class="w-full h-full object-cover rounded-lg">`;
-        slot.appendChild(currentInput);
-        if (badge) slot.appendChild(badge);
-
-        // Replace file
-        const newFile = new File([blob], currentInput.files[0]?.name || 'cropped.jpg', { type: 'image/jpeg' });
-        const dt = new DataTransfer();
-        dt.items.add(newFile);
-        currentInput.files = dt.files;
-
-        closeCropModal();
-        validateForm();
-      }, 'image/jpeg', 0.95);
-    });
-
-    /* --------------------------------------------------------------
-       CANCEL CROP
-    -------------------------------------------------------------- */
-    const closeCropModal = (clear = false) => {
-      cropModal.style.display = 'none';
-      if (cropper) { cropper.destroy(); cropper = null; }
-
-      if (clear && currentInput) {
-        const slot = currentInput.closest('.image-upload-slot');
-        const badge = slot.querySelector('.absolute.-top-2.-right-2');
-
-        slot.innerHTML = `
-          <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-          </div>
-          <span class="text-xs text-gray-500 text-center">Add Image</span>
-        `;
-        slot.appendChild(currentInput);
-        if (badge) slot.appendChild(badge);
-        currentInput.value = '';
-        validateForm();
-      }
-    };
-
-    cancelCropBtn.addEventListener('click', () => closeCropModal(true));
-    cropModal.addEventListener('click', e => { if (e.target === cropModal) closeCropModal(true); });
-    window.addEventListener('keydown', e => { if (e.key === 'Escape' && cropModal.style.display === 'flex') closeCropModal(true); });
-
-    /* --------------------------------------------------------------
-       VALIDATION – IMAGE COUNT
-    -------------------------------------------------------------- */
-    function countImages() {
-      let count = 0;
-
-      // 1. Existing images with public_id
-      document.querySelectorAll('input[name^="existingImages["]').forEach(h => {
-        if (h.value.trim()) count++;
-      });
-
-      // 2. New/replaced uploads
-      document.querySelectorAll('input[type="file"]').forEach(inp => {
-        if (inp.files && inp.files.length > 0) count++;
-      });
-
-      return count;
-    }
-
-    window.validateForm = function () {
-      // ... (keep your existing validation for name, price, etc.)
-
-      const imageCount = countImages();
-      const imageError = document.getElementById('imageError');
-      if (imageCount !== 4) {
-        imageError.textContent = `Please provide exactly 4 images (currently ${imageCount})`;
-        return false;
-      } else {
-        imageError.textContent = '';
-      }
-
-      // ... rest of validation
-      return true;
-    };
-
-    // Re-run on any change
-    imageGrid.addEventListener('change', validateForm);
-    imageGrid.addEventListener('click', e => {
-      if (e.target.matches('.replace-image')) setTimeout(validateForm, 50);
-    });
-
-    // Initial call
-    validateForm();
   });
+
+  // Crop & Apply
+  cropBtn.addEventListener('click', () => {
+    if (!cropper || !currentInput) return;
+
+    cropper.getCroppedCanvas({ width: 800, height: 800 }).toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const fileName = currentInput.files[0]?.name || 'image.jpg';
+      const newFile = new File([blob], fileName, { type: 'image/jpeg' });
+
+      const slot = currentInput.closest('.existing-image') || currentInput.closest('.image-upload-slot');
+      const badge = slot.querySelector('.absolute.-top-2.-right-2');
+
+      // Replace content with cropped preview
+      slot.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-lg">`;
+      slot.appendChild(currentInput);
+      if (badge) slot.appendChild(badge);
+
+      // Update file input
+      const dt = new DataTransfer();
+      dt.items.add(newFile);
+      currentInput.files = dt.files;
+
+      // Remove old public_id → will be deleted
+      const hidden = slot.querySelector('input[type="hidden"]');
+      if (hidden) hidden.remove();
+
+      closeCropModal();
+      updateImageCount();
+    }, 'image/jpeg', 0.95);
+  });
+
+  // Close modal
+  const closeCropModal = () => {
+    cropModal.style.display = 'none';
+    if (cropper) { cropper.destroy(); cropper = null; }
+    currentInput = null;
+  };
+  cancelCropBtn.onclick = closeCropModal;
+  cropModal.onclick = (e) => { if (e.target === cropModal) closeCropModal(); };
+
+  // Accurate image count
+  function updateImageCount() {
+    let count = 0;
+    document.querySelectorAll('input[name^="existingImages["]'). popularized(h => {
+      if (h.value) count++;
+    });
+    document.querySelectorAll('input[type="file"]').forEach(inp => {
+      if (inp.files.length > 0) count++;
+    });
+
+    const errorEl = document.getElementById('imageError');
+    if (count !== 4) {
+      errorEl.textContent = `Exactly 4 images required (current: ${count})`;
+    } else {
+      errorEl.textContent = '';
+    }
+    return count === 4;
+  }
+
+  // Form submit validation
+  document.getElementById('productForm').addEventListener('submit', (e) => {
+    const isValid = updateImageCount();
+    if (!isValid || document.querySelector('.error:not(:empty)')) {
+      e.preventDefault();
+      alert('Please fix errors and upload exactly 4 images');
+    }
+  });
+
+  // Add Variant
+  document.querySelector('.add-variant-btn')?.addEventListener('click', () => {
+    const tbody = document.getElementById('variantsTable');
+    const row = document.createElement('tr');
+    row.className = 'border-b border-gray-100';
+    row.innerHTML = `
+      <td class="py-4 px-4"><input name="size[]" placeholder="Nil" class="w-full px-3 py-2 border rounded-md"><div class="error"></div></td>
+      <td class="py-4 px-4"><input name="additionalPrice[]" value="0" type="number" class="w-full px-3 py-2 border rounded-md"><div class="error"></div></td>
+      <td class="py-4 px-4"><input name="stock[]" value="0" type="number" class="w-full px-3 py-2 border rounded-md"><div class="error"></div></td>
+      <td class="py-4 px-4"><button type="button" class="remove-variant text-red-500 hover:text-red-700">Remove</button></td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  // Remove variant
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-variant') && document.querySelectorAll('#variantsTable tr').length > 1) {
+      e.target.closest('tr').remove();
+    }
+  });
+
+  // Initial check
+  updateImageCount();
+});
 </script>

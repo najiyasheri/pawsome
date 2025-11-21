@@ -164,9 +164,17 @@
       <div class="flex items-center justify-end space-x-4 pt-6 border-t">
         <a href="/admin/product"><button type="button"
             class="px-6 py-2 text-sm font-medium text-gray-700 bg-white border rounded-md">Cancel</button></a>
-        <button type="submit"
-          class="px-6 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600">Update
-          Product</button>
+       <button
+  type="submit"
+  id="submitBtn"
+  class="relative px-6 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition-colors flex items-center gap-2"
+>
+  <span id="submitText">Update Product</span>
+  <svg id="loadingSpinner" class="hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  </svg>
+</button>
       </div>
     </form>
   </div>
@@ -289,14 +297,25 @@ document.addEventListener('DOMContentLoaded', () => {
     return isValid;
   }
 
-  // Block form submit if invalid
-  form.addEventListener('submit', e => {
-    if (!validateForm()) {
-      e.preventDefault();
-      alert('Please fix all errors before updating');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  });
+// Block form submit if invalid + disable button
+form.addEventListener('submit', e => {
+  if (!validateForm()) {
+    e.preventDefault();
+    alert('Please fix all errors before updating');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // Disable button + show loading
+  const submitBtn = document.getElementById('submitBtn');
+  const submitText = document.getElementById('submitText');
+  const loadingSpinner = document.getElementById('loadingSpinner');
+
+  submitBtn.disabled = true;
+  submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+  submitText.textContent = 'Updating...';
+  loadingSpinner.classList.remove('hidden');
+});
 
   // Image slots (existing + empty) — your logic enhanced
   document.querySelectorAll('.existing-image, .image-upload-slot').forEach((slot, idx) => {

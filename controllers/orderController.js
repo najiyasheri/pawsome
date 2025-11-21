@@ -290,7 +290,7 @@ const updateOrderStatus = async (req, res) => {
     order.status = status;
     if (order.status === "Delivered" && !order.deliveredDate) {
       order.deliveredDate = new Date();
-      order.paymentStatus = 'Success';
+      order.paymentStatus = "Success";
     }
     await order.save();
     res.redirect(`/admin/order/${orderId}`);
@@ -330,7 +330,7 @@ const loadUserOrders = async (req, res) => {
       {
         $addFields: {
           "items.name": "$items.productInfo.name",
-          "items.image": { $arrayElemAt: ["$items.productInfo.images", 0] },
+          "items.image": { $arrayElemAt: ["$items.productInfo.images.url", 0] },
           "items.price": "$items.price",
           "items.subtotal": { $multiply: ["$items.price", "$items.quantity"] },
         },
@@ -356,22 +356,19 @@ const loadUserOrders = async (req, res) => {
       { $limit: limit },
     ]);
     const totalPages = Math.ceil(totalOrders / limit);
-      if (
-        req.headers.accept &&
-        req.headers.accept.includes("application/json")
-      ) {
-        return res.json({
-          orders,
-          totalPages,
-          currentPage: page,
-        });
-      }
+    if (req.headers.accept && req.headers.accept.includes("application/json")) {
+      return res.json({
+        orders,
+        totalPages,
+        currentPage: page,
+      });
+    }
 
     res.render("user/myOrder", {
       title: "MyOrders",
       layout: "layouts/userLayout",
       orders,
-      currentPage:page,
+      currentPage: page,
       totalPages,
     });
   } catch (err) {
@@ -415,7 +412,7 @@ const loadUserOrderDetail = async (req, res) => {
           ...item.toObject(),
           name: product?.name || "N/A",
           price,
-          image: product?.images?.[0] || "",
+          image: product?.images?.[0].url || "",
           subtotal: price * item.quantity,
         };
       })
@@ -705,29 +702,29 @@ const retryPayment = async (req, res) => {
       });
     }
 
-     for (const item of order.items) {
-       const product = await Product.findById(item.productId);
-       if (!product) {
-         return res
-           .status(400)
-           .json({ success: false, message: `${item.name} no longer exists` });
-       }
+    for (const item of order.items) {
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        return res
+          .status(400)
+          .json({ success: false, message: `${item.name} no longer exists` });
+      }
 
-       let availableStock;
-       console.log(item)
-       if (item.variant?.id) {
-         const variant = await Variant.findById(item.variant.id);
-         console.log(variant);
-         availableStock = variant?.stock ?? 0;
-       } 
-       console.log(availableStock)
-       if (availableStock < item.quantity) {
-         return res.status(400).json({
-           success: false,
-           message: `Product '${product.name}' is out of stock`,
-         });
-       }
-     }
+      let availableStock;
+      console.log(item);
+      if (item.variant?.id) {
+        const variant = await Variant.findById(item.variant.id);
+        console.log(variant);
+        availableStock = variant?.stock ?? 0;
+      }
+      console.log(availableStock);
+      if (availableStock < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Product '${product.name}' is out of stock`,
+        });
+      }
+    }
 
     if (parseFloat(totalAmount) !== order.finalAmount) {
       return res.status(400).json({

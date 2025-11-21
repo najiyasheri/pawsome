@@ -73,7 +73,7 @@ const addProduct = async (req, res) => {
         }))
       : [];
 
-    if (images.length < 4) {
+    if (images.length !== 4) {
       // Delete uploaded ones if less than 4
       for (const img of images) {
         await deleteFromCloudinary(img.public_id);
@@ -309,7 +309,6 @@ const userProducts = async (req, res) => {
       }
     }
 
-
     let sortOption = { createdAt: -1 };
     if (sort) {
       if (sort === "name-az") sortOption = { name: 1 };
@@ -340,13 +339,13 @@ const userProducts = async (req, res) => {
             $filter: {
               input: "$variants",
               as: "variant",
-                  cond: {
-              $and: [
-                { $eq: ["$$variant.status", true] },
-                { $gt: ["$$variant.stock", 0] },
-                true
-              ],
-            },
+              cond: {
+                $and: [
+                  { $eq: ["$$variant.status", true] },
+                  { $gt: ["$$variant.stock", 0] },
+                  true,
+                ],
+              },
             },
           },
         },
@@ -761,14 +760,14 @@ const loadProductDetails = async (req, res) => {
       };
     });
 
-      const breadcrumbs = [
-        { name: "Home", url: "/" },
-        {
-          name: product.category?.name || "Category",
-          url: `/products?category=${product.categoryId}`,
-        },
-        { name: product.name, url: null }, 
-      ];
+    const breadcrumbs = [
+      { name: "Home", url: "/" },
+      {
+        name: product.category?.name || "Category",
+        url: `/products?category=${product.categoryId}`,
+      },
+      { name: product.name, url: null },
+    ];
 
     res.render("user/productDetail", {
       title: "Product Details",

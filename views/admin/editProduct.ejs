@@ -195,16 +195,108 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('productForm');
   const cropModal = document.getElementById('cropModal');
   const cropImage = document.getElementById('cropImage');
   const cropBtn = document.getElementById('cropBtn');
   const cancelCropBtn = document.getElementById('cancelCropBtn');
+  const imageError = document.getElementById('imageError');
+
   let cropper = null;
   let currentInput = null;
 
-  // Fixed: Always use replaceImages[index] and exactly 4 slots
+  const nameRegex = /^[A-Za-z0-9][A-Za-z0-9\s]*[A-Za-z0-9]$/;
+
+  // Clear all errors
+  function clearErrors() {
+    document.querySelectorAll('.error').forEach(el => el.textContent = '');
+    document.querySelectorAll('input, select').forEach(el => el.classList.remove('border-error'));
+  }
+
+  // Set error message + red border
+  function setError(id, message) {
+    const errorEl = document.getElementById(id);
+    if (errorEl) errorEl.textContent = message;
+    const input = errorEl?.closest('div')?.querySelector('input, select');
+    if (input) input.classList.add('border-error');
+  }
+
+  // Full form validation
+  function validateForm() {
+    clearErrors();
+    let isValid = true;
+
+    // Basic fields
+    const name = document.getElementById('productName').value.trim();
+    const description = document.getElementById('productDescription').value.trim();
+    const category = document.getElementById('category').value;
+    const brand = document.getElementById('brand').value.trim();
+    const price = document.getElementById('price').value;
+    const discount = document.getElementById('discount').value;
+
+    if (!name) { setError('productNameError', 'Product name required'); isValid = false; }
+    else if (!nameRegex.test(name)) { setError('productNameError', 'Invalid name'); isValid = false; }
+
+    if (!description) { setError('productDescriptionError', 'Description required'); isValid = false; }
+    if (!category) { setError('categoryError', 'Select a category'); isValid = false; }
+    if (!brand) { setError('brandError', 'Brand required'); isValid = false; }
+    else if (!nameRegex.test(brand)) { setError('brandError', 'Invalid brand'); isValid = false; }
+
+    if (!price || price <= 0) { setError('priceError', 'Price must be > 0'); isValid = false; }
+    if (discount && (discount < 0 || discount > 100)) { setError('discountError', 'Discount 0-100%'); isValid = false; }
+
+    // Image count (exactly 4)
+    let imageCount = 0;
+    document.querySelectorAll('input[name^="existingImages["]').forEach(h => {
+      if (h.value.trim()) imageCount++;
+    });
+    document.querySelectorAll('input[type="file"]').forEach(inp => {
+      if (inp.files?.length > 0) imageCount++;
+    });
+
+    if (imageCount !== 4) {
+      imageError.textContent = `Exactly 4 images required (current: ${imageCount})`;
+      isValid = false;
+    } else {
+      imageError.textContent = '';
+    }
+
+    // Variant validation
+    document.querySelectorAll('#variantsTable tr').forEach(row => {
+      const size = row.querySelector('input[name="size[]"]');
+      const addPrice = row.querySelector('input[name="additionalPrice[]"]');
+      const stock = row.querySelector('input[name="stock[]"]');
+
+      const errors = row.querySelectorAll('.error');
+
+      if (size.value.trim() && !nameRegex.test(size.value.trim())) {
+        errors[0].textContent = 'Invalid size';
+        isValid = false;
+      }
+      if (addPrice.value < 0) {
+        errors[1].textContent = 'Cannot be negative';
+        isValid = false;
+      }
+      if (!stock.value || stock.value < 0 || !Number.isInteger(+stock.value)) {
+        errors[2].textContent = 'Must be whole number ≥ 0';
+        isValid = false;
+      }
+    });
+
+    return isValid;
+  }
+
+  // Block form submit if invalid
+  form.addEventListener('submit', e => {
+    if (!validateForm()) {
+      e.preventDefault();
+      alert('Please fix all errors before updating');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  // Image slots (existing + empty) — your logic enhanced
   document.querySelectorAll('.existing-image, .image-upload-slot').forEach((slot, idx) => {
-    // Ensure file input exists and has correct name
     let input = slot.querySelector('input[type="file"]');
     if (!input) {
       input = document.createElement('input');
@@ -214,29 +306,24 @@ document.addEventListener('DOMContentLoaded', () => {
       input.classList.add('hidden');
       slot.appendChild(input);
     } else {
-      input.name = `replaceImages[${idx}]`; // force correct name
+      input.name = `replaceImages[${idx}]`;
     }
 
-    // Click anywhere on slot → open picker (except replace button)
-    slot.addEventListener('click', (e) => {
+    slot.addEventListener('click', e => {
       if (e.target.classList.contains('replace-image')) return;
       input.click();
     });
 
-    // Replace button
     const replaceBtn = slot.querySelector('.replace-image');
-    if (replaceBtn) {
-      replaceBtn.addEventListener('click', () => input.click());
-    }
+    if (replaceBtn) replaceBtn.addEventListener('click', () => input.click());
 
-    // File selected → crop
     input.addEventListener('change', () => {
       const file = input.files[0];
       if (!file) return;
 
       currentInput = input;
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         cropImage.src = e.target.result;
         cropModal.style.display = 'flex';
         if (cropper) cropper.destroy();
@@ -254,69 +341,36 @@ document.addEventListener('DOMContentLoaded', () => {
   cropBtn.addEventListener('click', () => {
     if (!cropper || !currentInput) return;
 
-    cropper.getCroppedCanvas({ width: 800, height: 800 }).toBlob((blob) => {
+    cropper.getCroppedCanvas({ width: 800, height: 800 }).toBlob(blob => {
       const url = URL.createObjectURL(blob);
-      const fileName = currentInput.files[0]?.name || 'image.jpg';
-      const newFile = new File([blob], fileName, { type: 'image/jpeg' });
-
-      const slot = currentInput.closest('.existing-image') || currentInput.closest('.image-upload-slot');
-      const badge = slot.querySelector('.absolute.-top-2.-right-2');
-
-      // Replace content with cropped preview
-      slot.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-lg">`;
-      slot.appendChild(currentInput);
-      if (badge) slot.appendChild(badge);
-
-      // Update file input
+      const newFile = new File([blob], 'cropped.jpg', { type: 'image/jpeg' });
       const dt = new DataTransfer();
       dt.items.add(newFile);
       currentInput.files = dt.files;
 
-      // Remove old public_id → will be deleted
+      const slot = currentInput.closest('.existing-image') || currentInput.closest('.image-upload-slot');
+      const badge = slot.querySelector('.absolute.-top-2.-right-2');
+
+      slot.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-lg">`;
+      slot.appendChild(currentInput);
+      if (badge) slot.appendChild(badge);
+
+      // Remove old public_id (marks for deletion)
       const hidden = slot.querySelector('input[type="hidden"]');
       if (hidden) hidden.remove();
 
       closeCropModal();
-      updateImageCount();
+      validateForm();
     }, 'image/jpeg', 0.95);
   });
 
-  // Close modal
-  const closeCropModal = () => {
+  function closeCropModal() {
     cropModal.style.display = 'none';
     if (cropper) { cropper.destroy(); cropper = null; }
     currentInput = null;
-  };
-  cancelCropBtn.onclick = closeCropModal;
-  cropModal.onclick = (e) => { if (e.target === cropModal) closeCropModal(); };
-
-  // Accurate image count
-  function updateImageCount() {
-    let count = 0;
-    document.querySelectorAll('input[name^="existingImages["]'). popularized(h => {
-      if (h.value) count++;
-    });
-    document.querySelectorAll('input[type="file"]').forEach(inp => {
-      if (inp.files.length > 0) count++;
-    });
-
-    const errorEl = document.getElementById('imageError');
-    if (count !== 4) {
-      errorEl.textContent = `Exactly 4 images required (current: ${count})`;
-    } else {
-      errorEl.textContent = '';
-    }
-    return count === 4;
   }
-
-  // Form submit validation
-  document.getElementById('productForm').addEventListener('submit', (e) => {
-    const isValid = updateImageCount();
-    if (!isValid || document.querySelector('.error:not(:empty)')) {
-      e.preventDefault();
-      alert('Please fix errors and upload exactly 4 images');
-    }
-  });
+  cancelCropBtn.onclick = closeCropModal;
+  cropModal.onclick = e => { if (e.target === cropModal) closeCropModal(); };
 
   // Add Variant
   document.querySelector('.add-variant-btn')?.addEventListener('click', () => {
@@ -324,22 +378,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const row = document.createElement('tr');
     row.className = 'border-b border-gray-100';
     row.innerHTML = `
-      <td class="py-4 px-4"><input name="size[]" placeholder="Nil" class="w-full px-3 py-2 border rounded-md"><div class="error"></div></td>
-      <td class="py-4 px-4"><input name="additionalPrice[]" value="0" type="number" class="w-full px-3 py-2 border rounded-md"><div class="error"></div></td>
-      <td class="py-4 px-4"><input name="stock[]" value="0" type="number" class="w-full px-3 py-2 border rounded-md"><div class="error"></div></td>
-      <td class="py-4 px-4"><button type="button" class="remove-variant text-red-500 hover:text-red-700">Remove</button></td>
+      <td class="py-4 px-4">
+        <input name="size[]" placeholder="Nil" class="w-full px-3 py-2 border rounded-md">
+        <div class="error"></div>
+      </td>
+      <td class="py-4 px-4">
+        <input name="additionalPrice[]" value="0" type="number" class="w-full px-3 py-2 border rounded-md">
+        <div class="error"></div>
+      </td>
+      <td class="py-4 px-4">
+        <input name="stock[]" value="0" type="number" class="w-full px-3 py-2 border rounded-md">
+        <div class="error"></div>
+      </td>
+      <td class="py-4 px-4">
+        <button type="button" class="remove-variant text-red-500 hover:text-red-700">Remove</button>
+      </td>
     `;
     tbody.appendChild(row);
   });
 
   // Remove variant
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', e => {
     if (e.target.classList.contains('remove-variant') && document.querySelectorAll('#variantsTable tr').length > 1) {
       e.target.closest('tr').remove();
     }
   });
 
-  // Initial check
-  updateImageCount();
+  // Initial validation
+  validateForm();
 });
 </script>

@@ -207,6 +207,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const nameRegex = /^[A-Za-z0-9][A-Za-z0-9\s]*[A-Za-z0-9]$/;
 
+  const sizeRegex = /^(?!.* {2})[A-Za-z0-9]+(?:[ -][A-Za-z0-9]+)*$/;
+
+
   // Clear all errors
   function clearErrors() {
     document.querySelectorAll('.error').forEach(el => el.textContent = '');
@@ -269,8 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const errors = row.querySelectorAll('.error');
 
-      if (size.value.trim() && !nameRegex.test(size.value.trim())) {
-        errors[0].textContent = 'Invalid size';
+      if (size.value.trim() && !sizeRegex.test(size.value.trim())) {
+        errors[0].textContent = 'Invalid size format';
         isValid = false;
       }
       if (addPrice.value < 0) {

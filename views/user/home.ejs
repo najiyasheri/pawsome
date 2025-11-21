@@ -56,7 +56,7 @@
 
         <a class="product-link" href="/product/<%= p._id %>">
           <img class="p-6 rounded-t-lg h-48 w-full object-contain product-img"
-            src="/Uploads/<%= p.images?.[0] || 'default.jpg' %>" alt="<%= p.name %>">
+            src="<%= p.images?.[0].url || 'default.jpg' %>" alt="<%= p.name %>">
         </a>
 
         <div class="px-5 pb-5 flex flex-col flex-1">

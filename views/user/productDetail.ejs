@@ -87,7 +87,7 @@
         <% product.images.forEach(img=> { %>
           <img src="<%= img.url %>"
             class="w-20 h-20 border rounded-md cursor-pointer hover:ring-2 hover:ring-gray-500"
-            onclick="updateMainImage('/Uploads/<%= img %>')" alt="<%= product.name %> thumbnail">
+            onclick="updateMainImage('<%= img.url %>')" alt="<%= product.name %> thumbnail">
           <% }) %>
       </div>
     </div>
@@ -216,7 +216,7 @@
           <!-- Product Image -->
           <a href="/product/<%= rp._id %>">
             <img class="p-6 rounded-t-lg h-40 w-full object-contain"
-              src="/Uploads/<%= (rp.images && rp.images.length > 0) ? rp.images[0] : '/default.jpg' %>"
+              src="<%= (rp.images && rp.images.length > 0) ? rp.images[0].url : '/default.jpg' %>"
               alt="<%= rp.name %>" />
           </a>
           <!-- Content -->

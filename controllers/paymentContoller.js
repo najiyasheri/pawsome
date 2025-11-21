@@ -194,7 +194,7 @@ const processPayment = async (req, res) => {
       return {
         productId: product._id,
         name: product.name,
-        image: product.images?.[0],
+        image: product.images?.[0].url,
         variant: {
           id: variant?._id,
           size: variant?.size,

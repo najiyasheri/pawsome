@@ -33,7 +33,7 @@
                         data-item-id="<%= item.productId %>-<%= item.variantId %>"
                         data-out-of-stock="<%= item.stock === 0 %>">
                         <div class="flex items-center gap-4">
-                            <img src="/uploads/<%= item.image %>" alt="<%= item.name %>" class="w-16 h-16 rounded">
+                            <img src="<%= item.image.url %>" alt="<%= item.name %>" class="w-16 h-16 rounded">
                             <div>
                                 <p class="font-medium">
                                     <%= item.name %>

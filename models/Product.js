@@ -19,10 +19,12 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    images: {
-      type: [String],
-      default: [],
-    },
+    images: [
+      {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+    ],
     return_within: {
       type: Date,
       default: () => {
@@ -45,11 +47,11 @@ const productSchema = new mongoose.Schema(
       get: (v) => parseFloat(v.toString()),
       default: 0,
     },
-  }, {
+  },
+  {
     timestamps: true,
   },
-   { toJSON: { getters: true }, toObject: { getters: true } },
- 
+  { toJSON: { getters: true }, toObject: { getters: true } }
 );
 
 module.exports = mongoose.model("Product", productSchema);

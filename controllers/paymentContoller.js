@@ -61,7 +61,7 @@ const loadPayment = async (req, res) => {
           productId: product._id,
           variantId: variant._id,
           name: product.name,
-          image: product.images?.[0],
+          image: product.images?.[0].url,
           size: variant.size,
           color: variant.color,
           quantity: item.quantity,
@@ -194,7 +194,7 @@ const processPayment = async (req, res) => {
       return {
         productId: product._id,
         name: product.name,
-        image: product.images?.[0],
+        image: product.images?.[0].url,
         variant: {
           id: variant?._id,
           size: variant?.size,

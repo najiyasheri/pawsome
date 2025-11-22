@@ -80,14 +80,14 @@
              c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
         </button>
-        <img id="mainImage" src="/Uploads/<%= product.images[0] %>" data-zoom="/Uploads/<%= product.images[0] %>"
+        <img id="mainImage" src="<%= product.images[0].url %>" data-zoom="<%= product.images[0].url %>"
           alt="<%= product.name %>" class="w-full h-[400px] object-contain" />
       </div>
       <div class="flex gap-3 mt-4">
         <% product.images.forEach(img=> { %>
-          <img src="/Uploads/<%= img %>"
+          <img src="<%= img.url %>"
             class="w-20 h-20 border rounded-md cursor-pointer hover:ring-2 hover:ring-gray-500"
-            onclick="updateMainImage('/Uploads/<%= img %>')" alt="<%= product.name %> thumbnail">
+            onclick="updateMainImage('<%= img.url %>')" alt="<%= product.name %> thumbnail">
           <% }) %>
       </div>
     </div>
@@ -216,7 +216,7 @@
           <!-- Product Image -->
           <a href="/product/<%= rp._id %>">
             <img class="p-6 rounded-t-lg h-40 w-full object-contain"
-              src="/Uploads/<%= (rp.images && rp.images.length > 0) ? rp.images[0] : '/default.jpg' %>"
+              src="<%= (rp.images && rp.images.length > 0) ? rp.images[0].url : '/default.jpg' %>"
               alt="<%= rp.name %>" />
           </a>
           <!-- Content -->

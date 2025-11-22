@@ -71,17 +71,21 @@
       </div>
 
       <!-- Product Images -->
+      <!-- Product Images -->
       <div class="mb-8">
-        <h2 class="text-lg font-semibold text-gray-900 mb-6">Product Images (Minimum 4)</h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-6">Product Images (Exactly 4)</h2>
         <div id="imageError" class="error mb-4"></div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <!-- Existing Images -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="imageGrid">
+          <!-- Existing Images (from Cloudinary) -->
           <% product.images.forEach((img, idx)=> { %>
             <div class="relative existing-image">
-              <img src="/uploads/<%= img %>" class="w-full h-full object-cover rounded-lg">
-              <input type="hidden" name="images[<%= idx %>]" value="<%= img %>">
+              <img src="<%= img.url %>" class="w-full h-full object-cover rounded-lg" alt="Product image <%= idx+1 %>">
+              <!-- Keep public_id so backend knows which one to delete -->
+              <input type="hidden" name="existingImages[<%= idx %>]" value="<%= img.public_id %>">
               <button type="button"
-                class="replace-image absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded hover:bg-blue-600">Replace</button>
+                class="replace-image absolute top-2 right-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded hover:bg-blue-600">
+                Replace
+              </button>
               <div class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
                 <span class="text-white text-xs font-bold">
                   <%= idx+1 %>
@@ -89,24 +93,22 @@
               </div>
             </div>
             <% }) %>
-              <% for(let i=0; i < Math.max(0, 4 - product.images.length); i++) { %>
-                <div
-                  class="relative image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
-                  <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                  </div>
-                  <span class="text-xs text-gray-500 text-center">Add Image</span>
-                  <input type="file" name="images[]" accept="image/*" class="hidden">
-                  <div
-                    class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                    <span class="text-white text-xs font-bold">
-                      <%= product.images.length + i + 1 %>
-                    </span>
-                  </div>
-                </div>
-                <% } %>
+      
+              <!-- Empty slots (if < 4) -->
+             <% for(let i = product.images.length; i < 4; i++) { %>
+  <div class="relative image-upload-slot rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
+    <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
+      <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+    </div>
+    <span class="text-xs text-gray-500 text-center">Add Image</span>
+    <input type="file" name="replaceImages[<%= i %>]" accept="image/*" class="hidden">
+    <div class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+      <span class="text-white text-xs font-bold"><%= i+1 %></span>
+    </div>
+  </div>
+<% } %>
         </div>
       </div>
 
@@ -162,9 +164,17 @@
       <div class="flex items-center justify-end space-x-4 pt-6 border-t">
         <a href="/admin/product"><button type="button"
             class="px-6 py-2 text-sm font-medium text-gray-700 bg-white border rounded-md">Cancel</button></a>
-        <button type="submit"
-          class="px-6 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600">Update
-          Product</button>
+       <button
+  type="submit"
+  id="submitBtn"
+  class="relative px-6 py-2 text-sm font-medium text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition-colors flex items-center gap-2"
+>
+  <span id="submitText">Update Product</span>
+  <svg id="loadingSpinner" class="hidden w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  </svg>
+</button>
       </div>
     </form>
   </div>
@@ -192,311 +202,231 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('productForm');
-    const cropModal = document.getElementById('cropModal');
-    const cropImage = document.getElementById('cropImage');
-    const cropBtn = document.getElementById('cropBtn');
-    const cancelCropBtn = document.getElementById('cancelCropBtn');
-    const variantsTbody = document.getElementById('variantsTable');
-    const addVariantBtn = document.querySelector('.add-variant-btn');
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('productForm');
+  const cropModal = document.getElementById('cropModal');
+  const cropImage = document.getElementById('cropImage');
+  const cropBtn = document.getElementById('cropBtn');
+  const cancelCropBtn = document.getElementById('cancelCropBtn');
+  const imageError = document.getElementById('imageError');
 
-    let cropper = null;
-    let currentInput = null;
+  let cropper = null;
+  let currentInput = null;
 
-    /* --------------------------------------------------------------
-       VALIDATION
-    -------------------------------------------------------------- */
-    const nameRegex = /^(?=.*[A-Za-z])[A-Za-z0-9]+(?: [A-Za-z0-9]+)*$/;
+  const nameRegex = /^[A-Za-z0-9][A-Za-z0-9\s]*[A-Za-z0-9]$/;
 
-    function validateForm() {
-      let isValid = true;
-      let imageCount = 0;                     // <-- LOCAL counter
+  const sizeRegex = /^(?!.* {2})[A-Za-z0-9]+(?:[ -][A-Za-z0-9]+)*$/;
 
-      // clear previous errors
-      document.querySelectorAll('.error').forEach(el => el.textContent = '');
-      document.querySelectorAll('input, select').forEach(el => el.classList.remove('border-error'));
 
-      /* ----- Basic fields ----- */
-      const productName = document.getElementById('productName');
-      if (!productName.value.trim()) {
-        setError('productNameError', 'Product name is required');
-        isValid = false;
-      } else if (!nameRegex.test(productName.value)) {
-        setError('productNameError', 'Only letters/numbers allowed');
-        isValid = false;
-      }
+  // Clear all errors
+  function clearErrors() {
+    document.querySelectorAll('.error').forEach(el => el.textContent = '');
+    document.querySelectorAll('input, select').forEach(el => el.classList.remove('border-error'));
+  }
 
-      const description = document.getElementById('productDescription');
-      if (!description.value.trim()) {
-        setError('productDescriptionError', 'Description is required');
-        isValid = false;
-      }
+  // Set error message + red border
+  function setError(id, message) {
+    const errorEl = document.getElementById(id);
+    if (errorEl) errorEl.textContent = message;
+    const input = errorEl?.closest('div')?.querySelector('input, select');
+    if (input) input.classList.add('border-error');
+  }
 
-      const category = document.getElementById('category');
-      if (!category.value) {
-        setError('categoryError', 'Select a category');
-        isValid = false;
-      }
+  // Full form validation
+  function validateForm() {
+    clearErrors();
+    let isValid = true;
 
-      const brand = document.getElementById('brand');
-      if (!brand.value.trim()) {
-        setError('brandError', 'Brand is required');
-        isValid = false;
-      } else if (!nameRegex.test(brand.value)) {
-        setError('brandError', 'Only letters/numbers allowed');
-        isValid = false;
-      }
+    // Basic fields
+    const name = document.getElementById('productName').value.trim();
+    const description = document.getElementById('productDescription').value.trim();
+    const category = document.getElementById('category').value;
+    const brand = document.getElementById('brand').value.trim();
+    const price = document.getElementById('price').value;
+    const discount = document.getElementById('discount').value;
 
-      const price = document.getElementById('price');
-      if (!price.value || price.value <= 0) {
-        setError('priceError', 'Price must be > 0');
-        isValid = false;
-      }
+    if (!name) { setError('productNameError', 'Product name required'); isValid = false; }
+    else if (!nameRegex.test(name)) { setError('productNameError', 'Invalid name'); isValid = false; }
 
-      const discount = document.getElementById('discount');
-      if (discount.value && (discount.value < 0 || discount.value > 100)) {
-        setError('discountError', 'Discount 0-100');
-        isValid = false;
-      }
+    if (!description) { setError('productDescriptionError', 'Description required'); isValid = false; }
+    if (!category) { setError('categoryError', 'Select a category'); isValid = false; }
+    if (!brand) { setError('brandError', 'Brand required'); isValid = false; }
+    else if (!nameRegex.test(brand)) { setError('brandError', 'Invalid brand'); isValid = false; }
 
-      /* ----- IMAGES ----- */
-      // 1. Existing images that still have a hidden value
-      document.querySelectorAll('.existing-image input[type="hidden"]').forEach(h => {
-        if (h.value.trim()) imageCount++;
-      });
+    if (!price || price <= 0) { setError('priceError', 'Price must be > 0'); isValid = false; }
+    if (discount && (discount < 0 || discount > 100)) { setError('discountError', 'Discount 0-100%'); isValid = false; }
 
-      // 2. New / replaced uploads
-      document.querySelectorAll('.image-upload-slot input[type="file"]').forEach(inp => {
-        if (inp.files && inp.files.length) imageCount++;
-      });
-
-      if (imageCount < 4) {
-        document.getElementById('imageError').textContent = 'Upload at least 4 images';
-        isValid = false;
-      }
-
-      /* ----- VARIANTS ----- */
-      document.querySelectorAll('#variantsTable tr').forEach(row => {
-        const size = row.querySelector('input[name="size[]"]');
-        const addP = row.querySelector('input[name="additionalPrice[]"]');
-        const stock = row.querySelector('input[name="stock[]"]');
-
-        const sizeE = row.querySelector('td:nth-child(1) .error');
-        const addPE = row.querySelector('td:nth-child(2) .error');
-        const stockE = row.querySelector('td:nth-child(3) .error');
-
-        if (size.value.trim() && !nameRegex.test(size.value.trim())) {
-          sizeE.textContent = 'Only letters/numbers';
-          size.classList.add('border-error');
-          isValid = false;
-        }
-
-        if (!addP.value || addP.value < 0) {
-          addPE.textContent = '≥ 0';
-          addP.classList.add('border-error');
-          isValid = false;
-        }
-
-        if (!stock.value || stock.value < 0 || !Number.isInteger(+stock.value)) {
-          stockE.textContent = 'Whole number ≥ 0';
-          stock.classList.add('border-error');
-          isValid = false;
-        }
-      });
-
-      return isValid;
-    }
-
-    function setError(id, msg) {
-      const el = document.getElementById(id);
-      el.textContent = msg;
-      const input = el.closest('div').querySelector('input, select');
-      if (input) input.classList.add('border-error');
-    }
-
-    /* --------------------------------------------------------------
-       FORM SUBMIT
-    -------------------------------------------------------------- */
-    form.addEventListener('submit', e => {
-      if (!validateForm()) e.preventDefault();
+    // Image count (exactly 4)
+    let imageCount = 0;
+    document.querySelectorAll('input[name^="existingImages["]').forEach(h => {
+      if (h.value.trim()) imageCount++;
+    });
+    document.querySelectorAll('input[type="file"]').forEach(inp => {
+      if (inp.files?.length > 0) imageCount++;
     });
 
-    /* --------------------------------------------------------------
-       IMAGE UPLOAD / REPLACE / CROP
-    -------------------------------------------------------------- */
-    function initSlot(slot) {
-      const input = slot.querySelector('input[type="file"]');
-      if (!input) return;
-
-      // click slot → trigger file input
-      slot.addEventListener('click', () => input.click());
-
-      // file selected → open cropper
-      input.addEventListener('change', () => {
-        const file = input.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = ev => {
-          cropImage.src = ev.target.result;
-          currentInput = input;
-          cropModal.style.display = 'flex';
-          if (cropper) cropper.destroy();
-          cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1 });
-        };
-        reader.readAsDataURL(file);
-      });
+    if (imageCount !== 4) {
+      imageError.textContent = `Exactly 4 images required (current: ${imageCount})`;
+      isValid = false;
+    } else {
+      imageError.textContent = '';
     }
 
-    // initialise all slots (new + replaced later)
-    document.querySelectorAll('.image-upload-slot').forEach(initSlot);
+    // Variant validation
+    document.querySelectorAll('#variantsTable tr').forEach(row => {
+      const size = row.querySelector('input[name="size[]"]');
+      const addPrice = row.querySelector('input[name="additionalPrice[]"]');
+      const stock = row.querySelector('input[name="stock[]"]');
 
-    // ---- Replace button on existing images ----
-    document.querySelectorAll('.replace-image').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const container = btn.closest('.existing-image');
-        const hidden = container.querySelector('input[type="hidden"]');
-        const idxBadge = container.querySelector('.absolute.-top-2.-right-2');
+      const errors = row.querySelectorAll('.error');
 
-        // turn existing block into an upload slot
-        container.classList.remove('existing-image');
-        container.classList.add('image-upload-slot', 'flex', 'flex-col', 'items-center', 'justify-center', 'cursor-pointer');
-        container.innerHTML = `
-        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-        </div>
-        <span class="text-xs text-gray-500 text-center">Add Image</span>
-      `;
-
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = 'image/*';
-        fileInput.classList.add('hidden');
-        fileInput.name = hidden ? `replaceImages[${hidden.name.match(/\d+/)[0]}]` : 'images[]';
-
-        container.appendChild(fileInput);
-        if (hidden) {
-          hidden.value = '';                 // mark old image for removal on server
-          container.appendChild(hidden);
-        }
-        if (idxBadge) container.appendChild(idxBadge);
-
-        initSlot(container);
-        validateForm();
-      });
-    });
-
-    // ---- Crop & Use ----
-    cropBtn.addEventListener('click', () => {
-      if (!cropper || !currentInput) return;
-
-      const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
-      canvas.toBlob(blob => {
-        const slot = currentInput.closest('.image-upload-slot') || currentInput.closest('.existing-image');
-        const badge = slot.querySelector('.absolute.-top-2.-right-2');
-
-        // replace slot content with cropped image
-        slot.innerHTML = `<img src="${URL.createObjectURL(blob)}" class="w-full h-full object-cover rounded-lg">`;
-        slot.appendChild(currentInput);
-        if (badge) slot.appendChild(badge);
-
-        // replace file in input
-        const newFile = new File([blob], currentInput.files[0]?.name || 'cropped.jpg', { type: 'image/jpeg' });
-        const dt = new DataTransfer();
-        dt.items.add(newFile);
-        currentInput.files = dt.files;
-
-        closeCropModal();
-        validateForm();
-      }, 'image/jpeg', 0.95);
-    });
-
-    // ---- Cancel crop (remove selected file) ----
-    cancelCropBtn.addEventListener('click', () => closeCropModal(true));
-    cropModal.addEventListener('click', e => { if (e.target === cropModal) closeCropModal(true); });
-    window.addEventListener('keydown', e => { if (e.key === 'Escape' && cropModal.style.display === 'flex') closeCropModal(true); });
-
-    function closeCropModal(clear = false) {
-      cropModal.style.display = 'none';
-      if (cropper) { cropper.destroy(); cropper = null; }
-
-      if (clear && currentInput) {
-        const slot = currentInput.closest('.image-upload-slot');
-        const badge = slot.querySelector('.absolute.-top-2.-right-2');
-
-        // restore placeholder
-        slot.innerHTML = `
-        <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-        </div>
-        <span class="text-xs text-gray-500 text-center">Add Image</span>
-      `;
-        slot.appendChild(currentInput);
-        if (badge) slot.appendChild(badge);
-        currentInput.value = '';
-        validateForm();
+      if (size.value.trim() && !sizeRegex.test(size.value.trim())) {
+        errors[0].textContent = 'Invalid size format';
+        isValid = false;
       }
+      if (addPrice.value < 0) {
+        errors[1].textContent = 'Cannot be negative';
+        isValid = false;
+      }
+      if (!stock.value || stock.value < 0 || !Number.isInteger(+stock.value)) {
+        errors[2].textContent = 'Must be whole number ≥ 0';
+        isValid = false;
+      }
+    });
+
+    return isValid;
+  }
+
+// Block form submit if invalid + disable button
+form.addEventListener('submit', e => {
+  if (!validateForm()) {
+    e.preventDefault();
+    alert('Please fix all errors before updating');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  // Disable button + show loading
+  const submitBtn = document.getElementById('submitBtn');
+  const submitText = document.getElementById('submitText');
+  const loadingSpinner = document.getElementById('loadingSpinner');
+
+  submitBtn.disabled = true;
+  submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+  submitText.textContent = 'Updating...';
+  loadingSpinner.classList.remove('hidden');
+});
+
+  // Image slots (existing + empty) — your logic enhanced
+  document.querySelectorAll('.existing-image, .image-upload-slot').forEach((slot, idx) => {
+    let input = slot.querySelector('input[type="file"]');
+    if (!input) {
+      input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.name = `replaceImages[${idx}]`;
+      input.classList.add('hidden');
+      slot.appendChild(input);
+    } else {
+      input.name = `replaceImages[${idx}]`;
     }
 
-    /* --------------------------------------------------------------
-       VARIANTS
-    -------------------------------------------------------------- */
-    addVariantBtn.addEventListener('click', () => {
-      const tmpl = variantsTbody.querySelector('tr') || createEmptyRow();
-      const row = tmpl.cloneNode(true);
-      row.querySelectorAll('input').forEach(i => i.value = '');
-      row.querySelectorAll('.error').forEach(e => e.textContent = '');
-      variantsTbody.appendChild(row);
+    slot.addEventListener('click', e => {
+      if (e.target.classList.contains('replace-image')) return;
+      input.click();
+    });
+
+    const replaceBtn = slot.querySelector('.replace-image');
+    if (replaceBtn) replaceBtn.addEventListener('click', () => input.click());
+
+    input.addEventListener('change', () => {
+      const file = input.files[0];
+      if (!file) return;
+
+      currentInput = input;
+      const reader = new FileReader();
+      reader.onload = e => {
+        cropImage.src = e.target.result;
+        cropModal.style.display = 'flex';
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(cropImage, {
+          aspectRatio: 1,
+          viewMode: 1,
+          autoCropArea: 0.8,
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  // Crop & Apply
+  cropBtn.addEventListener('click', () => {
+    if (!cropper || !currentInput) return;
+
+    cropper.getCroppedCanvas({ width: 800, height: 800 }).toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const newFile = new File([blob], 'cropped.jpg', { type: 'image/jpeg' });
+      const dt = new DataTransfer();
+      dt.items.add(newFile);
+      currentInput.files = dt.files;
+
+      const slot = currentInput.closest('.existing-image') || currentInput.closest('.image-upload-slot');
+      const badge = slot.querySelector('.absolute.-top-2.-right-2');
+
+      slot.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-lg">`;
+      slot.appendChild(currentInput);
+      if (badge) slot.appendChild(badge);
+
+      // Remove old public_id (marks for deletion)
+      const hidden = slot.querySelector('input[type="hidden"]');
+      if (hidden) hidden.remove();
+
+      closeCropModal();
       validateForm();
-    });
+    }, 'image/jpeg', 0.95);
+  });
 
-    variantsTbody.addEventListener('click', e => {
-      if (e.target.classList.contains('remove-variant') && variantsTbody.children.length > 1) {
-        e.target.closest('tr').remove();
-        validateForm();
-      }
-    });
+  function closeCropModal() {
+    cropModal.style.display = 'none';
+    if (cropper) { cropper.destroy(); cropper = null; }
+    currentInput = null;
+  }
+  cancelCropBtn.onclick = closeCropModal;
+  cropModal.onclick = e => { if (e.target === cropModal) closeCropModal(); };
 
-    function createEmptyRow() {
-      const tr = document.createElement('tr');
-      tr.className = 'border-b border-gray-100';
-      tr.innerHTML = `
+  // Add Variant
+  document.querySelector('.add-variant-btn')?.addEventListener('click', () => {
+    const tbody = document.getElementById('variantsTable');
+    const row = document.createElement('tr');
+    row.className = 'border-b border-gray-100';
+    row.innerHTML = `
       <td class="py-4 px-4">
-        <input name="size[]" placeholder="Nil" type="text" class="w-full px-3 py-2 border rounded-md">
-        <input type="hidden" name="variantId[]" value="">
+        <input name="size[]" placeholder="Nil" class="w-full px-3 py-2 border rounded-md">
         <div class="error"></div>
       </td>
       <td class="py-4 px-4">
-        <input name="additionalPrice[]" type="number" value="0" class="w-full px-3 py-2 border rounded-md">
+        <input name="additionalPrice[]" value="0" type="number" class="w-full px-3 py-2 border rounded-md">
         <div class="error"></div>
       </td>
       <td class="py-4 px-4">
-        <input name="stock[]" type="number" value="0" class="w-full px-3 py-2 border rounded-md">
+        <input name="stock[]" value="0" type="number" class="w-full px-3 py-2 border rounded-md">
         <div class="error"></div>
       </td>
       <td class="py-4 px-4">
         <button type="button" class="remove-variant text-red-500 hover:text-red-700">Remove</button>
       </td>
     `;
-      return tr;
-    }
-
-    /* --------------------------------------------------------------
-       REAL-TIME VALIDATION
-    -------------------------------------------------------------- */
-    ['productName', 'productDescription', 'category', 'brand', 'price', 'discount']
-      .forEach(id => document.getElementById(id)?.addEventListener('input', validateForm));
-
-    variantsTbody.addEventListener('input', e => {
-      if (['size[]', 'additionalPrice[]', 'stock[]'].includes(e.target.name)) validateForm();
-    });
-
-    // initial validation (useful on edit page)
-    validateForm();
+    tbody.appendChild(row);
   });
+
+  // Remove variant
+  document.addEventListener('click', e => {
+    if (e.target.classList.contains('remove-variant') && document.querySelectorAll('#variantsTable tr').length > 1) {
+      e.target.closest('tr').remove();
+    }
+  });
+
+  // Initial validation
+  validateForm();
+});
 </script>

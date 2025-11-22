@@ -209,7 +209,7 @@
       data.products.forEach(p => {
         const clone = template.content.cloneNode(true);
         clone.querySelector(".product-link").href = `/product/${p._id}`;
-        clone.querySelector(".product-img").src = `/Uploads/${p.images?.[0] || 'default.jpg'}`;
+        clone.querySelector(".product-img").src = `${p.images?.[0].url || 'default.jpg'}`;
         clone.querySelector(".product-img").alt = p.name;
         clone.querySelector(".product-name").textContent = p.name;
         clone.querySelector(".product-price").textContent = `₹${p.price}`;

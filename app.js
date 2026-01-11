@@ -13,6 +13,18 @@ const sessionCheck = require("./middlewares/authMiddleware").sessionCheck;
 db();
 const errorController = require("./controllers/errorController");
 
+
+if (
+  !process.env.CLOUDINARY_CLOUD_NAME ||
+  !process.env.CLOUDINARY_API_KEY ||
+  !process.env.CLOUDINARY_API_SECRET
+) {
+  console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.error("   MISSING CLOUDINARY CREDENTIALS   ");
+  console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  process.exit(1);
+}
+
 app.use(
   session({
     secret: process.env.SESSION_KEY,

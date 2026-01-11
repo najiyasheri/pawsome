@@ -21,6 +21,7 @@
     "tailwind": "npx @tailwindcss/cli -i ./public/styles/input.css -o ./public/styles/output.css --watch"
   },
   "dependencies": {
+    "@fluidjs/multer-cloudinary": "^1.0.4",
     "@tailwindcss/cli": "^4.1.12",
     "bcrypt": "^6.0.0",
     "cloudinary": "^1.41.3",
